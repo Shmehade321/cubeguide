@@ -1,0 +1,61 @@
+[
+  {
+    "file": "CubeCore/CubeMoves.swift",
+    "lines": {
+      "count": 16,
+      "covered": 16,
+      "percent": 100
+    },
+    "uncoveredRegions": []
+  },
+  {
+    "file": "CubeCore/Facelets.swift",
+    "lines": {
+      "count": 53,
+      "covered": 53,
+      "percent": 100
+    },
+    "uncoveredRegions": []
+  },
+  {
+    "file": "CubeCore/Move.swift",
+    "lines": {
+      "count": 52,
+      "covered": 52,
+      "percent": 100
+    },
+    "uncoveredRegions": []
+  },
+  {
+    "file": "CubeCore/Orientation.swift",
+    "lines": {
+      "count": 101,
+      "covered": 101,
+      "percent": 100
+    },
+    "uncoveredRegions": [
+      [
+        69,
+        81
+      ]
+    ]
+  },
+  {
+    "file": "CubeCore/Replay.swift",
+    "lines": {
+      "count": 10,
+      "covered": 10,
+      "percent": 100
+    },
+    "uncoveredRegions": []
+  },
+  {
+    "file": "CubeCore/Validation.swift",
+    "lines": {
+      "count": 60,
+      "covered": 60,
+      "percent": 100
+    },
+    "uncoveredRegions": []
+  }
+]

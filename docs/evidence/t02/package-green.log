@@ -1,0 +1,117 @@
+Building for debugging...
+[2 / 6] CubeCore
+[3 / 7] CubeCore
+[13 / 17] CubeCore
+[17 / 20] CubeCoreTests-product
+[27 / 30] CubeCoreTests-product
+[29 / 30] CubeCoreTests-product
+[33 / 33] CubeCoreTests-product
+Build complete! (1.40 sec)
+Test Suite 'All tests' started at 2026-09-20 17:53:06.342.
+Test Suite 'All tests' passed at 2026-09-20 17:53:06.343.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+◇ Test run started.
+↳ Testing Library Version: 2084
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Test "V06: original-state hash matches independent SHA-256 fixture" started.
+◇ Test "V02: all 24×18 pose/move conjugations agree on 54 unique stickers" started.
+◇ Test "V01: independent shallow oracle visits exactly 46,741 unique legal states through depth four" started.
+◇ Test "V03: mirrored corners and impossible edges rejected without misleading parity diagnosis" started.
+◇ Test "V03: every isolated edge flip rejected and paired flips accepted" started.
+◇ Test "V03: reject malformed facelet strings" started.
+◇ Test "V06: replay accepts solved empty and independently specified inverse solution" started.
+◇ Test "V02: regrips have explicit physical directions and inverse identities" started.
+◇ Test "V03: every isolated piece transposition rejected, matched parity accepted" started.
+◇ Test "V03: array constructor enforces exact sticker count" started.
+◇ Test "V02: exactly 24 proper poses with front/top roundtrip and rejected parallel axes" started.
+◇ Test "V01: opposite turns commute, adjacent turns do not" started.
+◇ Test "V06: empty, wrong, overlong and malformed solutions never become plans" started.
+◇ Test "V03: every isolated corner twist rejected and balanced twists accepted" started.
+◇ Test "V01: parse exact facelets, preserve every position, round-trip bounded encoding" started.
+◇ Test "V02: all view grids equal independent integer geometry and determinant +1" started.
+◇ Test "V02: reject reflected or malformed serialized orientations" started.
+◇ Test "V01: fixed practice sequence matches independent unique-label composition" started.
+◇ Test "V01: six clockwise permutations match independently generated 54-sticker golden destinations" started.
+◇ Test "V03: color count and center diagnostics precede piece diagnostics" started.
+◇ Test "V03: solved and every independent golden scramble is accepted" started.
+◇ Test "V01: canonical face identities round-trip through serialized indices" started.
+◇ Test "V03: balanced duplicate corner inventory is rejected" started.
+◇ Test "V06: reject invalid or overlong move notation" started.
+◇ Test "V01: public application matches fixed R scramble and inverse" started.
+◇ Test case passing 1 argument text → "UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU" to "V03: reject malformed facelet strings" started.
+◇ Test case passing 1 argument text → "" to "V03: reject malformed facelet strings" started.
+◇ Test case passing 1 argument text → "UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUX" to "V03: reject malformed facelet strings" started.
+◇ Test case passing 1 argument text → "UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU🟦" to "V03: reject malformed facelet strings" started.
+◇ Test "V01: parse all move amounts and invert without changing face" started.
+◇ Test case passing 1 argument text → "U" to "V03: reject malformed facelet strings" started.
+◇ Test case passing 1 argument count → 0 to "V03: array constructor enforces exact sticker count" started.
+◇ Test case passing 1 argument text → "UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU" to "V03: reject malformed facelet strings" started.
+◇ Test case passing 1 argument text → "UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU
+" to "V03: reject malformed facelet strings" started.
+◇ Test case passing 1 argument count → 1 to "V03: array constructor enforces exact sticker count" started.
+◇ Test case passing 1 argument count → 53 to "V03: array constructor enforces exact sticker count" started.
+◇ Test case passing 1 argument count → 55 to "V03: array constructor enforces exact sticker count" started.
+◇ Test case passing 1 argument face → .up to "V01: six clockwise permutations match independently generated 54-sticker golden destinations" started.
+◇ Test case passing 1 argument face → .right to "V01: six clockwise permutations match independently generated 54-sticker golden destinations" started.
+◇ Test case passing 1 argument face → .front to "V01: six clockwise permutations match independently generated 54-sticker golden destinations" started.
+◇ Test case passing 1 argument count → 1000 to "V03: array constructor enforces exact sticker count" started.
+◇ Test case passing 1 argument face → .down to "V01: six clockwise permutations match independently generated 54-sticker golden destinations" started.
+◇ Test case passing 1 argument face → .left to "V01: six clockwise permutations match independently generated 54-sticker golden destinations" started.
+◇ Test case passing 1 argument face → .back to "V01: six clockwise permutations match independently generated 54-sticker golden destinations" started.
+◇ Test case passing 1 argument text → "X" to "V06: reject invalid or overlong move notation" started.
+◇ Test case passing 1 argument text → "r" to "V06: reject invalid or overlong move notation" started.
+◇ Test case passing 1 argument text → "R0" to "V06: reject invalid or overlong move notation" started.
+◇ Test "V01: all 18 moves preserve labels and fixed centers, invert and have correct powers" started.
+◇ Test case passing 1 argument text → "R3" to "V06: reject invalid or overlong move notation" started.
+◇ Test case passing 1 argument text → "R22" to "V06: reject invalid or overlong move notation" started.
+◇ Test case passing 1 argument text → "R2'" to "V06: reject invalid or overlong move notation" started.
+◇ Test case passing 1 argument text → "RU" to "V06: reject invalid or overlong move notation" started.
+◇ Test case passing 1 argument text → "R’" to "V06: reject invalid or overlong move notation" started.
+◇ Test case passing 1 argument text → "U U U U U U U U U U U U U U U U U U U U U U U U U U U U U U U " to "V06: reject invalid or overlong move notation" started.
+◇ Test case passing 1 argument text → "                                                                                                                                                                                                                                                                 " to "V06: reject invalid or overlong move notation" started.
+✔ Test "V03: reject malformed facelet strings" with 7 test cases passed after 0.001 seconds.
+✔ Test "V03: array constructor enforces exact sticker count" with 5 test cases passed after 0.001 seconds.
+✔ Test "V03: mirrored corners and impossible edges rejected without misleading parity diagnosis" passed after 0.002 seconds.
+✔ Test "V01: parse exact facelets, preserve every position, round-trip bounded encoding" passed after 0.002 seconds.
+✔ Test "V01: opposite turns commute, adjacent turns do not" passed after 0.002 seconds.
+✔ Test "V06: original-state hash matches independent SHA-256 fixture" passed after 0.002 seconds.
+✔ Test "V06: replay accepts solved empty and independently specified inverse solution" passed after 0.002 seconds.
+✔ Test "V02: reject reflected or malformed serialized orientations" passed after 0.002 seconds.
+✔ Test "V01: six clockwise permutations match independently generated 54-sticker golden destinations" with 6 test cases passed after 0.002 seconds.
+✔ Test "V01: canonical face identities round-trip through serialized indices" passed after 0.002 seconds.
+✔ Test "V01: fixed practice sequence matches independent unique-label composition" passed after 0.002 seconds.
+✔ Test "V03: balanced duplicate corner inventory is rejected" passed after 0.002 seconds.
+✔ Test "V01: public application matches fixed R scramble and inverse" passed after 0.002 seconds.
+✔ Test "V03: color count and center diagnostics precede piece diagnostics" passed after 0.002 seconds.
+✔ Test "V06: reject invalid or overlong move notation" with 10 test cases passed after 0.001 seconds.
+◇ Test case passing 1 argument move → Move(face: CubeCore.Face.right, turns: CubeCore.QuarterTurns.counterclockwise) to "V01: all 18 moves preserve labels and fixed centers, invert and have correct powers" started.
+◇ Test case passing 1 argument move → Move(face: CubeCore.Face.right, turns: CubeCore.QuarterTurns.half) to "V01: all 18 moves preserve labels and fixed centers, invert and have correct powers" started.
+◇ Test case passing 1 argument move → Move(face: CubeCore.Face.up, turns: CubeCore.QuarterTurns.half) to "V01: all 18 moves preserve labels and fixed centers, invert and have correct powers" started.
+◇ Test case passing 1 argument move → Move(face: CubeCore.Face.up, turns: CubeCore.QuarterTurns.clockwise) to "V01: all 18 moves preserve labels and fixed centers, invert and have correct powers" started.
+◇ Test case passing 1 argument move → Move(face: CubeCore.Face.front, turns: CubeCore.QuarterTurns.clockwise) to "V01: all 18 moves preserve labels and fixed centers, invert and have correct powers" started.
+◇ Test case passing 1 argument move → Move(face: CubeCore.Face.up, turns: CubeCore.QuarterTurns.counterclockwise) to "V01: all 18 moves preserve labels and fixed centers, invert and have correct powers" started.
+◇ Test case passing 1 argument move → Move(face: CubeCore.Face.front, turns: CubeCore.QuarterTurns.half) to "V01: all 18 moves preserve labels and fixed centers, invert and have correct powers" started.
+◇ Test case passing 1 argument move → Move(face: CubeCore.Face.front, turns: CubeCore.QuarterTurns.counterclockwise) to "V01: all 18 moves preserve labels and fixed centers, invert and have correct powers" started.
+◇ Test case passing 1 argument move → Move(face: CubeCore.Face.down, turns: CubeCore.QuarterTurns.clockwise) to "V01: all 18 moves preserve labels and fixed centers, invert and have correct powers" started.
+◇ Test case passing 1 argument move → Move(face: CubeCore.Face.right, turns: CubeCore.QuarterTurns.clockwise) to "V01: all 18 moves preserve labels and fixed centers, invert and have correct powers" started.
+✔ Test "V06: empty, wrong, overlong and malformed solutions never become plans" passed after 0.002 seconds.
+◇ Test case passing 1 argument move → Move(face: CubeCore.Face.down, turns: CubeCore.QuarterTurns.half) to "V01: all 18 moves preserve labels and fixed centers, invert and have correct powers" started.
+◇ Test case passing 1 argument move → Move(face: CubeCore.Face.down, turns: CubeCore.QuarterTurns.counterclockwise) to "V01: all 18 moves preserve labels and fixed centers, invert and have correct powers" started.
+◇ Test case passing 1 argument move → Move(face: CubeCore.Face.left, turns: CubeCore.QuarterTurns.half) to "V01: all 18 moves preserve labels and fixed centers, invert and have correct powers" started.
+✔ Test "V01: parse all move amounts and invert without changing face" passed after 0.002 seconds.
+◇ Test case passing 1 argument move → Move(face: CubeCore.Face.left, turns: CubeCore.QuarterTurns.clockwise) to "V01: all 18 moves preserve labels and fixed centers, invert and have correct powers" started.
+◇ Test case passing 1 argument move → Move(face: CubeCore.Face.left, turns: CubeCore.QuarterTurns.counterclockwise) to "V01: all 18 moves preserve labels and fixed centers, invert and have correct powers" started.
+◇ Test case passing 1 argument move → Move(face: CubeCore.Face.back, turns: CubeCore.QuarterTurns.clockwise) to "V01: all 18 moves preserve labels and fixed centers, invert and have correct powers" started.
+◇ Test case passing 1 argument move → Move(face: CubeCore.Face.back, turns: CubeCore.QuarterTurns.half) to "V01: all 18 moves preserve labels and fixed centers, invert and have correct powers" started.
+◇ Test case passing 1 argument move → Move(face: CubeCore.Face.back, turns: CubeCore.QuarterTurns.counterclockwise) to "V01: all 18 moves preserve labels and fixed centers, invert and have correct powers" started.
+✔ Test "V02: exactly 24 proper poses with front/top roundtrip and rejected parallel axes" passed after 0.003 seconds.
+✔ Test "V01: all 18 moves preserve labels and fixed centers, invert and have correct powers" with 18 test cases passed after 0.001 seconds.
+✔ Test "V02: regrips have explicit physical directions and inverse identities" passed after 0.004 seconds.
+✔ Test "V03: every isolated edge flip rejected and paired flips accepted" passed after 0.004 seconds.
+✔ Test "V03: every isolated corner twist rejected and balanced twists accepted" passed after 0.005 seconds.
+✔ Test "V02: all view grids equal independent integer geometry and determinant +1" passed after 0.006 seconds.
+✔ Test "V03: every isolated piece transposition rejected, matched parity accepted" passed after 0.020 seconds.
+✔ Test "V03: solved and every independent golden scramble is accepted" passed after 0.029 seconds.
+✔ Test "V02: all 24×18 pose/move conjugations agree on 54 unique stickers" passed after 0.032 seconds.
+✔ Test "V01: independent shallow oracle visits exactly 46,741 unique legal states through depth four" passed after 4.221 seconds.
+✔ Test run with 27 tests in 0 suites passed after 4.221 seconds.

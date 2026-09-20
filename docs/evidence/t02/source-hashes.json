@@ -1,0 +1,9 @@
+{
+  "Packages/CubeKit/Sources/CubeCore/CubeMoves.swift": "fe9e1af830514a86dd4193835adfe34bdb25bb3b8355db6dfe6c546aa7e4f34c",
+  "Packages/CubeKit/Sources/CubeCore/Face.swift": "ea36c1f416982d35a07288abb54168866e3bfe4a42daf1b840c5c6692258e97c",
+  "Packages/CubeKit/Sources/CubeCore/Facelets.swift": "d7fb17e969e777a7e65d4b6f47abd2614792110cb4b5fd2d3462f3b041ea0235",
+  "Packages/CubeKit/Sources/CubeCore/Move.swift": "f846d38b3d61b8dc92be389868ac63373a0940bcccc44f26b5c0134a08a9b0f9",
+  "Packages/CubeKit/Sources/CubeCore/Orientation.swift": "54169f90d21ab58d6bac0b536a0b201dd77e4780f60e47c39404625568dc0ecc",
+  "Packages/CubeKit/Sources/CubeCore/Replay.swift": "1225909905523cbddde985dcec06a2ca4ea6af09390d8038390768717a24ad2c",
+  "Packages/CubeKit/Sources/CubeCore/Validation.swift": "2cd04414a5137c609802172718fa37f40461b5ea32648e718fe508e430be8a38"
+}
