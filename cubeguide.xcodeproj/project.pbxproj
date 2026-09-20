@@ -27,6 +27,10 @@
 		4F53CECF30607C9E00D417D4 /* cubeguide.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = cubeguide.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4F53CEDC30607CA100D417D4 /* cubeguideTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = cubeguideTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		4F53CEE630607CA100D417D4 /* cubeguideUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = cubeguideUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		4F53CEF83060848A00D417D4 /* cube-app-implementation-plan.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "cube-app-implementation-plan.md"; sourceTree = "<group>"; };
+		4F53CEF93060848B00D417D4 /* cube-app-specification.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "cube-app-specification.md"; sourceTree = "<group>"; };
+		4F53CEFA3060848B00D417D4 /* cube-app-review-record.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "cube-app-review-record.md"; sourceTree = "<group>"; };
+		4F53CEFB3060848B00D417D4 /* cube-app-verification-plan.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "cube-app-verification-plan.md"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -73,6 +77,7 @@
 				4F53CEDF30607CA100D417D4 /* cubeguideTests */,
 				4F53CEE930607CA100D417D4 /* cubeguideUITests */,
 				4F53CED030607C9E00D417D4 /* Products */,
+				4F53CEF73060840400D417D4 /* Documentation */,
 			);
 			sourceTree = "<group>";
 		};
@@ -84,6 +89,17 @@
 				4F53CEE630607CA100D417D4 /* cubeguideUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		4F53CEF73060840400D417D4 /* Documentation */ = {
+			isa = PBXGroup;
+			children = (
+				4F53CEF83060848A00D417D4 /* cube-app-implementation-plan.md */,
+				4F53CEF93060848B00D417D4 /* cube-app-specification.md */,
+				4F53CEFA3060848B00D417D4 /* cube-app-review-record.md */,
+				4F53CEFB3060848B00D417D4 /* cube-app-verification-plan.md */,
+			);
+			path = Documentation;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

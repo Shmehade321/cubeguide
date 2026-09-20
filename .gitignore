@@ -1,0 +1,8 @@
+.DS_Store
+.build/
+DerivedData/
+Artifacts/
+*.xcresult
+xcuserdata/
+graft/
+.superpowers/
