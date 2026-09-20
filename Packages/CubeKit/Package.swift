@@ -11,7 +11,7 @@ let package = Package(
         .executableTarget(name: "TableGenerator", dependencies: ["CubeTableTools", "CubeSolver3"]),
         .target(name: "CubeTableTools", dependencies: ["CubeSolver3", "CubeCore"]),
         .testTarget(name: "CubeTableToolsTests", dependencies: ["CubeTableTools", "CubeSolver3"]),
-        .target(name: "CubeSolver3", dependencies: ["CubeCore"]),
+        .target(name: "CubeSolver3", dependencies: ["CubeCore"], resources: [.copy("Resources/Tables")]),
         .testTarget(name: "CubeSolver3Tests", dependencies: ["CubeSolver3", "CubeCore"]),
         .testTarget(name: "CubeCoreTests", dependencies: ["CubeCore"])
     ],

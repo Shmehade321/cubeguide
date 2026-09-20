@@ -151,6 +151,21 @@ def recompute_distances(left,right,goal):
     return distance.reshape(left.shape[0],right_rows)
 
 
+def check_distance_edges(distance,left,right):
+    right_rows=right.shape[0]
+    flat=distance.reshape(-1).astype(np.int16)
+    indices=np.arange(flat.size)
+    a,b=indices//right_rows,indices%right_rows
+    predecessor=np.zeros(flat.size,dtype=bool)
+    for move in range(left.shape[1]):
+        neighbors=left[a,move].astype(np.int64)*right_rows+right[b,move]
+        other=flat[neighbors]
+        require(np.all(np.abs(flat-other)<=1),'Distance violates a legal graph edge')
+        predecessor |= other == flat-1
+    require(np.all(predecessor[flat>0]),'Non-goal distance has no predecessor')
+    require(np.count_nonzero(flat==0)==1,'Distance graph has multiple goals')
+
+
 def validate(directory):
     started = time.perf_counter()
     manifest_path = directory/'manifest.json'
@@ -180,6 +195,7 @@ def validate(directory):
         else:
             l,r,goal = [(0,2,494),(1,2,494),(3,5,0),(4,5,0)][identifier-7]
             expected = recompute_distances(tables[l],tables[r],goal)
+            check_distance_edges(actual,tables[l],tables[r])
             limit = 255
         equal(actual,expected,name)
         killed = mutation_detected(actual,expected,limit,name)

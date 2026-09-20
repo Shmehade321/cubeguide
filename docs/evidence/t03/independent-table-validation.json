@@ -1,0 +1,81 @@
+{
+  "result": "passed",
+  "sourceCommit": "3e4b6a00a5e94b7098b64fc8fa11283e551b7c07",
+  "tables": [
+    {
+      "table": "twistMove",
+      "entriesCompared": 39366,
+      "maximum": 2186,
+      "mutationDetected": true,
+      "result": "passed"
+    },
+    {
+      "table": "flipMove",
+      "entriesCompared": 36864,
+      "maximum": 2047,
+      "mutationDetected": true,
+      "result": "passed"
+    },
+    {
+      "table": "sliceMove",
+      "entriesCompared": 8910,
+      "maximum": 494,
+      "mutationDetected": true,
+      "result": "passed"
+    },
+    {
+      "table": "cornerPermMove",
+      "entriesCompared": 403200,
+      "maximum": 40319,
+      "mutationDetected": true,
+      "result": "passed"
+    },
+    {
+      "table": "edgePermMove",
+      "entriesCompared": 403200,
+      "maximum": 40319,
+      "mutationDetected": true,
+      "result": "passed"
+    },
+    {
+      "table": "slicePermMove",
+      "entriesCompared": 240,
+      "maximum": 23,
+      "mutationDetected": true,
+      "result": "passed"
+    },
+    {
+      "table": "twistSliceDistance",
+      "entriesCompared": 1082565,
+      "maximum": 9,
+      "mutationDetected": true,
+      "result": "passed"
+    },
+    {
+      "table": "flipSliceDistance",
+      "entriesCompared": 1013760,
+      "maximum": 9,
+      "mutationDetected": true,
+      "result": "passed"
+    },
+    {
+      "table": "cornerSlicePermDistance",
+      "entriesCompared": 967680,
+      "maximum": 14,
+      "mutationDetected": true,
+      "result": "passed"
+    },
+    {
+      "table": "edgeSlicePermDistance",
+      "entriesCompared": 967680,
+      "maximum": 12,
+      "mutationDetected": true,
+      "result": "passed"
+    }
+  ],
+  "payloadBytes": 5815005,
+  "seconds": 1.104685583,
+  "python": "3.9.6",
+  "numpy": "2.0.2",
+  "platform": "macOS-27.0-arm64-arm-64bit"
+}

@@ -19,8 +19,8 @@ Baseline: 78f7fbc. User authorized full implementation with TDD, quality checks 
 |---|---|---|
 | T01 Foundation | local exit passed; remote CI not run | task-01.md |
 | T02 Mathematics | automated exit passed; physical golden check open | task-02.md |
-| T03 Tables | running | task-03.md |
-| T04 Search | notRun | — |
+| T03 Tables | local exit passed; remote CI not run | task-03.md |
+| T04 Search | next | task-04.md |
 | T05 Session/storage | notRun | — |
 | T06 Manual flow | notRun | — |
 | T07 Graphics | notRun | — |
@@ -36,4 +36,4 @@ Physical phones/cubes, supervised participants, owned human narration, final sto
 
 ## Shipping status
 
-Code: foundation and cube mathematics implemented; tables next. Automated qualification: not complete. Media/device qualification: not run. Archive: not ready. TestFlight/submitted/approved/released: not performed.
+Code: foundation, cube mathematics and independently validated tables implemented; search next. Automated qualification: not complete. Media/device qualification: not run. Archive: not ready. TestFlight/submitted/approved/released: not performed.

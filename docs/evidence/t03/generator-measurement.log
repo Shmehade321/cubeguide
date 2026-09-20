@@ -1,0 +1,29 @@
+Generated twistMove.bin
+Generated flipMove.bin
+Generated sliceMove.bin
+Generated cornerPermMove.bin
+Generated edgePermMove.bin
+Generated slicePermMove.bin
+Generated twistSliceDistance.bin
+Generated flipSliceDistance.bin
+Generated cornerSlicePermDistance.bin
+Generated edgeSlicePermDistance.bin
+Completed 10 tables in 0.792292208 seconds; payload 5815005 bytes
+        0.79 real         0.77 user         0.01 sys
+            30556160  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+                2086  page reclaims
+                  10  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                  18  voluntary context switches
+                 253  involuntary context switches
+         17003755899  instructions retired
+          3183655862  cycles elapsed
+            24265328  peak memory footprint

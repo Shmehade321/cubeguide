@@ -36,3 +36,15 @@ class OracleTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+class DistanceEdgeTests(unittest.TestCase):
+    def test_legal_distances_and_bad_edge_or_predecessor(self):
+        left=np.array([[1,2,0],[2,0,1],[0,1,2]],dtype=np.uint16)
+        right=np.array([[0,0,1],[1,1,0]],dtype=np.uint16)
+        valid=np.array([[0,1],[1,2],[1,2]],dtype=np.uint8)
+        validate.check_distance_edges(valid,left,right)
+        bad=valid.copy();bad[0,1]=3
+        with self.assertRaises(ValueError):
+            validate.check_distance_edges(bad,left,right)
+        with self.assertRaises(ValueError):
+            validate.check_distance_edges(np.ones_like(valid),left,right)

@@ -1,0 +1,97 @@
+{
+  "formatVersion" : 1,
+  "generatorVersion" : "cubeguide-tables-v1",
+  "sourceCommit" : "3e4b6a00a5e94b7098b64fc8fa11283e551b7c07",
+  "tables" : [
+    {
+      "byteCount" : 78768,
+      "columns" : 18,
+      "elementWidth" : 2,
+      "filename" : "twistMove.bin",
+      "identifier" : 1,
+      "rows" : 2187,
+      "sha256" : "799294ba6e74266346ebeebab0e7b3319652d06270626d6a5717a41dbc306545"
+    },
+    {
+      "byteCount" : 73764,
+      "columns" : 18,
+      "elementWidth" : 2,
+      "filename" : "flipMove.bin",
+      "identifier" : 2,
+      "rows" : 2048,
+      "sha256" : "66114abfad8d0862374a8ed6e7046ed03320041bd47f17115ce825d1d613b493"
+    },
+    {
+      "byteCount" : 17856,
+      "columns" : 18,
+      "elementWidth" : 2,
+      "filename" : "sliceMove.bin",
+      "identifier" : 3,
+      "rows" : 495,
+      "sha256" : "603b9d5fc0238291bdf4d075afcfce108cf67114000af53ce3457c0f22963523"
+    },
+    {
+      "byteCount" : 806436,
+      "columns" : 10,
+      "elementWidth" : 2,
+      "filename" : "cornerPermMove.bin",
+      "identifier" : 4,
+      "rows" : 40320,
+      "sha256" : "6b2755cc63db24b3deb9b1448f46b5b73c7c495138316ceaa0746cb5e335e846"
+    },
+    {
+      "byteCount" : 806436,
+      "columns" : 10,
+      "elementWidth" : 2,
+      "filename" : "edgePermMove.bin",
+      "identifier" : 5,
+      "rows" : 40320,
+      "sha256" : "471146390fe22a872c92a4ecee38e6374aac52a956fdd90e4d00463d6edf19be"
+    },
+    {
+      "byteCount" : 276,
+      "columns" : 10,
+      "elementWidth" : 1,
+      "filename" : "slicePermMove.bin",
+      "identifier" : 6,
+      "rows" : 24,
+      "sha256" : "fb5209044065978446248ea6df5d64673367eb145360382d2872783c5490433d"
+    },
+    {
+      "byteCount" : 1082601,
+      "columns" : 495,
+      "elementWidth" : 1,
+      "filename" : "twistSliceDistance.bin",
+      "identifier" : 7,
+      "rows" : 2187,
+      "sha256" : "f6ace258f6d8773165f0205879cf8a3959f4e62037cb13adcf8cd5877df92c6f"
+    },
+    {
+      "byteCount" : 1013796,
+      "columns" : 495,
+      "elementWidth" : 1,
+      "filename" : "flipSliceDistance.bin",
+      "identifier" : 8,
+      "rows" : 2048,
+      "sha256" : "cb9a682d205ff394c773d708ed9c0704dbd07d0265752288d7fd0d81deea2061"
+    },
+    {
+      "byteCount" : 967716,
+      "columns" : 24,
+      "elementWidth" : 1,
+      "filename" : "cornerSlicePermDistance.bin",
+      "identifier" : 9,
+      "rows" : 40320,
+      "sha256" : "b1311cb700d2cdd82b6156ed2725b2cde3c06b8e543753494f7711196ae1aa8c"
+    },
+    {
+      "byteCount" : 967716,
+      "columns" : 24,
+      "elementWidth" : 1,
+      "filename" : "edgeSlicePermDistance.bin",
+      "identifier" : 10,
+      "rows" : 40320,
+      "sha256" : "8994ace960f633b0370a1f9558c9813492ded60adf32827faa9bda6c642de548"
+    }
+  ]
+}

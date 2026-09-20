@@ -20,3 +20,11 @@ That UDID is the local iOS 18.5 iPhone 16 Pro simulator observed during T01. On 
 PR scripts record commit/toolchain, run the currently implemented package/infrastructure/app suites, reject failed/skipped/empty runs, and retain `.xcresult` plus summary JSON. They do not certify future unimplemented suites. As features land, corpus/mutation/device qualification is added without changing the product's acceptance thresholds. Nightly/release commands additionally require qualification evidence. The asset command intentionally fails while production assets are absent.
 
 GitHub workflow is checked in but has not run remotely: this repository currently has no Git remote. A runner without the required runtime must be configured rather than silently using another platform. No credentials are committed.
+
+## Solver model and tables
+
+`CubeSolver3` owns independent cubie permutations, coordinate codecs, bounded binary parsing and an immutable resource loader. No search is implemented as of T03. `CubeTableTools` and `TableGenerator` are development-only targets; the application does not depend on them.
+
+`Scripts/verify-tables.sh` verifies the generator source against the manifest's source commit, generates into two clean directories, compares both with the packaged files, and runs the independent Python/NumPy oracle. The oracle reconstructs every move transition via facelet geometry, recomputes every distance, checks all outgoing edge distance bounds and predecessors, and verifies corruption detection. Install its pinned development requirements with `python3 -m pip install -r Tools/TableValidator/requirements.txt` when not already available. They never become an app dependency.
+
+Runtime resources are limited to ten files with known dimensions and a bounded manifest. Complete-file SHA-256, version, path, dimensions, counts and value ranges are checked before exposing tables. Search will use the loaded immutable arrays with checked coordinate inputs. Loader cancellation is checked between bounded file operations; device cancellation latency remains a T04 qualification obligation.

@@ -7,6 +7,7 @@ xcodebuild -version > "$ARTIFACT_DIR/toolchain.txt"
 swift --version >> "$ARTIFACT_DIR/toolchain.txt"
 git rev-parse HEAD > "$ARTIFACT_DIR/commit.txt"
 Scripts/run-logged.sh "$ARTIFACT_DIR/infrastructure.log" python3 -m unittest discover -s Tests/Infrastructure -v
+Scripts/run-logged.sh "$ARTIFACT_DIR/table-oracle-tests.log" python3 -m unittest discover -s Tools/TableValidator -v
 Scripts/test-package.sh
 # Require an explicit installed simulator; never substitute a different OS silently.
 : "${SIMULATOR_UDID:?Set SIMULATOR_UDID to an installed qualification simulator}"
