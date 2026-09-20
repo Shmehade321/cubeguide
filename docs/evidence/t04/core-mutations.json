@@ -1,0 +1,74 @@
+[
+  {
+    "mutation": "invert-face-direction",
+    "test": "quarterTurnDestinations",
+    "killed": true,
+    "exitCode": 1
+  },
+  {
+    "mutation": "swap-facelet-destination",
+    "test": "quarterTurnDestinations",
+    "killed": true,
+    "exitCode": 1
+  },
+  {
+    "mutation": "remove-color-count",
+    "test": "basicValidation",
+    "killed": true,
+    "exitCode": 1
+  },
+  {
+    "mutation": "remove-center-check",
+    "test": "basicValidation",
+    "killed": true,
+    "exitCode": 1
+  },
+  {
+    "mutation": "remove-corner-identity",
+    "test": "impossiblePieces",
+    "killed": true,
+    "exitCode": 1
+  },
+  {
+    "mutation": "remove-corner-uniqueness",
+    "test": "duplicateCorners",
+    "killed": true,
+    "exitCode": 1
+  },
+  {
+    "mutation": "remove-edge-uniqueness",
+    "test": "impossiblePieces",
+    "killed": true,
+    "exitCode": 1
+  },
+  {
+    "mutation": "remove-corner-orientation",
+    "test": "cornerTwists",
+    "killed": true,
+    "exitCode": 1
+  },
+  {
+    "mutation": "remove-edge-orientation",
+    "test": "edgeFlips",
+    "killed": true,
+    "exitCode": 1
+  },
+  {
+    "mutation": "remove-permutation-parity",
+    "test": "permutationParity",
+    "killed": true,
+    "exitCode": 1
+  },
+  {
+    "mutation": "skip-runtime-replay",
+    "test": "rejectedReplay",
+    "killed": true,
+    "exitCode": 1
+  },
+  {
+    "mutation": "remove-solution-length-bound",
+    "test": "rejectedReplay",
+    "killed": true,
+    "exitCode": 1
+  }
+]

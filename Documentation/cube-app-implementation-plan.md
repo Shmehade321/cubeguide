@@ -1,5 +1,7 @@
 # CubeGuide — Implementation Contract and Delivery Plan
 
+> Historical revision 2 planning/review baseline. Implementation status below describes the time of that review; current execution status is tracked in [the evidence ledger](../docs/evidence/progress.md).
+
 Revision 2 · 20 September 2026
 
 **Goal:** Deliver the complete offline 3×3 iPhone product defined by [the specification](cube-app-specification.md), with the evidence required by [the verification plan](cube-app-verification-plan.md).

@@ -1,6 +1,6 @@
 # T01 — Foundation
 
-Requirements: R14, R20. Suite: V17. Status: running.
+Requirements: R14, R20. Suite: V17. Status: local exit passed; remote CI not run.
 
 Predeclared acceptance: preserve existing app/scheme and signing identity; build iPhone simulator at iOS 18 minimum in Swift 6 mode; local CubeKit package compiles independently and is linked by the app; discovered tests must execute; intentional assertion failure propagates a nonzero exit through logging; zero discovered/skipped/failed required tests must not become a passing run; result artifacts survive failures; missing resources/evidence fail explicitly.
 

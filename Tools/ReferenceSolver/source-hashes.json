@@ -1,0 +1,13 @@
+{
+  "upstreamCommit": "4d183b9eff8119cac72bc50ef35a7d8990740e06",
+  "files": {
+    "upstream/src/CoordCube.java": "bf224cf76d7a4ae1d37ecc259b638fd7bc12718fc32397fab4a479d75c7425b9",
+    "upstream/src/CubieCube.java": "41c0d5739cfc1d7e6218b9ab5eabc1a73056b0149d03ef502acc7ed5ed4e8021",
+    "upstream/src/Search.java": "3cc844a43fe6258ad00f49d15282d5c9fac000669d51088812e39278df285a05",
+    "upstream/src/Tools.java": "d99bd27efb736f99b3b795abdb0c305e41c74bb21ce8833d1fd8bd9774f36ac1",
+    "upstream/src/Util.java": "0c60c5e6fd37c3175cbab92c7b7541c344d424046b1e162781f4b95bd250e370",
+    "upstream/README.md": "73df62360ff74266b42ca0fa7204d5aa18a8ab1b5abb7e26b21eb5fcee4d0206",
+    "upstream/COPYING": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+    "adapter/ReferenceRunner.java": "7f37104061e4c046d0b5f8eb834457ec646e127abd0a62956f501e040515030c"
+  }
+}

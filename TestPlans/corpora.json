@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "pr": {"count": 10000, "seed": 3233685542},
+  "nightly": {"count": 100000, "seedPolicy": "UTC YYYYMMDD unless CUBE_CORPUS_SEED is supplied"},
+  "release": {"count": 1000000, "seed": 3233685543},
+  "shallow": {"count": 46741, "layerCounts": [1, 18, 243, 3240, 43239]},
+  "strata": {"direct": 0.5, "moves20": 0.125, "moves40": 0.125, "moves80": 0.125, "moves200": 0.125}
+}

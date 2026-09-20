@@ -1,5 +1,7 @@
 # CubeGuide — Four-Round Specification Review
 
+> Historical revision 2 planning/review baseline. Implementation status below describes the time of that review; current execution status is tracked in [the evidence ledger](../docs/evidence/progress.md).
+
 20 September 2026 · Review scope: specification, verification plan and implementation/delivery contract. This was a sequential self-review by the same agent, not an independent multi-agent audit.
 
 ## Verdict

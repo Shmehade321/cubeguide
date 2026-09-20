@@ -6,9 +6,19 @@ mkdir -p "$ARTIFACT_DIR"
 xcodebuild -version > "$ARTIFACT_DIR/toolchain.txt"
 swift --version >> "$ARTIFACT_DIR/toolchain.txt"
 git rev-parse HEAD > "$ARTIFACT_DIR/commit.txt"
+python3 - "$ARTIFACT_DIR/source-state.json" <<'PY_SOURCES'
+import hashlib,json,pathlib,subprocess,sys
+paths=subprocess.check_output(['git','ls-files','--cached','--others','--exclude-standard','-z']).decode().split('\0')
+files={name:hashlib.sha256(pathlib.Path(name).read_bytes()).hexdigest() for name in sorted(set(paths)) if name and pathlib.Path(name).is_file()}
+json.dump({'head':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
+           'status':subprocess.check_output(['git','status','--porcelain'],text=True),'files':files},open(sys.argv[1],'w'),indent=2)
+PY_SOURCES
 Scripts/run-logged.sh "$ARTIFACT_DIR/infrastructure.log" python3 -m unittest discover -s Tests/Infrastructure -v
 Scripts/run-logged.sh "$ARTIFACT_DIR/table-oracle-tests.log" python3 -m unittest discover -s Tools/TableValidator -v
+Scripts/run-logged.sh "$ARTIFACT_DIR/corpus-tests.log" python3 -m unittest discover -s Tools/Corpus -v
+Scripts/run-logged.sh "$ARTIFACT_DIR/reference-tests.log" python3 -m unittest discover -s Tools/ReferenceSolver -v
 Scripts/test-package.sh
+Scripts/test-solver.sh
 # Require an explicit installed simulator; never substitute a different OS silently.
 : "${SIMULATOR_UDID:?Set SIMULATOR_UDID to an installed qualification simulator}"
 xcrun simctl list devices available -j > "$ARTIFACT_DIR/simulators.json"

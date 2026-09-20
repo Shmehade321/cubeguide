@@ -1,0 +1,74 @@
+[
+  {
+    "mutation": "phase-one-equality-pruned",
+    "test": "searchDepthBoundaries",
+    "killed": true,
+    "exitCode": 1
+  },
+  {
+    "mutation": "phase-two-equality-pruned",
+    "test": "searchDepthBoundaries",
+    "killed": true,
+    "exitCode": 1
+  },
+  {
+    "mutation": "wrong-phase-one-goal",
+    "test": "searchDepthBoundaries",
+    "killed": true,
+    "exitCode": 1
+  },
+  {
+    "mutation": "wrong-phase-two-goal",
+    "test": "searchDepthBoundaries",
+    "killed": true,
+    "exitCode": 1
+  },
+  {
+    "mutation": "retain-phase-boundary-right-history",
+    "test": "phaseBoundaryHistory",
+    "killed": true,
+    "exitCode": 1
+  },
+  {
+    "mutation": "sparse-cancellation-cadence",
+    "test": "multiPhaseSearch",
+    "killed": true,
+    "exitCode": 1
+  },
+  {
+    "mutation": "ignore-runtime-cancellation",
+    "test": "cancelBeforeResources",
+    "killed": true,
+    "exitCode": 1
+  },
+  {
+    "mutation": "miss-exact-deadline",
+    "test": "runtimeDeadlines",
+    "killed": true,
+    "exitCode": 1
+  },
+  {
+    "mutation": "misclassify-wrong-answer",
+    "test": "runtimeFailures",
+    "killed": true,
+    "exitCode": 1
+  },
+  {
+    "mutation": "discard-valid-resource-cache",
+    "test": "serviceCachesValidatedResources",
+    "killed": true,
+    "exitCode": 1
+  },
+  {
+    "mutation": "expose-completed-stale-answer",
+    "test": "explicitServiceCancellation",
+    "killed": true,
+    "exitCode": 1
+  },
+  {
+    "mutation": "overlap-replacement-workers",
+    "test": "serializedService",
+    "killed": true,
+    "exitCode": 1
+  }
+]

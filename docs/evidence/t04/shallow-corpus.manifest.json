@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "generatorVersion": "cubeguide-corpus-v1",
+  "generatorSourceSHA256": "f9d3654b4073eec8e5806724ad53f1fd99f214d5023b7ffd62f1915d2077a343",
+  "geometrySHA256": "cce053a62b7e345d00f3ce7b0665736a70e15a033222033f823d9216dea94549",
+  "python": "3.9.6",
+  "count": 46741,
+  "strata": {
+    "shallow": 46741
+  },
+  "seed": null,
+  "shallowLayerCounts": [
+    1,
+    18,
+    243,
+    3240,
+    43239
+  ],
+  "sha256": "8fe1668e4c0aca56da613a73617d986d52ac32d19656ea91c4775645e0562bcf"
+}

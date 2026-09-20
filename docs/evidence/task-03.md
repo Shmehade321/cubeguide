@@ -1,6 +1,6 @@
 # T03 — Coordinates and reproducible tables
 
-Status: running. Base: bb9ddec. R06/R13/R20, V04.
+Status: local exit passed; remote CI not run. Base: bb9ddec. R06/R13/R20, V04.
 
 Implement coordinate rank/unrank with solved slice goal 494; independent cubie moves; exhaustive table transitions checked against independent facelet geometry; four exact BFS distance tables with independent recomputation; bounded/versioned/hash-checked binary loader; clean double regeneration. Coordinate abstractions may represent partial states that do not independently satisfy whole-cube parity; public solving will still accept only LegalCube.
 

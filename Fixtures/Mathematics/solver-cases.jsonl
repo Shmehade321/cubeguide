@@ -1,0 +1,8 @@
+{"construction": "Canonical solved state", "expectedValid": true, "id": "solved", "source": "named", "state": "UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB"}
+{"construction": "Reviewed literal R snapshot", "expectedValid": true, "id": "right-turn", "source": "named", "state": "UUFUUFUUFRRRRRRRRRFFDFFDFFDDDBDDBDDBLLLLLLLLLUBBUBBUBB"}
+{"construction": "All twelve edges reversed; permutations and corners solved", "expectedValid": true, "id": "superflip", "source": "named", "state": "UBULURUFURURFRBRDRFUFLFRFDFDFDLDRDBDLULBLFLDLBUBRBLBDB"}
+{"construction": "Corner orientations [1,1,1,1,1,1,1,2]", "expectedValid": true, "id": "balanced-corner-twists", "source": "named", "state": "BURUUULUFURBRRRFRBUFRFFFLFDFDRDDDLDRULFLLLBLDUBLBBBDBD"}
+{"construction": "URF corner twisted once", "expectedValid": false, "id": "single-corner-twist", "source": "named", "state": "UUUUUUUUFURRRRRRRRFFRFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB"}
+{"construction": "UR edge flipped once", "expectedValid": false, "id": "single-edge-flip", "source": "named", "state": "UUUUURUUURURRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB"}
+{"construction": "UR and UF swapped without a corner swap", "expectedValid": false, "id": "unmatched-edge-swap", "source": "named", "state": "UUUUUUUUURFRRRRRRRFRFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB"}
+{"construction": "One U sticker replaced by R", "expectedValid": false, "id": "wrong-count", "source": "named", "state": "RUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB"}

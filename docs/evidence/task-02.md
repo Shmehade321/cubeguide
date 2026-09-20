@@ -1,6 +1,6 @@
 # T02 — Mathematics and runtime verifier
 
-Status: running. Base: b27c46a. Requirements R04/R06/R07; V01–V03 and replay postconditions.
+Status: automated exit passed; physical golden check open. Base: b27c46a. Requirements R04/R06/R07; V01–V03 and replay postconditions.
 
 Plan increments: bounded parsing; all 54 destinations for six quarter turns plus amounts/inverses; 24 orientations and conjugation; piece extraction/legality diagnostics; independently verified plans. Expected output uses fixed literal states/permutations and a separate test-only integer geometry oracle. Physical golden-fixture agreement remains an external qualification check.
 

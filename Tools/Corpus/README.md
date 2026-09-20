@@ -1,0 +1,7 @@
+# Deterministic solver qualification
+
+`generate.py` produces canonical test inputs independently from the Swift move engine. Half are direct legal cubie states; the remaining four equal strata apply 20, 40, 80 or 200 geometry-oracle moves. States are deduplicated across all strata. Python version, seed, generator/geometry hashes, quotas and complete corpus hash are recorded. `--shallow` enumerates and preserves all 46,741 distinct states through depth four separately.
+
+`analyze.py` requires the frozen input manifest and exact expected count, matches every result to its input, rejects invalid measurement fields and wrong resource versions, and independently replays every sequence through facelet geometry. It reports nearest-rank percentiles including recorded timeouts and outliers; it cannot certify unmeasured physical devices. Synthetic timing tests deliberately include a 100-second outlier to verify retention, not to approve that latency. The real benchmark enforces the specified 60-second deadline and any timeout fails qualification.
+
+Run the integrated pipeline with `ARTIFACT_DIR=Artifacts/NEW_DIRECTORY Scripts/test-solver.sh`. Outputs must be new: do not overwrite a failed run. The PR/nightly/release count and seed policies live in `TestPlans/corpora.json`; all tiers also run named fixtures, shallow states and the pinned reference. `Scripts/test-pr.sh` invokes this pipeline and tests its accounting tools. Release remains blocked on independent media, physical, lifecycle and distribution evidence even when solver tooling passes.
