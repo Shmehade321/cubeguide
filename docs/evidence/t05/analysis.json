@@ -1,0 +1,19 @@
+{
+  "result": "passed",
+  "count": 10000,
+  "expectedCount": 10000,
+  "caseCount": 10000,
+  "outcomes": {
+    "verified": 10000
+  },
+  "timeouts": 0,
+  "p50Seconds": 0.005038667,
+  "p95Seconds": 0.041977916,
+  "p99Seconds": 0.088924958,
+  "maximumSeconds": 0.615764792,
+  "failures": [],
+  "corpusSHA256": "db70af3c9cd535df105eb042d4a4c4af35522de7cf343bf28796092371c7400c",
+  "resultsSHA256": "05ca6d88b5f483380fd27ab3f7f822e662267af0d7048103c5f87c7626c363f6",
+  "resourceVersion": "2267e6550b3719ffdb39bfb764e94494b066c992c5baf487018bf83fee4714a4",
+  "analyzerSHA256": "e745a4292bdfd555f4909365defeadbafc59368020619b607d64e2643248dcf7"
+}
