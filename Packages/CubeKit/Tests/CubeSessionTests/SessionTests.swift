@@ -148,9 +148,9 @@ func checkedSolveResults() throws {
   #expect(accepted.session.phase == .preparingAction)
   #expect(accepted.session.plan == plan)
   #expect(accepted.commands.count == 1)
-  if case .prepareGuide(let actual, let revision) = accepted.commands.first {
-    #expect(actual == plan)
-    #expect(revision == solving.revision)
+  if case .saveGuide(let request) = accepted.commands.first {
+    #expect(request.progress.plan == plan)
+    #expect(request.id.revision == solving.revision)
   } else {
     Issue.record("Only the verified plan may enter action preparation")
   }
@@ -239,6 +239,11 @@ func preGuideTransitionMatrix() throws {
   ).get()
   let prepared = apply(solving, response(solving, outcome: .verified(plan))).session
   let resumeCheck = apply(prepared, .background).session
+  let guide = try durableGuide()
+  let saving = apply(guide, .acknowledge(try #require(guide.pendingAction).id)).session
+  let storageError = apply(saving, .persistFailed(try #require(saving.pendingSave).id)).session
+  let recovery = apply(storageError, .compare(.uncertain)).session
+  let expectedSolved = try finishedGuide()
   // Columns: start, edit, validate, yes, no, cancel, background, resume, longer, result.
   // A = accepted; R = rejected; I = ignored. Extend with each new workflow phase.
   let rows: [(Session, SessionPhase, String)] = [
@@ -251,6 +256,11 @@ func preGuideTransitionMatrix() throws {
     (error, .solveError, "RARRRAIRAI"),
     (prepared, .preparingAction, "RRRRRAARRI"),
     (resumeCheck, .resumeCheck, "RRRRRAIRRI"),
+    (guide, .guide, "RRRRRAARRI"),
+    (saving, .savingAcknowledgement, "RRRRRAARRI"),
+    (storageError, .storageError, "RRRRRAIRRI"),
+    (recovery, .recovery, "RRRRRAIRRI"),
+    (expectedSolved, .expectedSolved, "RRRRRRIRRI"),
   ]
   #expect(Set(rows.map { $0.1 }) == Set(SessionPhase.allCases))
   for (state, phase, expected) in rows {

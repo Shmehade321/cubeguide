@@ -3,7 +3,7 @@ import CubeSolver3
 
 public enum SessionPhase: String, CaseIterable, Sendable {
   case home, editing, invalid, alreadySolved, offer, solving, solveError, preparingAction,
-    resumeCheck
+    resumeCheck, guide, savingAcknowledgement, storageError, expectedSolved, recovery
 }
 public enum SessionRejection: Equatable, Sendable {
   case unavailableEvent, replacementRequired, revisionExhausted
@@ -19,11 +19,19 @@ public enum SessionEvent: Sendable {
   case consent(Bool)
   case cancel, background, resume, retryLonger
   case solveResult(SolverResponse)
+  case persisted(SaveID)
+  case persistFailed(SaveID)
+  case confirmAlignment, play, pause, replay
+  case previewFinished(PlaybackID)
+  case acknowledge(ActionID)
+  case compare(PhysicalComparison)
 }
 public enum SessionCommand: Sendable {
   case solve(LegalCube, revision: UInt64, budget: SolveBudget)
   case cancelSolve(revision: UInt64)
-  case prepareGuide(VerifiedPlan, revision: UInt64)
+  case saveGuide(GuideSaveRequest)
+  case playPreview(GuideAction, PlaybackID, restart: Bool)
+  case stopPreview, pausePreview
 }
 public struct Session: Equatable, Sendable {
   public fileprivate(set) var phase: SessionPhase = .home
@@ -31,10 +39,20 @@ public struct Session: Equatable, Sendable {
   public fileprivate(set) var hasWork = false
   public fileprivate(set) var confirmedCube: LegalCube?
   public fileprivate(set) var validationIssues: ValidationIssues?
-  public fileprivate(set) var plan: VerifiedPlan?
-  public fileprivate(set) var pendingAction: GuideAction?
+  public var plan: VerifiedPlan? { guideProgress?.plan }
+  public var pendingAction: GuideAction? { guideProgress?.pending }
   public fileprivate(set) var solveFailure: SolveOutcome?
   public fileprivate(set) var usedExtendedAttempt = false
+  public fileprivate(set) var guideProgress: GuideProgress?
+  public fileprivate(set) var pendingSave: GuideSaveRequest?
+  public fileprivate(set) var preparationDurable = false
+  public fileprivate(set) var aligned = false
+  public fileprivate(set) var preview: PreviewStatus = .idle
+  public fileprivate(set) var playbackID: PlaybackID?
+  fileprivate var saveSequence: UInt64 = 0
+  fileprivate var playbackSequence: UInt64 = 0
+  fileprivate var interruptedSave = false
+  fileprivate var failedSaveKind: GuideSaveKind?
   public init(revision: UInt64 = 0) { self.revision = revision }
 }
 public struct SessionTransition: Sendable {
@@ -58,7 +76,122 @@ public enum SessionReducer {
       next.revision = revision
       return true
     }
+    func beginSave(_ kind: GuideSaveKind, progress: GuideProgress?) -> Bool {
+      guard let progress else { return false }
+      let (sequence, overflow) = next.saveSequence.addingReportingOverflow(1)
+      guard !overflow else {
+        next.phase = .storageError
+        next.failedSaveKind = kind
+        return false
+      }
+      next.saveSequence = sequence
+      let request = GuideSaveRequest(
+        id: SaveID(revision: session.revision, sequence: sequence),
+        kind: kind, progress: progress, pendingPrepared: kind == .preparation)
+      next.pendingSave = request
+      next.phase = kind == .preparation ? .preparingAction : .savingAcknowledgement
+      commands.append(.saveGuide(request))
+      return true
+    }
     switch event {
+    case .persisted(let id):
+      guard let save = session.pendingSave, save.id == id else { return ignored() }
+      next.pendingSave = nil
+      next.guideProgress = save.progress
+      next.preparationDurable = save.pendingPrepared
+      next.failedSaveKind = nil
+      next.preview = .idle
+      next.playbackID = nil
+      if save.progress.isComplete {
+        next.phase = .expectedSolved
+      } else if session.interruptedSave || session.phase == .resumeCheck || session.phase == .home {
+        next.phase = session.phase == .home ? .home : .resumeCheck
+      } else if save.kind == .acknowledgement {
+        _ = beginSave(.preparation, progress: save.progress)
+      } else {
+        next.phase = .guide
+      }
+      next.interruptedSave = false
+    case .confirmAlignment:
+      guard session.phase == .guide, session.preparationDurable, session.pendingSave == nil,
+        session.preview == .idle
+      else { return rejected() }
+      if session.aligned { return ignored() }
+      next.aligned = true
+    case .play, .replay:
+      guard session.phase == .guide, session.preparationDurable, session.aligned,
+        session.pendingSave == nil, let action = session.pendingAction
+      else { return rejected() }
+      if case .play = event, session.preview == .playing { return ignored() }
+      let (sequence, overflow) = session.playbackSequence.addingReportingOverflow(1)
+      guard !overflow else { return rejected(.revisionExhausted) }
+      next.playbackSequence = sequence
+      let id = PlaybackID(action: action.id, sequence: sequence)
+      let restart: Bool
+      if case .replay = event { restart = true } else { restart = session.preview != .paused }
+      next.playbackID = id
+      next.preview = .playing
+      commands = [.stopPreview, .playPreview(action, id, restart: restart)]
+      if !restart { commands.removeFirst() }
+    case .pause:
+      guard session.phase == .guide, session.preview == .playing else { return rejected() }
+      next.preview = .paused
+      next.playbackID = nil
+      commands = [.pausePreview]
+    case .previewFinished(let id):
+      guard session.phase == .guide, session.preview == .playing, session.playbackID == id else {
+        return ignored()
+      }
+      next.preview = .finished
+      next.playbackID = nil
+    case .acknowledge(let id):
+      guard session.pendingAction?.id == id else { return ignored() }
+      guard session.pendingSave == nil else { return ignored() }
+      guard session.phase == .guide, session.aligned, session.preparationDurable,
+        session.preview != .playing, session.preview != .paused,
+        let candidate = try? session.guideProgress?.acknowledging(id)
+      else { return rejected() }
+      next.preview = .idle
+      next.playbackID = nil
+      commands = [.stopPreview]
+      _ = beginSave(.acknowledgement, progress: candidate)
+    case .persistFailed(let id):
+      guard let request = session.pendingSave, request.id == id else { return ignored() }
+      next.pendingSave = nil
+      next.failedSaveKind = request.kind
+      next.interruptedSave = false
+      next.phase = .storageError
+      next.aligned = false
+      next.preview = .idle
+      next.playbackID = nil
+      commands = [.stopPreview]
+    case .compare(let choice):
+      guard [.resumeCheck, .storageError].contains(session.phase), session.pendingSave == nil,
+        let progress = session.guideProgress, let action = progress.pending
+      else { return rejected() }
+      next.preview = .idle
+      next.playbackID = nil
+      commands = [.stopPreview]
+      switch choice {
+      case .uncertain:
+        next.phase = .recovery
+        next.aligned = false
+      case .before:
+        next.aligned = true
+        next.failedSaveKind = nil
+        if session.preparationDurable {
+          next.phase = .guide
+        } else {
+          _ = beginSave(.preparation, progress: progress)
+        }
+      case .after:
+        guard session.preparationDurable || session.failedSaveKind == .acknowledgement,
+          let candidate = try? progress.acknowledging(action.id)
+        else { return rejected() }
+        next.aligned = true
+        next.failedSaveKind = nil
+        _ = beginSave(.acknowledgement, progress: candidate)
+      }
     case .startManual(let replacing):
       guard session.phase == .home else { return rejected() }
       guard !session.hasWork || replacing else { return rejected(.replacementRequired) }
@@ -68,8 +201,16 @@ public enum SessionReducer {
       next.phase = .editing
       next.hasWork = true
     case .cancel, .background:
-      if session.phase == .preparingAction {
-        next.phase = .resumeCheck
+      if [.preparingAction, .guide, .savingAcknowledgement].contains(session.phase) {
+        next.aligned = false
+        next.preview = .idle
+        next.playbackID = nil
+        next.interruptedSave = session.pendingSave != nil
+        commands = [.stopPreview]
+        if session.phase != .savingAcknowledgement { next.phase = .resumeCheck }
+      } else if session.phase == .recovery {
+        if case .background = event { return ignored() }
+        next.phase = session.guideProgress?.isComplete == true ? .expectedSolved : .resumeCheck
       } else if session.phase == .solving {
         // At the final revision, leaving .solving still invalidates its callback;
         // further requests are rejected rather than wrapping the generation.
@@ -80,8 +221,9 @@ public enum SessionReducer {
         return ignored()
       } else {
         guard
-          [.editing, .invalid, .alreadySolved, .offer, .solveError, .resumeCheck].contains(
-            session.phase)
+          [.editing, .invalid, .alreadySolved, .offer, .solveError, .resumeCheck, .storageError]
+            .contains(
+              session.phase)
         else {
           return rejected()
         }
@@ -126,8 +268,7 @@ public enum SessionReducer {
       next.phase = .editing
       next.confirmedCube = nil
       next.validationIssues = nil
-      next.plan = nil
-      next.pendingAction = nil
+      next.guideProgress = nil
       next.solveFailure = nil
       next.usedExtendedAttempt = false
     case .resume:
@@ -159,22 +300,16 @@ public enum SessionReducer {
           next.solveFailure = .verificationFailure
           return SessionTransition(session: next, disposition: .accepted, commands: [])
         }
-        next.plan = plan
         do {
-          guard let move = plan.moves.first else { throw GuidePlanningError.invalidState }
-          next.pendingAction = try GuidePlanner.actions(
-            for: move, at: .identity, state: plan.original,
-            sessionRevision: session.revision, moveIndex: 0
-          ).first
+          next.guideProgress = try GuideProgress(plan: plan, revision: session.revision)
           guard next.pendingAction != nil else { throw GuidePlanningError.invalidState }
         } catch {
-          next.plan = nil
+          next.guideProgress = nil
           next.phase = .solveError
           next.solveFailure = .invariantFailure
           return SessionTransition(session: next, disposition: .accepted, commands: [])
         }
-        next.phase = .preparingAction
-        commands = [.prepareGuide(plan, revision: session.revision)]
+        _ = beginSave(.preparation, progress: next.guideProgress)
       case .cancelled:
         next.phase = .offer
       case .invalidInput:
