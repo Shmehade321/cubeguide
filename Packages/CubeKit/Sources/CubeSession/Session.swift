@@ -54,6 +54,15 @@ public struct Session: Equatable, Sendable {
   fileprivate var interruptedSave = false
   fileprivate var failedSaveKind: GuideSaveKind?
   public init(revision: UInt64 = 0) { self.revision = revision }
+  public init(restoring archive: RestoredGuide) throws {
+    self.init(revision: archive.progress.revision)
+    guideProgress = archive.progress
+    confirmedCube = try CubeValidation.validate(archive.progress.plan.original).get()
+    hasWork = true
+    preparationDurable = archive.pendingPrepared
+    saveSequence = archive.saveID.sequence
+    phase = archive.progress.isComplete ? .expectedSolved : .resumeCheck
+  }
 }
 public struct SessionTransition: Sendable {
   public let session: Session
