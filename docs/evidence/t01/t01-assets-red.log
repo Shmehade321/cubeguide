@@ -1,0 +1,55 @@
+test_complete_nonempty_inventory (test_assets.AssetTests) ... ok
+test_duplicate_id_rejected (test_assets.AssetTests) ... FAIL
+test_missing_empty_and_outside_files (test_assets.AssetTests) ... test_missing_inventory (test_assets.AssetTests) ... FAIL
+test_failure_preserved_even_with_success_text (test_runner.RunnerTests) ... ok
+test_success_command_preserved (test_runner.RunnerTests) ... ok
+test_accepts_executed_suite (test_runner.SwiftResultTests) ... ok
+test_rejects_failed_test (test_runner.SwiftResultTests) ... ok
+test_rejects_no_discovery (test_runner.SwiftResultTests) ... ok
+test_rejects_skipped_test (test_runner.SwiftResultTests) ... ok
+test_rejects_zero_tests (test_runner.SwiftResultTests) ... ok
+
+======================================================================
+FAIL: test_duplicate_id_rejected (test_assets.AssetTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/mehadehasan/DEV/IOS/CubeGuide/cubeguide/Tests/Infrastructure/test_assets.py", line 34, in test_duplicate_id_rejected
+    self.assertTrue(assets.validate({'assets':[{'id':'N01'},{'id':'N01'}]}, pathlib.Path(root), {'N01'}))
+AssertionError: [] is not true
+
+======================================================================
+FAIL: test_missing_empty_and_outside_files (test_assets.AssetTests) (path='missing.m4a')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/mehadehasan/DEV/IOS/CubeGuide/cubeguide/Tests/Infrastructure/test_assets.py", line 23, in test_missing_empty_and_outside_files
+    self.assertTrue(assets.validate({'assets': [{'id':'N01', 'path':path, 'source':'rights.md'}]}, root, {'N01'}))
+AssertionError: [] is not true
+
+======================================================================
+FAIL: test_missing_empty_and_outside_files (test_assets.AssetTests) (path='empty.m4a')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/mehadehasan/DEV/IOS/CubeGuide/cubeguide/Tests/Infrastructure/test_assets.py", line 23, in test_missing_empty_and_outside_files
+    self.assertTrue(assets.validate({'assets': [{'id':'N01', 'path':path, 'source':'rights.md'}]}, root, {'N01'}))
+AssertionError: [] is not true
+
+======================================================================
+FAIL: test_missing_empty_and_outside_files (test_assets.AssetTests) (path='../outside.m4a')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/mehadehasan/DEV/IOS/CubeGuide/cubeguide/Tests/Infrastructure/test_assets.py", line 23, in test_missing_empty_and_outside_files
+    self.assertTrue(assets.validate({'assets': [{'id':'N01', 'path':path, 'source':'rights.md'}]}, root, {'N01'}))
+AssertionError: [] is not true
+
+======================================================================
+FAIL: test_missing_inventory (test_assets.AssetTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/mehadehasan/DEV/IOS/CubeGuide/cubeguide/Tests/Infrastructure/test_assets.py", line 15, in test_missing_inventory
+    self.assertTrue(assets.validate({'assets': []}, pathlib.Path(root), {'N01'}))
+AssertionError: [] is not true
+
+----------------------------------------------------------------------
+Ran 11 tests in 0.330s
+
+FAILED (failures=5)

@@ -1,0 +1,34 @@
+{
+  "configurations": [
+    {
+      "id": "9E5819A2-2000-4000-8000-000000000001",
+      "name": "Release",
+      "options": {}
+    }
+  ],
+  "defaultOptions": {
+    "codeCoverage": true,
+    "targetForVariableExpansion": {
+      "containerPath": "container:cubeguide.xcodeproj",
+      "identifier": "4F53CECE30607C9E00D417D4",
+      "name": "cubeguide"
+    }
+  },
+  "testTargets": [
+    {
+      "target": {
+        "containerPath": "container:cubeguide.xcodeproj",
+        "identifier": "4F53CEDB30607CA100D417D4",
+        "name": "cubeguideTests"
+      }
+    },
+    {
+      "target": {
+        "containerPath": "container:cubeguide.xcodeproj",
+        "identifier": "4F53CEE530607CA100D417D4",
+        "name": "cubeguideUITests"
+      }
+    }
+  ],
+  "version": 1
+}

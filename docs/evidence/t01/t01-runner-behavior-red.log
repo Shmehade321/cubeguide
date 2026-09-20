@@ -1,0 +1,64 @@
+test_failure_preserved_even_with_success_text (test_runner.RunnerTests) ... FAIL
+test_success_command_preserved (test_runner.RunnerTests) ... FAIL
+test_accepts_executed_suite (test_runner.SwiftResultTests) ... ok
+test_rejects_failed_test (test_runner.SwiftResultTests) ... FAIL
+test_rejects_no_discovery (test_runner.SwiftResultTests) ... FAIL
+test_rejects_skipped_test (test_runner.SwiftResultTests) ... FAIL
+test_rejects_zero_tests (test_runner.SwiftResultTests) ... FAIL
+
+======================================================================
+FAIL: test_failure_preserved_even_with_success_text (test_runner.RunnerTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/mehadehasan/DEV/IOS/CubeGuide/cubeguide/Tests/Infrastructure/test_runner.py", line 21, in test_failure_preserved_even_with_success_text
+    self.assertEqual(self.run_fixture('Test run with 1 test passed', 42), 42)
+  File "/Users/mehadehasan/DEV/IOS/CubeGuide/cubeguide/Tests/Infrastructure/test_runner.py", line 16, in run_fixture
+    self.assertTrue(log.exists(), result.stderr)
+AssertionError: False is not true : 
+
+======================================================================
+FAIL: test_success_command_preserved (test_runner.RunnerTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/mehadehasan/DEV/IOS/CubeGuide/cubeguide/Tests/Infrastructure/test_runner.py", line 24, in test_success_command_preserved
+    self.assertEqual(self.run_fixture('command completed', 0), 0)
+  File "/Users/mehadehasan/DEV/IOS/CubeGuide/cubeguide/Tests/Infrastructure/test_runner.py", line 16, in run_fixture
+    self.assertTrue(log.exists(), result.stderr)
+AssertionError: False is not true : 
+
+======================================================================
+FAIL: test_rejects_failed_test (test_runner.SwiftResultTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/mehadehasan/DEV/IOS/CubeGuide/cubeguide/Tests/Infrastructure/test_runner.py", line 47, in test_rejects_failed_test
+    self.assertNotEqual(self.check_log('✘ Test failed\n✔ Test run with 3 tests passed after 0.1 seconds.\n'), 0)
+AssertionError: 0 == 0
+
+======================================================================
+FAIL: test_rejects_no_discovery (test_runner.SwiftResultTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/mehadehasan/DEV/IOS/CubeGuide/cubeguide/Tests/Infrastructure/test_runner.py", line 38, in test_rejects_no_discovery
+    self.assertNotEqual(self.check_log('Build complete!\n'), 0)
+AssertionError: 0 == 0
+
+======================================================================
+FAIL: test_rejects_skipped_test (test_runner.SwiftResultTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/mehadehasan/DEV/IOS/CubeGuide/cubeguide/Tests/Infrastructure/test_runner.py", line 44, in test_rejects_skipped_test
+    self.assertNotEqual(self.check_log('↷ Test skipped\n✔ Test run with 3 tests passed after 0.1 seconds.\n'), 0)
+AssertionError: 0 == 0
+
+======================================================================
+FAIL: test_rejects_zero_tests (test_runner.SwiftResultTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/mehadehasan/DEV/IOS/CubeGuide/cubeguide/Tests/Infrastructure/test_runner.py", line 41, in test_rejects_zero_tests
+    self.assertNotEqual(self.check_log('✔ Test run with 0 tests passed after 0.1 seconds.\n'), 0)
+AssertionError: 0 == 0
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.180s
+
+FAILED (failures=6)

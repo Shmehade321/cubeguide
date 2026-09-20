@@ -6,3 +6,5 @@ Artifacts/
 xcuserdata/
 graft/
 .superpowers/
+__pycache__/
+*.pyc

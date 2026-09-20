@@ -1,0 +1,14 @@
+test_incomplete_or_bad_summary_rejected (test_xcode_results.ResultTests) ... test_success (test_xcode_results.ResultTests) ... ok
+
+======================================================================
+FAIL: test_incomplete_or_bad_summary_rejected (test_xcode_results.ResultTests) (summary={'result': 'Passed', 'totalTestCount': 3, 'passedTests': 3, 'failedTests': 0, 'skippedTests': 0, 'testFailures': [], 'expectedFailures': 1})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/mehadehasan/DEV/IOS/CubeGuide/cubeguide/Tests/Infrastructure/test_xcode_results.py", line 19, in test_incomplete_or_bad_summary_rejected
+    self.assertFalse(results.passed(summary))
+AssertionError: True is not false
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.000s
+
+FAILED (failures=1)

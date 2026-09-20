@@ -1,0 +1,14 @@
+Building for debugging...
+[2 / 6] CubeCoreTests-product
+[4 / 8] CubeCoreTests-product
+[10 / 12] CubeCoreTests-product
+Build complete! (1.01 sec)
+Test Suite 'All tests' started at 2026-09-20 17:35:41.217.
+Test Suite 'All tests' passed at 2026-09-20 17:35:41.218.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+◇ Test run started.
+↳ Testing Library Version: 2084
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Test "V01: canonical face identities round-trip through serialized indices" started.
+✔ Test "V01: canonical face identities round-trip through serialized indices" passed after 0.001 seconds.
+✔ Test run with 1 test in 0 suites passed after 0.001 seconds.

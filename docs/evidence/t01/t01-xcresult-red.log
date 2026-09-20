@@ -1,0 +1,73 @@
+test_complete_nonempty_inventory (test_assets.AssetTests) ... ok
+test_duplicate_id_rejected (test_assets.AssetTests) ... ok
+test_missing_empty_and_outside_files (test_assets.AssetTests) ... ok
+test_missing_inventory (test_assets.AssetTests) ... ok
+test_failure_preserved_even_with_success_text (test_runner.RunnerTests) ... ok
+test_success_command_preserved (test_runner.RunnerTests) ... ok
+test_accepts_executed_suite (test_runner.SwiftResultTests) ... ok
+test_rejects_failed_test (test_runner.SwiftResultTests) ... ok
+test_rejects_no_discovery (test_runner.SwiftResultTests) ... ok
+test_rejects_skipped_test (test_runner.SwiftResultTests) ... ok
+test_rejects_zero_tests (test_runner.SwiftResultTests) ... ok
+test_incomplete_or_bad_summary_rejected (test_xcode_results.ResultTests) ... test_success (test_xcode_results.ResultTests) ... ok
+
+======================================================================
+FAIL: test_incomplete_or_bad_summary_rejected (test_xcode_results.ResultTests) (summary={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/mehadehasan/DEV/IOS/CubeGuide/cubeguide/Tests/Infrastructure/test_xcode_results.py", line 19, in test_incomplete_or_bad_summary_rejected
+    self.assertFalse(results.passed(summary))
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_incomplete_or_bad_summary_rejected (test_xcode_results.ResultTests) (summary={'result': 'Failed', 'totalTestCount': 3, 'passedTests': 3, 'failedTests': 0, 'skippedTests': 0, 'testFailures': []})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/mehadehasan/DEV/IOS/CubeGuide/cubeguide/Tests/Infrastructure/test_xcode_results.py", line 19, in test_incomplete_or_bad_summary_rejected
+    self.assertFalse(results.passed(summary))
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_incomplete_or_bad_summary_rejected (test_xcode_results.ResultTests) (summary={'result': 'Passed', 'totalTestCount': 0, 'passedTests': 0, 'failedTests': 0, 'skippedTests': 0, 'testFailures': []})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/mehadehasan/DEV/IOS/CubeGuide/cubeguide/Tests/Infrastructure/test_xcode_results.py", line 19, in test_incomplete_or_bad_summary_rejected
+    self.assertFalse(results.passed(summary))
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_incomplete_or_bad_summary_rejected (test_xcode_results.ResultTests) (summary={'result': 'Passed', 'totalTestCount': 3, 'passedTests': 3, 'failedTests': 0, 'skippedTests': 1, 'testFailures': []})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/mehadehasan/DEV/IOS/CubeGuide/cubeguide/Tests/Infrastructure/test_xcode_results.py", line 19, in test_incomplete_or_bad_summary_rejected
+    self.assertFalse(results.passed(summary))
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_incomplete_or_bad_summary_rejected (test_xcode_results.ResultTests) (summary={'result': 'Passed', 'totalTestCount': 3, 'passedTests': 3, 'failedTests': 1, 'skippedTests': 0, 'testFailures': []})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/mehadehasan/DEV/IOS/CubeGuide/cubeguide/Tests/Infrastructure/test_xcode_results.py", line 19, in test_incomplete_or_bad_summary_rejected
+    self.assertFalse(results.passed(summary))
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_incomplete_or_bad_summary_rejected (test_xcode_results.ResultTests) (summary={'result': 'Passed', 'totalTestCount': 3, 'passedTests': 3, 'failedTests': 0, 'skippedTests': 0, 'testFailures': [{'message': 'crash'}]})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/mehadehasan/DEV/IOS/CubeGuide/cubeguide/Tests/Infrastructure/test_xcode_results.py", line 19, in test_incomplete_or_bad_summary_rejected
+    self.assertFalse(results.passed(summary))
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_incomplete_or_bad_summary_rejected (test_xcode_results.ResultTests) (summary={'result': 'Passed', 'totalTestCount': 3, 'passedTests': 2, 'failedTests': 0, 'skippedTests': 0, 'testFailures': []})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/mehadehasan/DEV/IOS/CubeGuide/cubeguide/Tests/Infrastructure/test_xcode_results.py", line 19, in test_incomplete_or_bad_summary_rejected
+    self.assertFalse(results.passed(summary))
+AssertionError: True is not false
+
+----------------------------------------------------------------------
+Ran 13 tests in 0.248s
+
+FAILED (failures=7)

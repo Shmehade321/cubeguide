@@ -1,0 +1,165 @@
+{
+  "version": 1,
+  "requirements": [
+    {
+      "requirementID": "R01",
+      "tasks": "T06, T11",
+      "testIDs": "V12, V15",
+      "requiredExternalEvidence": "Disconnected fresh install of distributed candidate",
+      "result": "notRun",
+      "evidencePaths": []
+    },
+    {
+      "requirementID": "R02",
+      "tasks": "T05, T09",
+      "testIDs": "V02, V07, V08",
+      "requiredExternalEvidence": "Physical six-face capture in defined pose order",
+      "result": "notRun",
+      "evidencePaths": []
+    },
+    {
+      "requirementID": "R03",
+      "tasks": "T06, T09",
+      "testIDs": "V03, V07, V08",
+      "requiredExternalEvidence": "Held-out image ground truth and correction trials",
+      "result": "notRun",
+      "evidencePaths": []
+    },
+    {
+      "requirementID": "R04",
+      "tasks": "T02",
+      "testIDs": "V01, V03",
+      "requiredExternalEvidence": "Mathematical convention review and physical golden fixtures",
+      "result": "notRun",
+      "evidencePaths": []
+    },
+    {
+      "requirementID": "R05",
+      "tasks": "T05, T06",
+      "testIDs": "V09, V12",
+      "requiredExternalEvidence": "Consent/decline UX inspection",
+      "result": "notRun",
+      "evidencePaths": []
+    },
+    {
+      "requirementID": "R06",
+      "tasks": "T02, T03, T04",
+      "testIDs": "V04, V05, V06",
+      "requiredExternalEvidence": "Algorithm/table-contract review; measured device performance",
+      "result": "notRun",
+      "evidencePaths": []
+    },
+    {
+      "requirementID": "R07",
+      "tasks": "T07, T08",
+      "testIDs": "V02, V10, V14",
+      "requiredExternalEvidence": "Matching stickers and realistic layer turns on device",
+      "result": "notRun",
+      "evidencePaths": []
+    },
+    {
+      "requirementID": "R08",
+      "tasks": "T05, T07, T08, T10",
+      "testIDs": "V02, V09, V10, V13",
+      "requiredExternalEvidence": "Regrip/turn/narration comprehension",
+      "result": "notRun",
+      "evidencePaths": []
+    },
+    {
+      "requirementID": "R09",
+      "tasks": "T05, T08",
+      "testIDs": "V09, V11",
+      "requiredExternalEvidence": "Turn-before-acknowledgement crash rehearsal",
+      "result": "notRun",
+      "evidencePaths": []
+    },
+    {
+      "requirementID": "R10",
+      "tasks": "T05, T08, T09, T10",
+      "testIDs": "V08, V09, V12",
+      "requiredExternalEvidence": "Physical wrong-turn recovery and completion check",
+      "result": "notRun",
+      "evidencePaths": []
+    },
+    {
+      "requirementID": "R11",
+      "tasks": "T05, T11",
+      "testIDs": "V09, V11, V15",
+      "requiredExternalEvidence": "Relaunch/locked-device/disk-full behavior",
+      "result": "notRun",
+      "evidencePaths": []
+    },
+    {
+      "requirementID": "R12",
+      "tasks": "T07, T08, T10",
+      "testIDs": "V12, V13, V14",
+      "requiredExternalEvidence": "VoiceOver, large text, contrast, Reduce Motion and silence",
+      "result": "notRun",
+      "evidencePaths": []
+    },
+    {
+      "requirementID": "R13",
+      "tasks": "T04, T09, T11",
+      "testIDs": "V06, V11, V12",
+      "requiredExternalEvidence": "Latency, memory, thermal and live-camera interruption",
+      "result": "notRun",
+      "evidencePaths": []
+    },
+    {
+      "requirementID": "R14",
+      "tasks": "T01\u2013T12",
+      "testIDs": "V17",
+      "requiredExternalEvidence": "Review of red/green records and unrun gate ledger",
+      "result": "notRun",
+      "evidencePaths": []
+    },
+    {
+      "requirementID": "R15",
+      "tasks": "T06, T07, T08, T09, T10",
+      "testIDs": "V09, V12, V14",
+      "requiredExternalEvidence": "Every S01\u2013S11 screen/state reviewed",
+      "result": "notRun",
+      "evidencePaths": []
+    },
+    {
+      "requirementID": "R16",
+      "tasks": "T07, T12",
+      "testIDs": "V10, V14, V16",
+      "requiredExternalEvidence": "Original icon/graphics/screenshots and provenance",
+      "result": "notRun",
+      "evidencePaths": []
+    },
+    {
+      "requirementID": "R17",
+      "tasks": "T08, T10",
+      "testIDs": "V13",
+      "requiredExternalEvidence": "Human listening, recording rights and audio routes",
+      "result": "notRun",
+      "evidencePaths": []
+    },
+    {
+      "requirementID": "R18",
+      "tasks": "T05, T11",
+      "testIDs": "V11, V15",
+      "requiredExternalEvidence": "Installed-build storage/privacy audit",
+      "result": "notRun",
+      "evidencePaths": []
+    },
+    {
+      "requirementID": "R19",
+      "tasks": "T12",
+      "testIDs": "V16",
+      "requiredExternalEvidence": "Owner account details, live URLs, actual review/release state",
+      "result": "notRun",
+      "evidencePaths": []
+    },
+    {
+      "requirementID": "R20",
+      "tasks": "T01, T03, T12",
+      "testIDs": "V16, V17",
+      "requiredExternalEvidence": "Reproduction/handoff and maintenance runbook",
+      "result": "notRun",
+      "evidencePaths": []
+    }
+  ]
+}

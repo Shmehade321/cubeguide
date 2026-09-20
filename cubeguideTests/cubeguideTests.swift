@@ -1,19 +1,11 @@
-//
-//  cubeguideTests.swift
-//  cubeguideTests
-//
-//  Created by Mehade Hasan on 9/20/26.
-//
-
 import Testing
+import CubeCore
 @testable import cubeguide
 
-struct cubeguideTests {
-
-    @Test func example() async throws {
-        // Write your test here and use APIs like `#expect(...)` to check expected conditions.
-        // Swift Testing Documentation
-        // https://developer.apple.com/documentation/testing
+struct AppCompositionTests {
+    @MainActor
+    @Test("R20: app links CubeCore and exposes all canonical faces")
+    func packageIntegration() {
+        #expect(AppDependencies().canonicalFaces.map(\.rawValue) == [0, 1, 2, 3, 4, 5])
     }
-
 }

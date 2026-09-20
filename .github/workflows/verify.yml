@@ -1,0 +1,36 @@
+name: CubeGuide verification
+on:
+  pull_request:
+  push:
+    branches: [main, 'codex/**']
+  workflow_dispatch:
+jobs:
+  foundation:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Record available toolchains and runtimes
+        run: |
+          xcodebuild -version
+          swift --version
+          xcrun simctl list devices available
+      - name: Resolve required minimum-family runtime
+        run: |
+          python3 - <<'PY'
+          import json, os, subprocess
+          devices=json.loads(subprocess.check_output(['xcrun','simctl','list','devices','available','-j']))['devices']
+          candidates=[d for r,ds in devices.items() if r.endswith('iOS-18-5') for d in ds if d['isAvailable'] and d['name']=='iPhone 16 Pro']
+          if len(candidates)!=1:
+              raise SystemExit('Required iOS 18.5 iPhone 16 Pro unavailable; configure runner, do not substitute')
+          with open(os.environ['GITHUB_ENV'],'a') as f:
+              f.write('SIMULATOR_UDID='+candidates[0]['udid']+'\n')
+          PY
+      - name: Run current implemented regression suite
+        run: Scripts/test-pr.sh
+      - name: Retain results on success or failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verification-evidence
+          path: Artifacts/
+          if-no-files-found: error

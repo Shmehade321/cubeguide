@@ -1,0 +1,32 @@
+Building for debugging...
+[Planning deferred tasks]
+[28 / 52] CubeCore
+[28 / 52]
+[33 / 57] CubeCore
+[41 / 57] CubeCore
+[47 / 58] CubeCoreTests-product
+[54 / 78]
+[58 / 78]
+[60 / 78]
+[61 / 78]
+[63 / 78]
+[64 / 78]
+[72 / 78] CubeCoreTests-product
+[74 / 78] CubeCoreTests-product
+[76 / 78] CubeCoreTests-product
+Build complete! (6.50 sec)
+Test Suite 'All tests' started at 2026-09-20 17:34:38.312.
+Test Suite 'All tests' passed at 2026-09-20 17:34:38.314.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.003) seconds
+◇ Test run started.
+↳ Testing Library Version: 2084
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Test "V01: canonical face identities round-trip through serialized indices" started.
+◇ Test "V17: intentional discovery failure" started.
+✔ Test "V01: canonical face identities round-trip through serialized indices" passed after 0.001 seconds.
+✘ Test "V17: intentional discovery failure" recorded an issue at FoundationTests.swift:6:17: Issue recorded
+↳ Intentional T01 assertion failure; remove after verifying runner exit status
+✘ Test "V17: intentional discovery failure" failed after 0.001 seconds with 1 issue.
+✘ Test run with 2 tests in 0 suites failed after 0.001 seconds with 1 issue.
+Note: Some test targets reported failures:
+  - CubeCoreTests (Swift Testing)
