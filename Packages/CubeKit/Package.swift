@@ -8,6 +8,9 @@ let package = Package(
                .library(name: "CubeSolver3", targets: ["CubeSolver3"])],
     targets: [
         .target(name: "CubeCore"),
+        .executableTarget(name: "TableGenerator", dependencies: ["CubeTableTools", "CubeSolver3"]),
+        .target(name: "CubeTableTools", dependencies: ["CubeSolver3", "CubeCore"]),
+        .testTarget(name: "CubeTableToolsTests", dependencies: ["CubeTableTools", "CubeSolver3"]),
         .target(name: "CubeSolver3", dependencies: ["CubeCore"]),
         .testTarget(name: "CubeSolver3Tests", dependencies: ["CubeSolver3", "CubeCore"]),
         .testTarget(name: "CubeCoreTests", dependencies: ["CubeCore"])

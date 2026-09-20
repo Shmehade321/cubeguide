@@ -1,0 +1,33 @@
+Building for production...
+[Pre-planning 1 / 240]
+[Planning deferred tasks]
+[48 / 107]
+[49 / 108] CubeCore
+[60 / 146]
+[65 / 146]
+[69 / 146]
+[70 / 146]
+[74 / 146]
+[77 / 146]
+[83 / 146]
+[85 / 146]
+[86 / 146]
+[88 / 146] CubeCore
+[99 / 148] CubeSolver3
+[103 / 152]
+[105 / 152] CubeSolver3
+[116 / 154] CubeTableTools
+[120 / 156] CubeTableTools
+[129 / 157] CubeTableToolsTests-product
+[131 / 158] CubeCoreTests-product
+[136 / 158] CubeCoreTests-product
+[143 / 158] CubeTableToolsTests-product
+[145 / 158] CubeSolver3Tests-product
+[150 / 158] CubeSolver3Tests-product
+Build complete! (6.87 sec)
+◇ Test run started.
+↳ Testing Library Version: 2084
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Test "V04: full generation covers all ten domains with solved distances and declared payload budget" started.
+✔ Test "V04: full generation covers all ten domains with solved distances and declared payload budget" passed after 0.763 seconds.
+✔ Test run with 1 test in 0 suites passed after 0.763 seconds.

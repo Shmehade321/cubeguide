@@ -1,0 +1,2 @@
+# Test-only dependency, observed and pinned on the development runner. Never ships in the app.
+numpy==2.0.2

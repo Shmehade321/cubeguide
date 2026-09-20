@@ -17,3 +17,13 @@ Table format tests cover the literal 36-byte little-endian header; 8/16-bit payl
 Ruling: Swift `package` access exposes solver model/table operations only to tooling targets in CubeKit, keeping them out of the public app API. Separate development-tool targets will generate/validate resources; the product module will not own offline BFS generation.
 
 T03 remains running: no generated tables, independent full-entry validation, resource loader or reproducibility claim yet. One access-modifier edit accidentally marked a local helper `package`; compilation rejected it, it was corrected, and the full suite then passed. This compile failure is not behavioral TDD evidence.
+
+## Increment 2 — original offline generator and independent validator
+
+Small graph BFS and move-column fixtures observed red before implementation; full table composition separately observed red before its final implementation. A draft composition helper had been added before its dedicated test; it was removed, replaced by the minimal callable boundary and the behavioral failure recorded before rewriting it. No such draft was committed.
+
+`swift test -c release --package-path Packages/CubeKit --filter allGeneratedTables`: all ten complete tables generated, no unresolved sentinel, sole zero at each correct goal, exact 5,815,005-byte payload; passed in 0.763 seconds after compilation on this runner. This is generation timing, not iPhone solving performance.
+
+Full PR regression with `ARTIFACT_DIR=Artifacts/t03-generator-pr` exited 0: 43 package test functions (27 core, 12 solver model/format, four generation), 15 infrastructure tests, two app tests. Independent Python oracle self-checks: five passed (literal rank/distance fixtures, nonzero slice goal, unreachable graph and first/middle/last corruption detection).
+
+The TableGenerator executable builds in Release. Full file generation, independent per-entry validation, clean double reproduction and runtime bundle loading remain outstanding. Generator/validator are test/development tooling, not product dependencies. NumPy 2.0.2 is installed on this runner and pinned in the validator requirements.
