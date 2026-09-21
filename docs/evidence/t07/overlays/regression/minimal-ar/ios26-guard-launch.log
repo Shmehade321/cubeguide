@@ -1,0 +1,5 @@
+GuardMalloc[RealityKitProbe-55915]: Allocations will be placed on 16 byte boundaries.
+GuardMalloc[RealityKitProbe-55915]:  - Some buffer overruns may not be noticed.
+GuardMalloc[RealityKitProbe-55915]:  - Applications using vector instructions (e.g., SSE) should work.
+GuardMalloc[RealityKitProbe-55915]: version 064575.39.1
+local.cubeguide.realitykitdiagnostic: 55915

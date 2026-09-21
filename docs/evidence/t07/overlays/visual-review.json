@@ -1,0 +1,14 @@
+{
+  "result": "failed",
+  "capturedImages": 54,
+  "reviewedExamples": [
+    "N04-light-before-overlay",
+    "N01-light-mid-overlay"
+  ],
+  "findings": [
+    "Left regrip arrowhead is occluded by the cube",
+    "Front turn arrow crosses sticker letters during motion"
+  ],
+  "scope": "Two inspected images suffice to reject current placement; remaining catalog is not approved",
+  "next": "Revise direction cue placement with regression coverage for visibility and unobstructed labels; rerender all operations and run full PR before commit"
+}

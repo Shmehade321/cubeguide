@@ -1,0 +1,12 @@
+{
+  "pid": 50601,
+  "loadedImage": [
+    "       0x102554000 -        0x102558383 +libgmalloc.dylib (64570.34.1) <D2C384E0-506F-377D-815B-1448902095C0> /Volumes/*/libgmalloc.dylib"
+  ],
+  "allocatorCallsObserved": [
+    "GuardMalloc_mallocInternal",
+    "GuardMalloc_freeInternal"
+  ],
+  "sample": "t07-preview-guard-sample.txt",
+  "scope": "Diagnostic activation proof, not a memory correctness result"
+}

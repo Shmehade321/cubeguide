@@ -1,0 +1,7 @@
+{
+  "originalSHA256": "646a9d4211d1424153ddb9f041984a6cec8be4f7f2b65619eea63b1e5e2b60cf",
+  "purpose": "Allocator diagnostic of unchanged 20-cycle manual preview behavior",
+  "diagnosticSHA256": "0da6f1eecd7f6e2ff153b4e5f60bbf6b64fa337fc5ce31ab693ac60a3ccd025a",
+  "xcodeExitCode": 0,
+  "restored": true
+}

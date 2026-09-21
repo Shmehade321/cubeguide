@@ -40,40 +40,7 @@ struct StaticGuideView: View {
         .accessibilityIdentifier("guide.staticCube")
         .frame(height: verticalSizeClass == .compact ? 120 : 180)
 
-      HStack(spacing: 12) {
-        Canvas { context, size in
-          // A separate neutral schematic keeps every comparison sticker readable.
-          for sticker in drawing.stickers {
-            let shape = polygon(sticker.corners.map { screen($0, size: size, inset: 8) })
-            context.stroke(shape, with: .color(.secondary), lineWidth: 0.7)
-          }
-          let points = direction.points.map { screen($0, size: size, inset: 8) }
-          var path = Path()
-          if let first = points.first { path.move(to: first) }
-          for point in points.dropFirst() { path.addLine(to: point) }
-          context.stroke(path, with: .color(Color(uiColor: .systemBackground)),
-            style: StrokeStyle(lineWidth: 5, lineCap: .round, lineJoin: .round))
-          context.stroke(path, with: .color(.primary),
-            style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
-          if points.count >= 2 {
-            let end = points[points.count - 1], previous = points[points.count - 2]
-            let dx = end.x - previous.x, dy = end.y - previous.y
-            let length = max(0.001, hypot(dx, dy))
-            let x = dx / length, y = dy / length
-            let head = polygon([end,
-              CGPoint(x: end.x - 8*x + 4*y, y: end.y - 8*y - 4*x),
-              CGPoint(x: end.x - 8*x - 4*y, y: end.y - 8*y + 4*x)])
-            context.stroke(head, with: .color(Color(uiColor: .systemBackground)), lineWidth: 2)
-            context.fill(head, with: .color(.primary))
-          }
-        }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(direction.movingCubies == 9 ? "Front-layer direction arrow" : "Whole-cube direction arrow")
-        .accessibilityIdentifier("guide.directionDiagram")
-        .frame(width: 110, height: 80)
-        Text(direction.movingCubies == 9 ? "Move only the front layer" : "Move the whole cube; keep all layers together")
-          .font(.caption).multilineTextAlignment(.leading)
-      }
+      GuideDirectionDiagram(action: action, palette: palette, after: after)
     }
     .foregroundStyle(.primary)
   }

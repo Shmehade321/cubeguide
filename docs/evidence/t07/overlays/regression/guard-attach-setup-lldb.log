@@ -1,0 +1,21 @@
+(lldb) process attach --pid 51614
+Process 51614 stopped
+* thread #1, queue = 'com.apple.main-thread', stop reason = signal SIGSTOP
+       frame #0: 0x0000000100b5cb5c libsystem_kernel.dylib`mach_msg2_trap + 8
+libsystem_kernel.dylib`mach_msg2_trap:
+->  0x100b5cb5c <+8>: ret    
+
+libsystem_kernel.dylib`macx_swapon:
+    0x100b5cb60 <+0>: mov    x16, #-0x30               ; =-48 
+    0x100b5cb64 <+4>: svc    #0x80
+    0x100b5cb68 <+8>: ret    
+Target 0: (cubeguide) stopped.
+Executable binary set to "/Users/mehadehasan/Library/Developer/CoreSimulator/Devices/67DB7428-A25B-4167-8FC2-24F47A392E81/data/Containers/Bundle/Application/B1BB99A9-8753-4F75-981A-2FA368D4BA75/cubeguide.app/cubeguide".
+Architecture set to: arm64-apple-ios-simulator.
+(lldb) process handle SIGSEGV -s true -n true -p true
+NAME         PASS   STOP   NOTIFY  DESCRIPTION
+===========  =====  =====  ======  ===================
+SIGSEGV      true   true   true    segmentation violation
+(lldb) continue
+Process 51614 resuming
+Process 51614 exited with status = 9 (0x00000009) Terminated due to signal 9

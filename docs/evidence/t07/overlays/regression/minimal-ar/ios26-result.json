@@ -1,0 +1,10 @@
+{
+  "runtime": "iOS 26.5",
+  "device": "iPhone 16 Pro",
+  "udid": "610EA507-710F-4AA6-943C-AF57C0035F07",
+  "sameBinary": true,
+  "guardActivation": "Process sample and launch log",
+  "rendering": "ARView.commonRenderCallback and CoreRE Engine updates observed",
+  "observation": "Process alive at 67 seconds, then intentionally terminated",
+  "scope": "No immediate guarded failure in this finite probe; not product qualification"
+}

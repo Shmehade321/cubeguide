@@ -12,6 +12,7 @@ final class CubeSceneModel {
   private(set) var bodies: [CubePosition: ModelEntity] = [:]
   private(set) var stickers: [Int: ModelEntity] = [:]
   private let pivot = Entity()
+  private var highlights: [CubePosition: Entity] = [:]
   private var previewFinished = false
   private var displayedColors: [CubeColor?] = []
   private var preview: (action: GuideAction, palette: CenterPalette, labels: Bool, rotation: CubeRotation)?
@@ -45,6 +46,7 @@ final class CubeSceneModel {
   }
 
   private func display(colors: [CubeColor?], pose: CubeOrientation, showColorLabels: Bool) {
+    for highlight in highlights.values { highlight.removeFromParent() }
     displayedColors = colors
     preview = nil
     previewFinished = false
@@ -101,6 +103,7 @@ final class CubeSceneModel {
       if selected { pivot.addChild(body) }
     }
     preview = (action, palette, showColorLabels, rotation)
+    showInstruction(action)
   }
 
   func samplePreview(progress: Double) {
@@ -111,6 +114,7 @@ final class CubeSceneModel {
       // Retain the immutable before-state until acknowledgement/replacement or cancellation.
       preview = current
       previewFinished = true
+      showInstruction(current.action)
     } else {
       let angle = Float(max(0, progress)) * Float(current.rotation.signedQuarterTurns) * .pi / 2
       pivot.orientation = simd_quatf(angle: angle, axis: vector(CubeGeometry.axis(for: current.rotation.axis)))
@@ -121,6 +125,20 @@ final class CubeSceneModel {
     guard let current = preview else { return }
     display(state: current.action.before, palette: current.palette,
       pose: current.action.fromPose, labels: current.labels)
+    showInstruction(current.action)
+  }
+
+  private func showInstruction(_ action: GuideAction) {
+    for (point, body) in bodies {
+      let selected: Bool
+      if case .turn(let move) = action.operation { selected = point.isOnLayer(move.face) }
+      else { selected = true }
+      guard selected else { continue }
+      let highlight = highlights[point] ?? CubeInstructionOverlay.highlight()
+      highlights[point] = highlight
+      body.addChild(highlight)
+    }
+
   }
 
   private func display(state: Facelets, palette: CenterPalette, pose: CubeOrientation, labels: Bool) {

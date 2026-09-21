@@ -1,0 +1,9 @@
+{
+  "result": "crashed",
+  "pid": 54889,
+  "simulator": "67DB7428-A25B-4167-8FC2-24F47A392E81",
+  "os": "18.5",
+  "scope": "Standalone UIKit-only bare non-AR ARView under Guard Malloc",
+  "fault": "CoreRE AudioPlayerSystem.update +8948",
+  "ordinaryCrashCausality": "not yet established"
+}

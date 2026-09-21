@@ -1,0 +1,7 @@
+{
+  "originalSHA256": "646a9d4211d1424153ddb9f041984a6cec8be4f7f2b65619eea63b1e5e2b60cf",
+  "purpose": "Guard Malloc diagnostic of unchanged 20-cycle manual preview behavior",
+  "diagnosticSHA256": "a2a9436908f9a4277c4dd94e7dfc8ffca32fcc5fe87b477055941a2794ed9e6d",
+  "xcodeExitCode": 65,
+  "restored": true
+}

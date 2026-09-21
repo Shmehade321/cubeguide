@@ -2,6 +2,41 @@ import XCTest
 
 final class FoundationUITests: XCTestCase {
   @MainActor
+  func testRepeatedManualPreviewHomePreservesDraft() {
+    continueAfterFailure = false
+    let app = XCUIApplication()
+    app.launch()
+    if app.buttons["editor.home"].waitForExistence(timeout: 2) { tapReady(app.buttons["editor.home"]) }
+    if app.buttons["home.delete"].exists {
+      tapReady(app.buttons["home.delete"])
+      tapReady(app.buttons["delete.confirm"])
+    }
+    tapReady(app.buttons["home.enterColors"])
+    for (face, color) in [("U", "Green"), ("R", "White"), ("F", "Orange"),
+      ("D", "Blue"), ("L", "Yellow"), ("B", "Red")] {
+      tapReady(app.buttons["center.\(face)"])
+      tapReady(app.buttons[color])
+    }
+    tapReady(app.buttons["centers.confirm"])
+    tapReady(app.buttons["cell.U.0.0"])
+    tapReady(app.buttons["sticker.blue"])
+    for cycle in 1...20 {
+      XCTContext.runActivity(named: "Preview teardown and Home cycle \(cycle)") { _ in
+        tapReady(app.buttons["editor.preview3D"])
+        XCTAssertTrue(app.staticTexts["7 entered stickers · 47 unknown"].waitForExistence(timeout: 5))
+        tapReady(app.buttons["preview.done"])
+        XCTAssertTrue(app.buttons["cell.U.0.0"].label.contains("Blue"))
+        tapReady(app.buttons["editor.home"])
+        XCTAssertTrue(app.buttons["home.resume"].waitForExistence(timeout: 5))
+        XCTAssertEqual(app.state, .runningForeground)
+        tapReady(app.buttons["home.resume"])
+        XCTAssertTrue(app.buttons["cell.U.0.0"].label.contains("Blue"))
+        XCTAssertTrue(app.staticTexts["47 stickers left"].exists)
+      }
+    }
+  }
+
+  @MainActor
   func testPracticeExampleAndExit() {
     let app = XCUIApplication()
     app.launch()

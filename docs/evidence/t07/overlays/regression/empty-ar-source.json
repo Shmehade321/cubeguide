@@ -1,0 +1,11 @@
+{
+  "purpose": "Bare non-AR ARView isolation under Guard Malloc; not product behavior",
+  "originalHashes": {
+    "cubeguideUITests/cubeguideUITests.swift": "646a9d4211d1424153ddb9f041984a6cec8be4f7f2b65619eea63b1e5e2b60cf",
+    "cubeguide/CubePreviewScreen.swift": "2b07ac7892026a073682be9b25ea5e7d3ade88e1096a7b87d9ef507d6d769780"
+  },
+  "diagnosticHashes": {
+    "cubeguideUITests/cubeguideUITests.swift": "a2a9436908f9a4277c4dd94e7dfc8ffca32fcc5fe87b477055941a2794ed9e6d",
+    "cubeguide/CubePreviewScreen.swift": "66bbb3afc87ca1fe3b63a04c6a371eaa6e8558bbd99d99d31e9e405fef42f58a"
+  }
+}

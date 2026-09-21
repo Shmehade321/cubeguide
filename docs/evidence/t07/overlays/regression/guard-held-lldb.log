@@ -1,0 +1,198 @@
+(lldb) process attach --pid 52513
+Process 52513 stopped
+* thread #1, queue = 'com.apple.main-thread', stop reason = signal SIGSTOP
+       frame #0: 0x000000010466c9d0 libsystem_kernel.dylib`_kernelrpc_mach_vm_deallocate_trap + 8
+libsystem_kernel.dylib`_kernelrpc_mach_vm_deallocate_trap:
+->  0x10466c9d0 <+8>: ret    
+
+libsystem_kernel.dylib`task_dyld_process_info_notify_get:
+    0x10466c9d4 <+0>: mov    x16, #-0xd                ; =-13 
+    0x10466c9d8 <+4>: svc    #0x80
+    0x10466c9dc <+8>: ret    
+Target 0: (cubeguide) stopped.
+Executable binary set to "/Users/mehadehasan/Library/Developer/CoreSimulator/Devices/67DB7428-A25B-4167-8FC2-24F47A392E81/data/Containers/Bundle/Application/C65F12FA-0E62-4499-8471-EFE44E56FF20/cubeguide.app/cubeguide".
+Architecture set to: arm64-apple-ios-simulator.
+(lldb) process handle SIGSEGV -s true -n true -p true
+NAME         PASS   STOP   NOTIFY  DESCRIPTION
+===========  =====  =====  ======  ===================
+SIGSEGV      true   true   true    segmentation violation
+(lldb) continue
+Process 52513 resuming
+Process 52513 stopped
+* thread #1, queue = 'com.apple.main-thread', stop reason = EXC_BAD_ACCESS (code=1, address=0xb78c6f40b8)
+       frame #0: 0x00000001abe54e1c CoreRE`re::ecs2::AudioPlayerSystem::update(re::ecs2::Scene*, re::ecs2::System::UpdateContext) const + 8948
+CoreRE`re::ecs2::AudioPlayerSystem::update:
+->  0x1abe54e1c <+8948>: strb   wzr, [x8, #0x1a0]
+    0x1abe54e20 <+8952>: add    x0, sp, #0x130
+    0x1abe54e24 <+8956>: bl     0x1ab972100               ; re::internal::AriadneSignpostScopeGuard::~AriadneSignpostScopeGuard()
+    0x1abe54e28 <+8960>: add    x0, sp, #0x140
+Target 0: (cubeguide) stopped.
+(lldb) thread backtrace all
+* thread #1, queue = 'com.apple.main-thread', stop reason = EXC_BAD_ACCESS (code=1, address=0xb78c6f40b8)
+   * frame #0: 0x00000001abe54e1c CoreRE`re::ecs2::AudioPlayerSystem::update(re::ecs2::Scene*, re::ecs2::System::UpdateContext) const + 8948
+     frame #1: 0x00000001ac0ce270 CoreRE`re::internal::Callable<re::ecs2::ECSManager::configurePhaseECSSystems(re::Scheduler::ScheduleDescriptor&, re::ecs2::ECSSystemGroup, unsigned long)::$_0, void (float)>::operator()(float&&) const + 176
+     frame #2: 0x00000001ac555270 CoreRE`re::Scheduler::executePhase(unsigned long) + 440
+     frame #3: 0x00000001aba04a4c CoreRE`re::Engine::executePhase(re::FramePhase) + 144
+     frame #4: 0x00000001aba0e6b4 CoreRE`re::Engine::timeDidChange(re::SimulationTimer*, re::SimulationTimerEventArgs const&) + 184
+     frame #5: 0x00000001ac5568b8 CoreRE`re::Event<re::SimulationTimer, re::SimulationTimerEventArgs const&>::raise(re::SimulationTimer*, re::SimulationTimerEventArgs const&) + 104
+     frame #6: 0x00000001ac5567f0 CoreRE`re::VariableStepTimer::onClockDidChange(re::SimulationClock*, re::SimulationClockEventArgs const&) + 248
+     frame #7: 0x00000001ac555efc CoreRE`re::Event<re::SimulationClock, re::SimulationClockEventArgs const&>::raise(re::SimulationClock*, re::SimulationClockEventArgs const&) + 76
+     frame #8: 0x00000001ac5560dc CoreRE`re::DisplayLinkClock::update() + 124
+     frame #9: 0x000000018b3e2e44 QuartzCore`CA::Display::DisplayLinkItem::dispatch_(CA::SignPost::Interval<(CA::SignPost::CAEventCode)835322056>&) + 44
+     frame #10: 0x000000018b3def44 QuartzCore`CA::Display::DisplayLink::dispatch_items(unsigned long long, unsigned long long, unsigned long long) + 800
+     frame #11: 0x000000018b3e5b50 QuartzCore`CA::Display::DisplayLink::dispatch_deferred_display_links(unsigned int) + 336
+     frame #12: 0x00000001851bd0c0 UIKitCore`_UIUpdateSequenceRun + 76
+     frame #13: 0x0000000185b884f4 UIKitCore`schedulerStepScheduledMainSection + 204
+     frame #14: 0x0000000185b87910 UIKitCore`runloopSourceCallback + 80
+     frame #15: 0x0000000180429368 CoreFoundation`__CFRUNLOOP_IS_CALLING_OUT_TO_A_SOURCE0_PERFORM_FUNCTION__ + 24
+     frame #16: 0x00000001804292b0 CoreFoundation`__CFRunLoopDoSource0 + 168
+     frame #17: 0x0000000180428a38 CoreFoundation`__CFRunLoopDoSources0 + 220
+     frame #18: 0x0000000180423434 CoreFoundation`__CFRunLoopRun + 780
+     frame #19: 0x0000000180422cec CoreFoundation`CFRunLoopRunSpecific + 536
+     frame #20: 0x0000000191004d00 GraphicsServices`GSEventRunModal + 164
+     frame #21: 0x0000000185c597d4 UIKitCore`-[UIApplication _run] + 796
+     frame #22: 0x0000000185c5dba0 UIKitCore`UIApplicationMain + 124
+     frame #23: 0x00000001d3bac66c SwiftUI`closure #1 in KitRendererCommon(_:) + 164
+     frame #24: 0x00000001d3bac3a0 SwiftUI`runApp(_:) + 180
+  ﹍ frame #25: 0x00000001d3937dc4 SwiftUI`static App.main() + 148
+  ﹉ frame #27: 0x0000000105791980 cubeguide.debug.dylib`main at cubeguideApp.swift:0
+     frame #28: 0x00000001047913d4 dyld_sim`start_sim + 20
+     frame #29: 0x0000000104519e80 dyld`start + 6688
+  thread #6, name = 'com.apple.uikit.eventfetch-thread'
+       frame #0: 0x000000010466cb5c libsystem_kernel.dylib`mach_msg2_trap + 8
+       frame #1: 0x000000010467e0e4 libsystem_kernel.dylib`mach_msg2_internal + 72
+       frame #2: 0x0000000104674c58 libsystem_kernel.dylib`mach_msg_overwrite + 484
+       frame #3: 0x000000010466cedc libsystem_kernel.dylib`mach_msg + 20
+       frame #4: 0x0000000180428bc4 CoreFoundation`__CFRunLoopServiceMachPort + 156
+       frame #5: 0x00000001804235a4 CoreFoundation`__CFRunLoopRun + 1148
+       frame #6: 0x0000000180422cec CoreFoundation`CFRunLoopRunSpecific + 536
+       frame #7: 0x0000000180f0e38c Foundation`-[NSRunLoop(NSRunLoop) runMode:beforeDate:] + 208
+       frame #8: 0x0000000180f0e5ac Foundation`-[NSRunLoop(NSRunLoop) runUntilDate:] + 60
+       frame #9: 0x0000000185d07390 UIKitCore`-[UIEventFetcher threadMain] + 408
+       frame #10: 0x0000000180f35148 Foundation`__NSThread__start__ + 716
+       frame #11: 0x00000001049a2680 libsystem_pthread.dylib`_pthread_start + 104
+  thread #15
+       frame #0: 0x000000010466e68c libsystem_kernel.dylib`__workq_kernreturn + 8
+  thread #17
+       frame #0: 0x000000010466e68c libsystem_kernel.dylib`__workq_kernreturn + 8
+  thread #18, name = 'Job Service worker'
+       frame #0: 0x0000000104670024 libsystem_kernel.dylib`__psynch_cvwait + 8
+       frame #1: 0x00000001049a2b44 libsystem_pthread.dylib`_pthread_cond_wait + 972
+       frame #2: 0x000000018030c358 libc++.1.dylib`std::__1::condition_variable::wait(std::__1::unique_lock<std::__1::mutex>&) + 28
+       frame #3: 0x00000001ac54bd08 CoreRE`re::ThreadJobManager::threadFunction() + 100
+       frame #4: 0x00000001ac54c5ac CoreRE`void* std::__1::__thread_proxy[abi:nn190102]<std::__1::tuple<std::__1::unique_ptr<std::__1::__thread_struct, std::__1::default_delete<std::__1::__thread_struct>>, void (re::ThreadJobManager::*)(), re::ThreadJobManager*>>(void*) + 72
+       frame #5: 0x00000001049a2680 libsystem_pthread.dylib`_pthread_start + 104
+  thread #19
+       frame #0: 0x000000010466e68c libsystem_kernel.dylib`__workq_kernreturn + 8
+  thread #20, name = 'Render'
+       frame #0: 0x0000000104670024 libsystem_kernel.dylib`__psynch_cvwait + 8
+       frame #1: 0x00000001049a2b44 libsystem_pthread.dylib`_pthread_cond_wait + 972
+       frame #2: 0x000000018030c358 libc++.1.dylib`std::__1::condition_variable::wait(std::__1::unique_lock<std::__1::mutex>&) + 28
+       frame #3: 0x00000001ac54bc74 CoreRE`re::internal::AutoResetEvent::waitOne() + 72
+       frame #4: 0x00000001ac33b2f4 CoreRE`re::RenderThread::threadFuncStatic(void*) + 124
+       frame #5: 0x00000001ac33bd2c CoreRE`void* std::__1::__thread_proxy[abi:nn190102]<std::__1::tuple<std::__1::unique_ptr<std::__1::__thread_struct, std::__1::default_delete<std::__1::__thread_struct>>, void (*)(void*), re::RenderThread*>>(void*) + 52
+       frame #6: 0x00000001049a2680 libsystem_pthread.dylib`_pthread_start + 104
+  thread #21, name = 'RE Video Processor'
+       frame #0: 0x0000000104670024 libsystem_kernel.dylib`__psynch_cvwait + 8
+       frame #1: 0x00000001049a2b44 libsystem_pthread.dylib`_pthread_cond_wait + 972
+       frame #2: 0x000000018b23c694 CoreMedia`WaitOnCondition + 16
+       frame #3: 0x000000018b2b7a98 CoreMedia`FigSemaphoreWaitRelative + 140
+       frame #4: 0x00000001ac5bd0bc CoreRE`re::VideoProcessor::threadFunction(void*) + 340
+       frame #5: 0x00000001049a2680 libsystem_pthread.dylib`_pthread_start + 104
+  thread #22
+       frame #0: 0x000000010466e68c libsystem_kernel.dylib`__workq_kernreturn + 8
+  thread #23
+       frame #0: 0x000000010466e68c libsystem_kernel.dylib`__workq_kernreturn + 8
+  thread #24
+       frame #0: 0x000000010466e68c libsystem_kernel.dylib`__workq_kernreturn + 8
+  thread #25
+       frame #0: 0x000000010466e68c libsystem_kernel.dylib`__workq_kernreturn + 8
+  thread #26
+       frame #0: 0x000000010466e68c libsystem_kernel.dylib`__workq_kernreturn + 8
+  thread #27, name = 'spatial tracking service'
+       frame #0: 0x000000010466cad8 libsystem_kernel.dylib`semaphore_wait_trap + 8
+       frame #1: 0x00000001d0691380 libSTS-N.dylib`void* caulk::thread_proxy<std::__1::tuple<caulk::thread::attributes, STS_N_CopyShmem(OpaqueFigSTS*, __CFString const*, NSObject<OS_xpc_object>**)::$_0, std::__1::tuple<>>>(void*) + 300
+       frame #2: 0x00000001049a2680 libsystem_pthread.dylib`_pthread_start + 104
+  thread #28
+       frame #0: 0x000000010466e68c libsystem_kernel.dylib`__workq_kernreturn + 8
+  thread #29
+       frame #0: 0x000000010466e68c libsystem_kernel.dylib`__workq_kernreturn + 8
+  thread #30
+       frame #0: 0x000000010466e68c libsystem_kernel.dylib`__workq_kernreturn + 8
+  thread #31, queue = 'com.apple.re.AssetBackgroundLoader'
+       frame #0: 0x00000001801a4cac libdispatch.dylib`voucher_get_activity_id_and_creator
+       frame #1: 0x00000001800b43d4 libsystem_trace.dylib`os_log_type_enabled + 584
+       frame #2: 0x00000001803b98c4 CoreFoundation`_CFBundleCopyFindResources + 2484
+       frame #3: 0x00000001803b8f04 CoreFoundation`CFBundleCopyResourceURL + 52
+       frame #4: 0x0000000180e1b268 Foundation`-[NSBundle URLForResource:withExtension:subdirectory:] + 92
+       frame #5: 0x0000000180e1b29c Foundation`-[NSBundle pathForResource:ofType:] + 16
+       frame #6: 0x00000001ac3412c4 CoreRE`re::Bundle::pathForResource(char const*, re::DynamicString&) const + 84
+       frame #7: 0x00000001aba4d4a0 CoreRE`re::FrameworkAssetProvider::load(re::AssetLoadDescriptor const*, unsigned long long, re::AssetSerializationScheme&, re::CancellationToken const*) const + 624
+       frame #8: 0x00000001aba7fe24 CoreRE`re::internal::AssetBackgroundLoader::loadAsset(re::internal::AssetLoadItem&, re::AssetCompatibilityService*, re::internal::AssetBackgroundLoader::LoadFinalizationService*) + 736
+       frame #9: 0x00000001aba7fb00 CoreRE`re::internal::AssetBackgroundLoader::runIfNeeded(re::internal::AssetLoadItem&) + 64
+       frame #10: 0x00000001aba81708 CoreRE`invocation function for block in re::internal::AssetBackgroundLoader::startBackgroundTask(re::internal::AssetLoadItem&, re::internal::AssetBackgroundLoader::LockState, bool) + 28
+       frame #11: 0x000000018017c788 libdispatch.dylib`_dispatch_call_block_and_release + 24
+       frame #12: 0x0000000180197278 libdispatch.dylib`_dispatch_client_callout + 12
+       frame #13: 0x0000000180181498 libdispatch.dylib`_dispatch_continuation_pop + 776
+       frame #14: 0x00000001801806b0 libdispatch.dylib`_dispatch_async_redirect_invoke + 852
+       frame #15: 0x000000018018f9cc libdispatch.dylib`_dispatch_root_queue_drain + 336
+       frame #16: 0x00000001801903b4 libdispatch.dylib`_dispatch_worker_thread2 + 232
+       frame #17: 0x000000010499ec40 libsystem_pthread.dylib`_pthread_wqthread + 228
+  thread #32
+       frame #0: 0x000000010466e68c libsystem_kernel.dylib`__workq_kernreturn + 8
+  thread #33
+       frame #0: 0x000000010466e68c libsystem_kernel.dylib`__workq_kernreturn + 8
+  thread #34
+       frame #0: 0x000000010466e68c libsystem_kernel.dylib`__workq_kernreturn + 8
+  thread #35
+       frame #0: 0x000000010466e68c libsystem_kernel.dylib`__workq_kernreturn + 8
+  thread #36
+       frame #0: 0x000000010466e68c libsystem_kernel.dylib`__workq_kernreturn + 8
+  thread #37
+       frame #0: 0x000000010466e68c libsystem_kernel.dylib`__workq_kernreturn + 8
+  thread #38
+       frame #0: 0x000000010466e68c libsystem_kernel.dylib`__workq_kernreturn + 8
+  thread #39
+       frame #0: 0x0000000000000000 
+(lldb) register read
+General Purpose Registers:
+        x0 = 0x000000b9bf70bf80
+        x1 = 0x0000000000000002
+        x2 = 0x0000000000000003
+        x3 = 0x0000000000000001
+        x4 = 0x000000010466ecd8  libsystem_kernel.dylib`mach_vm_allocate + 168
+        x5 = 0x0000000200ae85a7
+        x6 = 0x0000000000000000
+        x7 = 0x0000000100ae85a7
+        x8 = 0x000000b78c6f3f18
+        x9 = 0x00000000fffffffe
+       x10 = 0x0000008000000000
+       x11 = 0x0000000300000000
+       x12 = 0x0080000000000000
+       x13 = 0x0000004000000001
+       x14 = 0x006000230000c601
+       x15 = 0x006000230000c601
+       x16 = 0x000000b9bf70bfb8
+       x17 = 0x006000230000c601
+       x18 = 0x0000000000000000
+       x19 = 0x00000001f3d52000  CoreRE`re::introspect_AssetHandle(bool)::info + 40
+       x20 = 0x00000001f2ca8528  (void *)0x00000001f2ca8500: __NSStackBlock__
+       x21 = 0x00000001ea83ea80  CoreRE`__block_descriptor_44_e5_v8?0l
+       x22 = 0x000000ba0cac7b30
+       x23 = 0x0000000000000091
+       x24 = 0x000000b91e887e80
+       x25 = 0x0000000000000000
+       x26 = 0x0000000000000000
+       x27 = 0x000000b91f763ee0
+       x28 = 0x000000b91f763ee0
+        fp = 0x000000016b95bed0
+        lr = 0x00000001abe54e18  CoreRE`re::ecs2::AudioPlayerSystem::update(re::ecs2::Scene*, re::ecs2::System::UpdateContext) const + 8944
+        sp = 0x000000016b95bb80
+        pc = 0x00000001abe54e1c  CoreRE`re::ecs2::AudioPlayerSystem::update(re::ecs2::Scene*, re::ecs2::System::UpdateContext) const + 8948
+      cpsr = 0x20000000
+
+(lldb) script import re, subprocess; desc = lldb.process.GetSelectedThread().GetStopDescription(1024); print('FAULT_DESCRIPTION', desc); match = re.search(r'address[ =:]+(0x[0-9a-fA-F]+)', desc or ''); print('ALLOCATION_HISTORY'); subprocess.run(['malloc_history', str(lldb.process.GetProcessID()), match.group(1)], timeout=30) if match else print('No address parsed')
+malloc_history[53119]: [fatal] 'mach_ports_register' failed: (os/kern) invalid right (17)
+FAULT_DESCRIPTION EXC_BAD_ACCESS (code=1, address=0xb78c6f40b8)
+ALLOCATION_HISTORY
+CompletedProcess(args=['malloc_history', '52513', '0xb78c6f40b8'], returncode=255)

@@ -2,6 +2,33 @@ import XCTest
 
 final class GuideUITests: XCTestCase {
   @MainActor
+  func testAnimatedDirectionDoesNotCoverCube() {
+    continueAfterFailure = false
+    let app = XCUIApplication()
+    app.launch()
+    if app.buttons["editor.home"].waitForExistence(timeout: 2) { tap(app.buttons["editor.home"]) }
+    tap(app.buttons["home.practice"])
+    tap(app.buttons["editor.validate"])
+    tap(app.buttons["solve.consent"])
+    XCTAssertTrue(app.buttons["guide.align"].waitForExistence(timeout: 20))
+    let diagram = app.descendants(matching: .any)["guide.directionDiagram"].firstMatch
+    XCTAssertTrue(diagram.waitForExistence(timeout: 5))
+    let cube = app.descendants(matching: .any)["guide.animatedCube"].firstMatch
+    XCTAssertTrue(cube.exists)
+    XCTAssertFalse(app.descendants(matching: .any)["guide.staticCube"].firstMatch.exists)
+    XCTAssertFalse(cube.frame.intersects(diagram.frame))
+    let progress = app.staticTexts["guide.progress"].label
+    capture(app, name: "Animated guide separate direction before")
+    tap(app.buttons["guide.align"])
+    tap(app.buttons["guide.play"])
+    tap(app.buttons["guide.pause"])
+    XCTAssertFalse(cube.frame.intersects(diagram.frame))
+    XCTAssertEqual(app.staticTexts["guide.progress"].label, progress)
+    capture(app, name: "Animated guide separate direction paused")
+    tap(app.buttons["practice.exit"])
+  }
+
+  @MainActor
   func testGuideRendersSavedLabelChoice() {
     continueAfterFailure = false
     let app = XCUIApplication()

@@ -43,6 +43,10 @@ struct GuideFlowView: View {
               controller.preferences.colorLabelsEnabled(differentiateWithoutColor: differentiate))
               .frame(height: 220)
               .accessibilityLabel("Cube demonstration")
+              .accessibilityIdentifier("guide.animatedCube")
+            if let palette = controller.palette {
+              GuideDirectionDiagram(action: action, palette: palette, after: showingAfter)
+            }
           }
           Text(anchors(action)).font(.subheadline).multilineTextAlignment(.center)
           if [.preparingAction, .savingAcknowledgement].contains(controller.session.phase) {

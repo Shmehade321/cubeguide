@@ -1,0 +1,19 @@
+{
+  "command": [
+    "xcrun",
+    "swiftc",
+    "-parse-as-library",
+    "-swift-version",
+    "6",
+    "-sdk",
+    "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk",
+    "-target",
+    "arm64-apple-ios18.0-simulator",
+    "Artifacts/t07-minimal-ar/Probe.swift",
+    "-o",
+    "Artifacts/t07-minimal-ar/RealityKitProbe.app/RealityKitProbe"
+  ],
+  "sourceSHA256": "f36b66f0cd77b15842f6f247d1fcb84438ca6ffd72bb164a39a7cfcd4d73de98",
+  "binarySHA256": "252c48cbe7c595aeb42017b18f595fd98fc13bffc21a3d0e5913cf8a84f66dea",
+  "scope": "Standalone diagnostic only; UIKit and bare ARView, no CubeGuide or SwiftUI"
+}
