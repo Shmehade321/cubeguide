@@ -1,4 +1,5 @@
 import CubeCore
+import CubeScan
 import CubeSession
 import CubeSolver3
 import Foundation
