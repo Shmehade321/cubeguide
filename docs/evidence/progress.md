@@ -25,7 +25,7 @@ Baseline: 78f7fbc. User authorized full implementation with TDD, quality checks 
 | T04 Search | automated exit passed; physical qualification open | task-04.md |
 | T05 Session/storage | running: guide/manual/scan storage and durable discard implemented; full lifecycle pending | task-05.md |
 | T06 Manual flow | running: Home/editor, validation/solver result UI, offline Help, persisted Settings, isolated practice and calculation-state UI coverage | task-06.md |
-| T07 Graphics | notRun | — |
+| T07 Graphics | running: exact geometry and static manual/practice preview implemented; local regression passed; animation and asset qualification pending | task-07.md |
 | T08 Guidance/audio | notRun | — |
 | T09 Camera | notRun | — |
 | T10 Accessibility/physical | notRun | — |
@@ -38,4 +38,4 @@ Physical phones/cubes, supervised participants, owned human narration, final sto
 
 ## Shipping status
 
-Code: foundation, cube mathematics, independently validated tables and real verified search implemented; session workflow, guide planning, durable-save protocol and recovery decisions implemented; guide archive/restore and filesystem store implemented; scan command coordination, durable draft discard and scan-to-manual fallback implemented; Home, durable manual editor, validation review markers/consent, real solver result, entered-color completion, offline Help, persisted Settings/reset UI and isolated practice implemented; calculation cancellation/error UI qualified locally; full lifecycle and remaining manual product flow integration in progress. Automated qualification: not complete. Media/device qualification: not run. Archive: not ready. TestFlight/submitted/approved/released: not performed.
+Code: foundation, cube mathematics, independently validated tables and real verified search implemented; session workflow, guide planning, durable-save protocol and recovery decisions implemented; guide archive/restore and filesystem store implemented; scan command coordination, durable draft discard and scan-to-manual fallback implemented; Home, durable manual editor, validation review markers/consent, real solver result, entered-color completion, offline Help, persisted Settings/reset UI and isolated practice implemented; calculation cancellation/error UI and static manual/practice 3D preview qualified locally; full lifecycle and remaining manual product flow integration in progress. Automated qualification: not complete. Media/device qualification: not run. Archive: not ready. TestFlight/submitted/approved/released: not performed.

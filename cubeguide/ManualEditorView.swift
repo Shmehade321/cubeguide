@@ -86,6 +86,12 @@ struct ManualEditorView: View {
           "Tap an empty square to enter its color. Keep the top edge of each face aligned with the named neighbor. Swipe the net sideways to reach every face."
         )
         Text("\(draft.missingCount) stickers left").font(.headline)
+        NavigationLink {
+          CubePreviewScreen(draft: draft, showColorLabels: showColorLabels)
+        } label: {
+          Label("View in 3D", systemImage: "cube")
+        }
+        .accessibilityIdentifier("editor.preview3D").disabled(saving)
         if !reviewCells.isEmpty {
           Label(
             "Marked stickers relate to the current check. They are not necessarily wrong; compare all faces for missing or extra colors.",

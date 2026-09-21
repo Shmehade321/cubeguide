@@ -1,0 +1,5 @@
+{
+  "Packages/CubeKit/Sources/CubeCore/CubeGeometry.swift": "fe94e3622f5bbef18dc78e5f9dccbdc908db6562c5cd0018f7aff54eea781139",
+  "Packages/CubeKit/Sources/CubeCore/CubeRotation.swift": "5b2e331c7d9f28ccfff4787560dd71c4c5d386bf8b6d2496b907fe4519ee4556",
+  "Packages/CubeKit/Tests/CubeCoreTests/CubeGeometryTests.swift": "731d6b79837d4a57038cfa1a88f040f82f06cda07984623ab081d43663e3c5dd"
+}

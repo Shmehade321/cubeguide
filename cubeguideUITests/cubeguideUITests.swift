@@ -155,6 +155,16 @@ final class FoundationUITests: XCTestCase {
     screenshot.name = "Manual editor"
     screenshot.lifetime = .keepAlways
     add(screenshot)
+    tapReady(app.buttons["editor.preview3D"])
+    XCTAssertTrue(app.staticTexts["7 entered stickers · 47 unknown"].waitForExistence(timeout: 5))
+    let preview = XCTAttachment(screenshot: app.screenshot())
+    preview.name = "Incomplete real manual cube in 3D"
+    preview.lifetime = .keepAlways
+    add(preview)
+    tapReady(app.buttons["preview.done"])
+    XCTAssertTrue(sticker.waitForExistence(timeout: 5))
+    XCTAssertTrue(sticker.label.contains("Blue"))
+    XCTAssertTrue(app.staticTexts["47 stickers left"].exists)
     app.buttons["editor.home"].tap()
     XCTAssertTrue(app.buttons["home.resume"].waitForExistence(timeout: 5))
     tapReady(app.buttons["home.practice"])

@@ -41,7 +41,7 @@ Run `python3 Tools/MutationChecks/core.py`, `python3 Tools/MutationChecks/solver
 
 The app dependency container links CubeSession and owns one SessionStore for `Application Support/CubeGuide/Guide`. That actor exclusively serializes writes and deletion for the directory. A storage lease belongs to a producer generation; deletion invalidates prior leases. GuideArchive validates bounded, checksummed snapshots by independent replay and action reconstruction before restore opens physical comparison. Temporary files are not confirmed records. Guide and manual-draft archives use the same bounded checksum envelope and atomic replacement implementation; one deletion lease owns both files.
 
-The store excludes its directory from backups and requests complete file protection on iOS before writing the payload. File access failures propagate; only ENOENT means no saved guide. Simulator integration verifies the real solver/reducer/save/restore composition, not hardware encryption or locked-device behavior. The observed simulator does not expose the protection attribute; physical assertions and lock testing remain an open qualification gate. The user-facing session UI, settings and diagnostics stores remain subsequent work.
+The store excludes its directory from backups and requests complete file protection on iOS before writing the payload. File access failures propagate; only ENOENT means no saved guide. Simulator integration verifies the real solver/reducer/save/restore composition, not hardware encryption or locked-device behavior. The observed simulator does not expose the protection attribute; physical assertions and lock testing remain an open qualification gate. Manual UI and settings integration are described below; the guide UI and diagnostics store remain subsequent work.
 
 ## Accepted scan observations
 
@@ -65,7 +65,7 @@ The session mutation catalog requires a passing unmodified baseline, unique patc
 
 ## Settings and manual UI integration
 
-The manual app now composes SessionController directly: Home, explicit center assignment, durable sticker editing, validation/correction, consent, verified search results, entered-color completion and local Help are implemented. These supersede the earlier foundation-stage notes about absent manual screens. The complete guide/camera interfaces and practice isolation remain pending.
+The manual app now composes SessionController directly: Home, explicit center assignment, durable sticker editing, validation/correction, consent, verified search results, entered-color completion and local Help are implemented. These supersede the earlier foundation-stage notes about absent manual screens. The complete guide/camera interfaces remain pending; implemented practice isolation is described below.
 
 AppPreferences stores only narration/effects/haptics, guide speed and color-label preference. SessionStore owns preferences.json/preferences.pending under the same actor, bounded checked envelope, atomic replacement, backup exclusion and protection policy as cube records. An absent settings file yields documented defaults; invalid or future records surface a load error and cannot be silently overwritten. No UserDefaults API is introduced by this implementation. This is not a completed archive privacy audit.
 
@@ -82,3 +82,9 @@ PracticeView retains the real root underneath its presentation and labels its wo
 ### Calculation UI verification boundary
 
 CalculationTestHost and its scenario selector exist only under `DEBUG && targetEnvironment(simulator)`. Normal app startup uses the real composition. Explicit XCUITest scenarios use an independent memory store and the actual ContentView/SessionController: cancellation holds real verified solver output, whereas timeout/resource failure are injected presentation boundaries, not solver correctness claims. Both the harness and its UI tests are excluded from Release and physical builds. Release binary inspection and launch-with-scenario evidence are recorded in task-06; this does not replace final production archive checks.
+
+### Exact scene geometry (T07 in progress)
+
+CubeCore now supplies immutable CubePosition/CubeStickerPlacement values, the 26-cubie/54-sticker CubeGeometry lattice and CubeRotation's exact proper rotations plus signed animation angles. CubeOrientation defines pose; golden sticker permutations independently qualify turn endpoints. These are presentation geometry helpers, not a second state engine. RealityKit adapters derive resting colors/state from CubeCore; future GuidePlayback integration must report only preview completion. These pure types implement neither rendering nor physical acknowledgement.
+
+The first RealityKit adapter is now present: CubeSceneModel owns procedural entity/material geometry, while CubeSceneView hosts an explicitly non-AR virtual-camera scene and detaches it on teardown. CubePreviewScreen accepts an immutable draft and local view pose only; its rotation controls have no session-event or draft-edit closure. ManualEditorView links to it without changing revision or saved work. Pose/material/label updates retain entity identity. This adapter currently provides a static preview; GuidePlayback animation and action/media coordination remain unimplemented.

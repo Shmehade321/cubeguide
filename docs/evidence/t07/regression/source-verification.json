@@ -1,0 +1,6 @@
+{
+  "result": "passed",
+  "scope": "All non-document inputs in pre-run source snapshot",
+  "changedPaths": [],
+  "headBeforeCommit": "387d670ffa0ae2b842e152d031c7361af9f2e918"
+}
