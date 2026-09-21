@@ -1,0 +1,70 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "PR",
+        "deviceId" : "610EA507-710F-4AA6-943C-AF57C0035F07",
+        "deviceName" : "CubeGuide graphics runtime control",
+        "exportedFileName" : "79840789-7F50-4F9D-A3CA-EFB807D4F5C5.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Reduce Motion landscape expected after full screen_0_B92F9560-62AF-4EC5-AEBD-50EC1A6E154F.png",
+        "timestamp" : 1790005541.566
+      },
+      {
+        "configurationName" : "PR",
+        "deviceId" : "610EA507-710F-4AA6-943C-AF57C0035F07",
+        "deviceName" : "CubeGuide graphics runtime control",
+        "exportedFileName" : "35FE3DD3-E160-4CC8-8D02-A709115AA3B5.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Reduce Motion landscape expected after_0_AF600215-4A6B-4C51-9878-9A31B8D5A95A.png",
+        "timestamp" : 1790005541.498
+      },
+      {
+        "configurationName" : "PR",
+        "deviceId" : "610EA507-710F-4AA6-943C-AF57C0035F07",
+        "deviceName" : "CubeGuide graphics runtime control",
+        "exportedFileName" : "26C6EBEB-2EDB-4590-8EBE-1E4C067CCFC8.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Reduce Motion expected after full screen_0_859A76C7-F86E-4AEB-B88D-49B263E9FE4F.png",
+        "timestamp" : 1790005510.987
+      },
+      {
+        "configurationName" : "PR",
+        "deviceId" : "610EA507-710F-4AA6-943C-AF57C0035F07",
+        "deviceName" : "CubeGuide graphics runtime control",
+        "exportedFileName" : "22EF0D75-3DF1-4DB3-BE9A-86460C16E1D4.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Reduce Motion expected after_0_B1B80F14-0449-4A2B-807E-AE8F165C2563.png",
+        "timestamp" : 1790005510.923
+      },
+      {
+        "configurationName" : "PR",
+        "deviceId" : "610EA507-710F-4AA6-943C-AF57C0035F07",
+        "deviceName" : "CubeGuide graphics runtime control",
+        "exportedFileName" : "3070B504-339A-4DE5-A346-80F37B3E89E1.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Reduce Motion before full screen_0_4896185A-3271-49D0-B08F-A3B43DF48652.png",
+        "timestamp" : 1790005504.605
+      },
+      {
+        "configurationName" : "PR",
+        "deviceId" : "610EA507-710F-4AA6-943C-AF57C0035F07",
+        "deviceName" : "CubeGuide graphics runtime control",
+        "exportedFileName" : "DD7BB45E-33C5-494C-B380-F2BB398673EF.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Reduce Motion before_0_20A995A2-52E4-49B5-BA4D-AB59F91EDFE1.png",
+        "timestamp" : 1790005504.542
+      },
+      {
+        "configurationName" : "PR",
+        "deviceId" : "610EA507-710F-4AA6-943C-AF57C0035F07",
+        "deviceName" : "CubeGuide graphics runtime control",
+        "exportedFileName" : "DF2B665E-B5F4-4F7E-A7B4-5DE3E7DD2BE8.txt",
+        "isAssociatedWithFailure" : true,
+        "suggestedHumanReadableName" : "Complete Issue Description.txt"
+      }
+    ],
+    "testIdentifier" : "ReduceMotionUITests/testSystemReduceMotionShowsStaticGuideWithoutAdvancingProgress()",
+    "testIdentifierURL" : "test://com.apple.xcode/cubeguide/cubeguideUITests/ReduceMotionUITests/testSystemReduceMotionShowsStaticGuideWithoutAdvancingProgress"
+  }
+]

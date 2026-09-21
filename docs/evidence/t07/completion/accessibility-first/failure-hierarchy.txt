@@ -1,0 +1,80 @@
+Application, 0x108772580, pid: 21198, label: 'cubeguide' <App element pid: 21198>
+  Window (Main), 0x108773980, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 21198, elementOrHash.elementID: 4402497536.4>
+    Other, 0x108773700, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 21198, elementOrHash.elementID: 4459472896.5>
+      Other, 0x1087717c0, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 21198, elementOrHash.elementID: 4460479744.6>
+        Other, 0x108771a40, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 21198, elementOrHash.elementID: 4402496512.7>
+          Other, 0x108771b80, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 21198, elementOrHash.elementID: 4403900672.8>
+            Other, 0x108771cc0, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 21198, elementOrHash.elementID: 4403945792.9>
+              NavigationBar, 0x108771e00, {{0.0, 62.0}, {402.0, 139.3}}, identifier: 'CubeGuide' <AX element pid: 21198, elementOrHash.elementID: 4393378192.10>
+                StaticText, 0x108771f40, {{16.0, 120.8}, {310.7, 85.3}}, label: 'CubeGuide' <AX element pid: 21198, elementOrHash.elementID: 4403954560.13>
+              Other, 0x108772080, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 21198, elementOrHash.elementID: 4403946240.11>
+                Other, 0x1087721c0, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 21198, elementOrHash.elementID: 4403395904.14>
+                  Other, 0x108772300, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 21198, elementOrHash.elementID: 4403953664.16>
+                    Other, 0x108773480, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 21198, elementOrHash.elementID: 4458893696.17>
+                      StaticText, 0x108772440, {{18.7, 200.3}, {353.7, 85.3}}, label: 'Start with your cube' <AX element pid: 21198, elementOrHash.elementID: 4403380672.18>
+                      StaticText, 0x108773840, {{18.7, 309.7}, {355.7, 74.7}}, label: 'Enter the colors on all six faces. Your confirmed entries are saved on this iPhone.' <AX element pid: 21198, elementOrHash.elementID: 4403772736.19>
+                      Button, 0x108772800, {{18.7, 408.3}, {345.7, 104.7}}, identifier: 'home.enterColors', label: 'Enter colors' <AX element pid: 21198, elementOrHash.elementID: 4403942208.20>
+                        Image, 0x108772940, {{54.0, 441.3}, {40.0, 39.3}}, identifier: 'square.grid.3x3', label: 'square.grid.3x3' <AX element pid: 21198, elementOrHash.elementID: 4403516224.24>
+                        StaticText, 0x108772a80, {{18.7, 408.3}, {345.7, 104.7}}, label: 'Enter colors' <AX element pid: 21198, elementOrHash.elementID: 4403619904.25>
+                      Button, 0x108772bc0, {{18.7, 537.0}, {364.7, 74.7}}, identifier: 'home.practice', label: 'Practice with an example' <AX element pid: 21198, elementOrHash.elementID: 4458890560.21>
+                        Image, 0x108772d00, {{25.3, 545.0}, {52.0, 59.0}}, identifier: 'cube', label: 'Depth Effect' <AX element pid: 21198, elementOrHash.elementID: 4458889664.26>
+                        StaticText, 0x108772e40, {{18.7, 537.0}, {364.7, 74.7}}, label: 'Practice with an example' <AX element pid: 21198, elementOrHash.elementID: 4458890112.27>
+                      Button, 0x108772f80, {{18.7, 635.7}, {258.7, 74.7}}, identifier: 'home.settings', label: 'Settings' <AX element pid: 21198, elementOrHash.elementID: 4458891904.22>
+                        Image, 0x1087730c0, {{23.3, 645.7}, {55.7, 55.3}}, identifier: 'gearshape', label: 'gearshape' <AX element pid: 21198, elementOrHash.elementID: 4458891008.28>
+                        StaticText, 0x108773200, {{18.7, 635.7}, {258.7, 74.7}}, label: 'Settings' <AX element pid: 21198, elementOrHash.elementID: 4458891456.29>
+                      Button, 0x108773340, {{18.7, 734.3}, {176.0, 74.7}}, identifier: 'home.help', label: 'Help' <AX element pid: 21198, elementOrHash.elementID: 4458893248.23>
+                        Image, 0x1087735c0, {{23.3, 745.3}, {53.0, 53.0}}, identifier: 'questionmark.circle', label: 'questionmark.circle' <AX element pid: 21198, elementOrHash.elementID: 4458892352.30>
+                        StaticText, 0x108773ac0, {{18.7, 734.3}, {176.0, 74.7}}, label: 'Help' <AX element pid: 21198, elementOrHash.elementID: 4458892800.31>
+              Other, 0x108773c00, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 21198, elementOrHash.elementID: 4459475456.12>
+                Other, 0x108773d40, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 21198, elementOrHash.elementID: 4459477504.15>
+    Other, 0x108773e80, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 21198, elementOrHash.elementID: 4479765504.32>
+      Other, 0x114a53200, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 21198, elementOrHash.elementID: 4402501632.33>
+        Other, 0x114a53340, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 21198, elementOrHash.elementID: 4458969536.34>
+          StaticText, 0x114a53480, {{33.5, 78.0}, {335.0, 294.7}}, identifier: 'practice.banner', label: 'Practice example—not your scanned cube' <AX element pid: 21198, elementOrHash.elementID: 4458967296.35>
+          Button, 0x114a535c0, {{63.7, 370.7}, {274.7, 74.7}}, identifier: 'practice.exit', label: 'Exit practice' <AX element pid: 21198, elementOrHash.elementID: 4458968192.36>
+          Other, 0x114a53700, {{0.0, 451.0}, {402.0, 423.0}} <AX element pid: 21198, elementOrHash.elementID: 4458901760.37>
+            NavigationBar, 0x114a51e00, {{0.0, 461.0}, {402.0, 54.0}}, identifier: 'Practice' <AX element pid: 21198, elementOrHash.elementID: 4461863936.38>
+              Other, 0x114a51f40, {{20.0, 465.0}, {79.0, 36.0}}, identifier: 'editor.home', label: 'Home' <AX element pid: 21198, elementOrHash.elementID: 4402534656.170>
+                Other, 0x114a52080, {{20.0, 465.0}, {79.0, 36.0}} <AX element pid: 21198, elementOrHash.elementID: 4459017792.172>
+                  Button, 0x114a521c0, {{20.0, 465.0}, {79.0, 36.0}}, identifier: 'editor.home', label: 'Home' <AX element pid: 21198, elementOrHash.elementID: 4459012416.173>
+              StaticText, 0x114a52300, {{161.3, 468.0}, {79.0, 30.0}}, label: 'Practice' <AX element pid: 21198, elementOrHash.elementID: 4403960832.42>
+              Button, 0x114a52440, {{346.0, 465.0}, {36.0, 36.0}}, identifier: 'navigation.help', label: 'Help' <AX element pid: 21198, elementOrHash.elementID: 4693067008.171>
+            Other, 0x114a52580, {{0.0, 451.0}, {402.0, 423.0}} <AX element pid: 21198, elementOrHash.elementID: 4458902208.39>
+              Other, 0x114a530c0, {{0.0, 451.0}, {402.0, 423.0}} <AX element pid: 21198, elementOrHash.elementID: 4458930496.45>
+                Other, 0x114a52e40, {{0.0, 451.0}, {402.0, 423.0}} <AX element pid: 21198, elementOrHash.elementID: 4403957248.48>
+                  Other, 0x114a52f80, {{0.0, 451.0}, {402.0, 423.0}} <AX element pid: 21198, elementOrHash.elementID: 4459012864.51>
+                    ScrollView, 0x114a94c80, {{0.0, 451.0}, {402.0, 423.0}} <AX element pid: 21198, elementOrHash.elementID: 4691466240.174>
+                      Other, 0x114a94dc0, {{0.0, -947.0}, {402.0, 2166.0}} <AX element pid: 21198, elementOrHash.elementID: 4706176512.177>
+                        StaticText, 0x114a94f00, {{97.8, -931.0}, {206.3, 148.0}}, identifier: 'solve.verified', label: 'Solution verified' <AX element pid: 21198, elementOrHash.elementID: 4459014208.180>
+                        StaticText, 0x114a95040, {{52.0, -771.0}, {298.0, 121.7}}, identifier: 'solve.moveCount', label: '6 moves in the verified solution.' <AX element pid: 21198, elementOrHash.elementID: 4459016896.181>
+                        StaticText, 0x114a95400, {{69.7, -637.3}, {262.7, 74.7}}, identifier: 'guide.progress', label: 'Step 1 of 10' <AX element pid: 21198, elementOrHash.elementID: 4459016000.182>
+                        StaticText, 0x114a95540, {{36.2, -550.7}, {329.7, 221.3}}, label: 'Turn the front face halfway around.' <AX element pid: 21198, elementOrHash.elementID: 4459017344.183>
+                        StaticText, 0x114a95680, {{65.0, -317.3}, {272.0, 134.0}}, label: 'Static before this action' <AX element pid: 21198, elementOrHash.elementID: 4459009280.184>
+                        Other, 0x114a957c0, {{16.0, -175.3}, {370.0, 180.0}}, identifier: 'guide.staticCube', label: 'Static before cube' <AX element pid: 21198, elementOrHash.elementID: 4459008832.185>
+                        Other, 0x114a95900, {{42.0, 63.7}, {110.0, 80.0}}, identifier: 'guide.directionDiagram', label: 'Front-layer direction arrow' <AX element pid: 21198, elementOrHash.elementID: 4459008384.186>
+                        StaticText, 0x114a95a40, {{163.8, 12.7}, {196.3, 182.3}}, label: 'Move only the front layer' <AX element pid: 21198, elementOrHash.elementID: 4459007936.187>
+                        StaticText, 0x114a961c0, {{57.3, 207.0}, {287.3, 200.7}}, label: 'Front: Green · Top: White · Right: Red' <AX element pid: 21198, elementOrHash.elementID: 4459007040.188>
+                        Button, 0x114a94640, {{123.3, 419.7}, {155.3, 104.7}}, identifier: 'guide.play', label: 'Play' <AX element pid: 21198, elementOrHash.elementID: 4459006144.203>
+                        Button, 0x114a94780, {{103.0, 532.3}, {196.3, 104.7}}, identifier: 'guide.pause', label: 'Pause', Disabled <AX element pid: 21198, elementOrHash.elementID: 4459010176.204>
+                        Button, 0x114a948c0, {{94.3, 645.0}, {213.3, 104.7}}, identifier: 'guide.replay', label: 'Replay' <AX element pid: 21198, elementOrHash.elementID: 4459005696.205>
+                        Button, 0x114a94a00, {{72.3, 761.7}, {257.7, 178.0}}, identifier: 'guide.acknowledge', label: 'I did this move', Disabled <AX element pid: 21198, elementOrHash.elementID: 4459006592.206>
+                        Button, 0x114a94b40, {{68.3, 951.7}, {265.3, 251.3}}, identifier: 'guide.mismatch', label: 'My cube looks different' <AX element pid: 21198, elementOrHash.elementID: 4458990208.191>
+                      Other, 0x114a95cc0, {{0.0, 451.0}, {402.0, 423.0}} <AX element pid: 21198, elementOrHash.elementID: 4459019584.175>
+                        Other, 0x114a70000, {{0.0, 451.0}, {402.0, 118.8}} <AX element pid: 21198, elementOrHash.elementID: 4459003200.179>
+                      Other, 0x114a70140, {{0.0, 451.0}, {402.0, 423.0}} <AX element pid: 21198, elementOrHash.elementID: 4459018240.176>
+                        Other, 0x114a70280, {{0.0, 451.0}, {402.0, 118.8}} <AX element pid: 21198, elementOrHash.elementID: 4693072128.193>
+                          Image, 0x114a703c0, {{-120.0, 337.0}, {642.0, 228.0}}, identifier: 'AdditionalDimmingOverlay' <AX element pid: 21198, elementOrHash.elementID: 4691826688.194>
+                          Other, 0x114a70500, {{0.0, 451.0}, {402.0, 54.0}} <AX element pid: 21198, elementOrHash.elementID: 4458995584.195>
+                          Other, 0x114a70640, {{0.0, 451.0}, {402.0, 118.8}} <AX element pid: 21198, elementOrHash.elementID: 4693330176.196>
+                            Other, 0x114a70780, {{0.0, 451.0}, {402.0, 118.8}} <AX element pid: 21198, elementOrHash.elementID: 4459002752.199>
+                          Other, 0x114a708c0, {{0.0, 451.0}, {402.0, 118.8}} <AX element pid: 21198, elementOrHash.elementID: 4691826176.197>
+                            Other, 0x114a70a00, {{0.0, 451.0}, {402.0, 118.8}} <AX element pid: 21198, elementOrHash.elementID: 4459001408.200>
+                          Other, 0x114a70b40, {{0.0, 451.0}, {402.0, 118.8}} <AX element pid: 21198, elementOrHash.elementID: 4693072768.198>
+                            Other, 0x114a70c80, {{0.0, 451.0}, {402.0, 118.8}} <AX element pid: 21198, elementOrHash.elementID: 4459002304.201>
+                            Other, 0x114a70dc0, {{0.0, 451.0}, {402.0, 118.8}} <AX element pid: 21198, elementOrHash.elementID: 4459000512.202>
+                      Other, 0x114a70f00, {{369.0, 515.0}, {30.0, 297.0}}, label: 'Vertical scroll bar, 7 pages', value: 79% <AX element pid: 21198, elementOrHash.elementID: 4691835392.178>
+                        Other, 0x114a71040, {{396.0, 715.3}, {3.0, 57.0}} <AX element pid: 21198, elementOrHash.elementID: 4459010624.192>
+                      Other, 0x114a71180, {{369.0, 515.0}, {30.0, 297.0}}, label: 'Vertical scroll bar, 7 pages', value: 79% <AX element pid: 21198, elementOrHash.elementID: 4691835392.178>
+                        Other, 0x114a712c0, {{396.0, 715.3}, {3.0, 57.0}} <AX element pid: 21198, elementOrHash.elementID: 4459010624.192>
+            Other, 0x114a71400, {{0.0, 451.0}, {402.0, 423.0}} <AX element pid: 21198, elementOrHash.elementID: 4689337856.40>
+              Other, 0x114a71540, {{0.0, 451.0}, {402.0, 423.0}} <AX element pid: 21198, elementOrHash.elementID: 4689339904.46>

@@ -1,0 +1,25 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "PR",
+        "deviceId" : "610EA507-710F-4AA6-943C-AF57C0035F07",
+        "deviceName" : "CubeGuide graphics runtime control",
+        "exportedFileName" : "F1C383C7-A74C-449B-BA88-C81ACCC14AB7.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Expected solved requires physical confirmation_0_8E7CABBD-ADEC-4355-B776-C2ECA41A6E41.png",
+        "timestamp" : 1790005402.406
+      },
+      {
+        "configurationName" : "PR",
+        "deviceId" : "610EA507-710F-4AA6-943C-AF57C0035F07",
+        "deviceName" : "CubeGuide graphics runtime control",
+        "exportedFileName" : "E9F5C26B-A202-4E93-B390-29F351DED2F7.txt",
+        "isAssociatedWithFailure" : true,
+        "suggestedHumanReadableName" : "Complete Issue Description.txt"
+      }
+    ],
+    "testIdentifier" : "GuideUITests/testGuideCompletionRequiresSeparatePhysicalConfirmation()",
+    "testIdentifierURL" : "test://com.apple.xcode/cubeguide/cubeguideUITests/GuideUITests/testGuideCompletionRequiresSeparatePhysicalConfirmation"
+  }
+]

@@ -115,6 +115,18 @@ final class ReduceMotionUITests: XCTestCase {
       predicate: NSPredicate(format: "label != %@", portraitProgress),
       object: app.staticTexts["guide.progress"])], timeout: 10), .completed)
     XCUIDevice.shared.orientation = .portrait
+    for _ in 0..<90 {
+      if app.buttons["completion.confirmPhysical"].exists { break }
+      revealAndTap(app.buttons["guide.play"], in: app)
+      revealAndTap(app.buttons["guide.acknowledge"], in: app)
+    }
+    XCTAssertTrue(app.buttons["completion.confirmPhysical"].waitForExistence(timeout: 10))
+    XCTAssertTrue(app.descendants(matching: .any)["completion.staticCube"].firstMatch.exists)
+    XCTAssertFalse(app.descendants(matching: .any)["completion.renderedCube"].firstMatch.exists)
+    capture(app, "Reduce Motion expected solved")
+    revealAndTap(app.buttons["completion.confirmPhysical"], in: app)
+    XCTAssertTrue(app.staticTexts["You confirmed your cube is solved"].waitForExistence(timeout: 10))
+    XCTAssertTrue(app.descendants(matching: .any)["completion.staticCube"].firstMatch.exists)
     tap(app.buttons["practice.exit"])
   }
 
@@ -154,28 +166,45 @@ final class ReduceMotionUITests: XCTestCase {
   }
 
   @MainActor private func revealAndTap(_ element: XCUIElement, in app: XCUIApplication) {
+    var revealed = false
     for _ in 0..<40 {
-      if element.exists && element.isHittable { break }
       let scroll = app.scrollViews.firstMatch
       var viewport = scroll.frame.intersection(app.frame)
       // The ScrollView's accessibility frame includes the navigation bar.
       // On a short viewport, swipeDown starts on that bar and cannot scroll.
       for bar in app.navigationBars.allElementsBoundByIndex where bar.isHittable {
         let overlap = viewport.intersection(bar.frame)
-        if !overlap.isNull && overlap.minY <= viewport.minY {
+        if !overlap.isNull {
           viewport.origin.y = overlap.maxY
           viewport.size.height = scroll.frame.maxY - overlap.maxY
         }
       }
       XCTAssertGreaterThan(viewport.height, 44, "Guide needs a usable scrolling viewport")
-      let upper = app.coordinate(withNormalizedOffset: .zero)
-        .withOffset(CGVector(dx: viewport.midX, dy: viewport.minY + viewport.height * 0.2))
-      let lower = app.coordinate(withNormalizedOffset: .zero)
-        .withOffset(CGVector(dx: viewport.midX, dy: viewport.minY + viewport.height * 0.8))
+      if element.exists && element.isHittable {
+        let frame = element.frame
+        let usable = viewport.insetBy(dx: 0, dy: 4)
+        // A sliver below the navigation bar can be "hittable" even though
+        // XCTest's center tap lands on the bar. Reveal the whole control when
+        // it fits; otherwise its center must still be inside the viewport.
+        let visible = frame.height <= usable.height
+          ? frame.minY >= usable.minY && frame.maxY <= usable.maxY
+          : frame.midY >= usable.minY && frame.midY <= usable.maxY
+        if visible { revealed = true; break }
+      }
       let above = element.exists && element.frame.midY < viewport.midY
-      (above ? upper : lower).press(forDuration: 0.05, thenDragTo: above ? lower : upper,
+      let distance = element.exists
+        ? min(viewport.height * 0.6, max(12, abs(element.frame.midY - viewport.midY)))
+        : viewport.height * 0.6
+      let startY = viewport.minY + viewport.height * (above ? 0.2 : 0.8)
+      let start = app.coordinate(withNormalizedOffset: .zero)
+        .withOffset(CGVector(dx: viewport.midX, dy: startY))
+      let end = app.coordinate(withNormalizedOffset: .zero)
+        .withOffset(CGVector(dx: viewport.midX, dy: startY + (above ? distance : -distance)))
+      start.press(forDuration: 0.05, thenDragTo: end,
         withVelocity: XCUIGestureVelocity(rawValue: 100), thenHoldForDuration: 0.3)
     }
+    XCTAssertTrue(revealed, "Could not reveal \(element.identifier) in the usable viewport")
+    guard revealed else { return }
     tap(element)
   }
 

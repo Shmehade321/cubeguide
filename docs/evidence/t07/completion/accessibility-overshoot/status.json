@@ -1,0 +1,5 @@
+{
+  "status": "intentionally interrupted",
+  "exitCode": 75,
+  "reason": "Fixed-length swipe oscillation around a large acknowledgement control; no completion pass claimed."
+}

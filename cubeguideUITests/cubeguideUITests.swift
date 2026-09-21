@@ -310,11 +310,20 @@ final class FoundationUITests: XCTestCase {
     validate.tap()
     XCTAssertTrue(app.staticTexts["Your entered colors are solved"].waitForExistence(timeout: 5))
     XCTAssertFalse(app.buttons["solve.consent"].exists)
+    let artwork = app.descendants(matching: .any)["completion.artwork"].firstMatch
+    XCTAssertTrue(artwork.waitForExistence(timeout: 5))
+    XCTAssertEqual(artwork.value as? String, "Front Orange, top Green, right White")
+    let completion = XCTAttachment(screenshot: app.screenshot())
+    completion.name = "Entered solved colors retain custom palette"
+    completion.lifetime = .keepAlways
+    add(completion)
     tapReady(app.buttons["completion.save"])
     XCTAssertTrue(app.buttons["completion.home"].waitForExistence(timeout: 5))
     app.terminate()
     app.launch()
     XCTAssertTrue(app.staticTexts["Your entered colors are solved"].waitForExistence(timeout: 5))
+    XCTAssertTrue(artwork.waitForExistence(timeout: 5))
+    XCTAssertEqual(artwork.value as? String, "Front Orange, top Green, right White")
     tapReady(app.buttons["completion.home"])
     tapReady(app.buttons["home.delete"])
     tapReady(app.alerts.buttons.matching(identifier: "delete.confirm").firstMatch)

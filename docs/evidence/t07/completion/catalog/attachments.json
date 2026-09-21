@@ -1,0 +1,68 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "PR",
+        "deviceId" : "610EA507-710F-4AA6-943C-AF57C0035F07",
+        "deviceName" : "CubeGuide graphics runtime control",
+        "exportedFileName" : "5A460891-96FF-4CC9-9E26-097D570C0D69.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "A07-rendered-dark-custom-palette-yaw-left_0_CAA2A023-699B-4EEC-9C38-23D7C2105145.png",
+        "timestamp" : 1790006285.294
+      },
+      {
+        "configurationName" : "PR",
+        "deviceId" : "610EA507-710F-4AA6-943C-AF57C0035F07",
+        "deviceName" : "CubeGuide graphics runtime control",
+        "exportedFileName" : "6D7EB604-E10F-4BF1-A290-631F1C84EF81.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "A07-rendered-light-custom-palette-yaw-left_0_4C4193C1-E5EC-47F7-87CA-6C44C0FFF8F4.png",
+        "timestamp" : 1790006284.195
+      }
+    ],
+    "testIdentifier" : "CompletionArtworkVisualTests/testRenderedCompletionAppearance()",
+    "testIdentifierURL" : "test://com.apple.xcode/cubeguide/cubeguideTests/CompletionArtworkVisualTests/testRenderedCompletionAppearance"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "PR",
+        "deviceId" : "610EA507-710F-4AA6-943C-AF57C0035F07",
+        "deviceName" : "CubeGuide graphics runtime control",
+        "exportedFileName" : "EE333BF7-8882-48B9-940E-572A1F5C44C6.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "A07-static-dark-labels-true_0_7398E17A-CDE6-4D57-BBAE-49ED627EE747.png",
+        "timestamp" : 1790006285.349
+      },
+      {
+        "configurationName" : "PR",
+        "deviceId" : "610EA507-710F-4AA6-943C-AF57C0035F07",
+        "deviceName" : "CubeGuide graphics runtime control",
+        "exportedFileName" : "09BF86F5-187F-419B-B395-1631BBBB5AA2.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "A07-static-dark-labels-false_0_FFC8271A-A729-45F8-BCC8-714A981EFFDE.png",
+        "timestamp" : 1790006285.34
+      },
+      {
+        "configurationName" : "PR",
+        "deviceId" : "610EA507-710F-4AA6-943C-AF57C0035F07",
+        "deviceName" : "CubeGuide graphics runtime control",
+        "exportedFileName" : "6C539114-C1A0-43FD-839C-185E28601313.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "A07-static-light-labels-true_0_90F45976-BAAE-45E1-97DA-8D498D52A94E.png",
+        "timestamp" : 1790006285.332
+      },
+      {
+        "configurationName" : "PR",
+        "deviceId" : "610EA507-710F-4AA6-943C-AF57C0035F07",
+        "deviceName" : "CubeGuide graphics runtime control",
+        "exportedFileName" : "9F1AC592-BE6D-4F6B-9857-42FD2F184597.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "A07-static-light-labels-false_0_58D34DD9-B722-4C75-A6B7-798F2396C864.png",
+        "timestamp" : 1790006285.323
+      }
+    ],
+    "testIdentifier" : "CompletionArtworkVisualTests/testStaticCompletionAppearance()",
+    "testIdentifierURL" : "test://com.apple.xcode/cubeguide/cubeguideTests/CompletionArtworkVisualTests/testStaticCompletionAppearance"
+  }
+]

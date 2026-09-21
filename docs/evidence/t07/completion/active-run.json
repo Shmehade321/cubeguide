@@ -1,0 +1,12 @@
+{
+  "status": "complete",
+  "fullPRSession": 98262,
+  "fullPRExit": 0,
+  "accessibilitySession": 95622,
+  "accessibilityExit": 0,
+  "runtime": "iOS 26.5",
+  "simulator": "610EA507-710F-4AA6-943C-AF57C0035F07",
+  "artifact": "Artifacts/t07-completion-final-pr",
+  "sourceVerification": "final-pr/source-verification.json",
+  "openBoundary": "Minimum-OS ARView failure and physical qualification remain open; no release claim."
+}

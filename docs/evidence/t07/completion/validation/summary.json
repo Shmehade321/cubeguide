@@ -1,0 +1,27 @@
+{
+  "devicesAndConfigurations" : [
+
+  ],
+  "environmentDescription" : "PR · Built with macOS 27.0",
+  "expectedFailures" : 0,
+  "failedTests" : 0,
+  "finishTime" : 1790005682.726,
+  "passedTests" : 0,
+  "result" : "unknown",
+  "runtimeWarnings" : [
+
+  ],
+  "skippedTests" : 0,
+  "startTime" : 1790005678.06,
+  "statistics" : [
+
+  ],
+  "testFailures" : [
+
+  ],
+  "title" : "Test - cubeguide",
+  "topInsights" : [
+
+  ],
+  "totalTestCount" : 0
+}

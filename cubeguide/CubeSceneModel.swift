@@ -141,7 +141,7 @@ final class CubeSceneModel {
 
   }
 
-  private func display(state: Facelets, palette: CenterPalette, pose: CubeOrientation, labels: Bool) {
+  func display(state: Facelets, palette: CenterPalette, pose: CubeOrientation, labels: Bool) {
     display(colors: state.faces.map { palette.colors[Int($0.rawValue)] },
       pose: pose, showColorLabels: labels)
   }

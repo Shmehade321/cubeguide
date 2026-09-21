@@ -6,7 +6,7 @@ Baseline: 78f7fbc. User authorized full implementation with TDD, quality checks 
 
 Resumed T07 from committed checkpoint `cdc58ee`. The iOS 18.5 preview crash has an independent bare-ARView reproducer and remains an open minimum-OS qualification issue. On explicitly selected iOS 26.5, the real product passed 100 preview/Home/Resume cycles across three diagnostic repetitions and two full suites. Test-only fixes disambiguate nested dialog actions and scroll guide controls into view. After retaining the first full run's three failed guide tests and validating their correction, the fresh full PR completed with all 56 simulator tests passing, zero failures/skips, and all package/storage/solver/reference stages passing. All 211 non-document inputs match the run snapshot. See the [concise investigation and evidence links](t07/runtime-investigation.md).
 
-No renderer fix or iOS 18 qualification is claimed. Completion art remains the next planned T07 implementation increment after this regression checkpoint. The Git checkout has no configured remote, so pushing requires the repository URL.
+No renderer fix or iOS 18 qualification is claimed. Overlay recovery was committed as `d3ecf3f`. A07 completion artwork is now implemented with retained final state/palette/pose, static Reduce Motion rendering, scrolling and separate physical confirmation. Focused normal/manual/relaunch/renderer checks passed; the first full PR passed all 59 simulator tests. Largest-text dark-mode normal and Reduce Motion completion checks passed after correcting the test scroll helper. The fresh full PR with the final helper passed all 59 simulator tests, zero failed/skipped, with all package/storage/solver/reference stages passing and all 213 non-document inputs unchanged. See [A07 evidence](t07/completion/README.md). Remaining T07 artwork and physical/minimum-OS qualification are still open. The Git checkout has no configured remote, so pushing requires the repository URL.
 
 ## Rulings and pre-flight
 
@@ -31,7 +31,7 @@ No renderer fix or iOS 18 qualification is claimed. Completion art remains the n
 | T04 Search | automated exit passed; physical qualification open | task-04.md |
 | T05 Session/storage | running: guide/manual/scan storage and durable discard implemented; full lifecycle pending | task-05.md |
 | T06 Manual flow | running: Home/editor, validation/solver result UI, offline Help, persisted Settings, isolated practice and calculation-state UI coverage | task-06.md |
-| T07 Graphics | running: static preview plus animation and initial guide/comparison/recovery/completion increment qualified locally; live label propagation qualified; static Reduce Motion and largest-text layout locally qualified with full PR passed; animated overlays, broader accessibility, artwork and media qualification pending | task-07.md |
+| T07 Graphics | running: static/animated preview and overlays locally qualified on explicit iOS 26.5; A07 completion artwork locally qualified with final full PR and largest-text normal/Reduce Motion checks passed; minimum-OS, remaining artwork, broader accessibility and media qualification open | task-07.md |
 | T08 Guidance/audio | notRun | — |
 | T09 Camera | notRun | — |
 | T10 Accessibility/physical | notRun | — |

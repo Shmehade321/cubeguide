@@ -188,13 +188,16 @@ struct ContentView: View {
         .buttonStyle(.borderedProminent).accessibilityIdentifier("validation.edit")
       }.padding()
     case .alreadySolved:
-      VStack(spacing: 20) {
-        Text("Your entered colors are solved").font(.title.bold())
-        Text("This checks the colors you entered. Compare them with your physical cube.")
-        Button("Done") { controller.send(.confirmCompletion) }
-          .buttonStyle(.borderedProminent).accessibilityIdentifier("completion.save")
-        Button("Edit colors") { controller.send(.edit) }.accessibilityIdentifier("validation.edit")
-      }.padding()
+      ScrollView {
+        VStack(spacing: 20) {
+          completionArtwork
+          Text("Your entered colors are solved").font(.title.bold())
+          Text("This checks the colors you entered. Compare them with your physical cube.")
+          Button("Done") { controller.send(.confirmCompletion) }
+            .buttonStyle(.borderedProminent).accessibilityIdentifier("completion.save")
+          Button("Edit colors") { controller.send(.edit) }.accessibilityIdentifier("validation.edit")
+        }.padding()
+      }
     case .offer:
       VStack(spacing: 20) {
         Text("Ready to solve?").font(.title.bold())
@@ -261,6 +264,7 @@ struct ContentView: View {
     case .expectedSolved:
       ScrollView {
         VStack(spacing: 20) {
+          completionArtwork
           Text("The guide is finished. Check that your cube is solved.").font(.title.bold())
           Text("Look at all six physical faces. This is the expected result of the moves you acknowledged; the camera has not checked your cube.")
           Button("Yes, my cube is solved") { controller.send(.confirmCompletion) }
@@ -273,14 +277,17 @@ struct ContentView: View {
     case .completionStorageError:
       failure("Couldn't save completion") { controller.send(.retryCompletionSave) }
     case .completed:
-      VStack(spacing: 20) {
-        Text(
-          controller.session.completion == .enteredColorsSolved
-            ? "Your entered colors are solved" : "You confirmed your cube is solved"
-        )
-        .font(.title.bold())
-        Button("Home") { controller.send(.cancel) }.accessibilityIdentifier("completion.home")
-      }.padding()
+      ScrollView {
+        VStack(spacing: 20) {
+          completionArtwork
+          Text(
+            controller.session.completion == .enteredColorsSolved
+              ? "Your entered colors are solved" : "You confirmed your cube is solved"
+          )
+          .font(.title.bold())
+          Button("Home") { controller.send(.cancel) }.accessibilityIdentifier("completion.home")
+        }.padding()
+      }
     case .startingManual: ProgressView("Starting your cube…")
     case .deleting: ProgressView("Deleting saved cube…")
     case .draftStorageError:
@@ -293,6 +300,16 @@ struct ContentView: View {
       ContentUnavailableView(
         "Saved guide", systemImage: "cube",
         description: Text("Your saved cube is retained. Guidance is currently unavailable."))
+    }
+  }
+
+  @ViewBuilder
+  private var completionArtwork: some View {
+    if let palette = controller.palette,
+      let state = controller.session.guideProgress?.state ?? controller.session.confirmedCube?.facelets {
+      CompletionArtwork(state: state, palette: palette,
+        pose: controller.session.guideProgress?.pose ?? .identity,
+        showColorLabels: controller.preferences.colorLabelsEnabled(differentiateWithoutColor: differentiate))
     }
   }
 

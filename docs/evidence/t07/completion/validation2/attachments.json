@@ -1,0 +1,68 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "PR",
+        "deviceId" : "610EA507-710F-4AA6-943C-AF57C0035F07",
+        "deviceName" : "CubeGuide graphics runtime control",
+        "exportedFileName" : "A5D23A54-D602-446F-9050-A961D7456DC0.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "A07-static-dark-labels-true_0_D3790A42-E033-414C-848E-BD382991B69A.png",
+        "timestamp" : 1790005715.665
+      },
+      {
+        "configurationName" : "PR",
+        "deviceId" : "610EA507-710F-4AA6-943C-AF57C0035F07",
+        "deviceName" : "CubeGuide graphics runtime control",
+        "exportedFileName" : "0D9F283B-0CF7-4805-8301-532E5C0666B2.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "A07-static-dark-labels-false_0_2CC6D97F-F7F0-423D-9FF5-527110AA1EC7.png",
+        "timestamp" : 1790005715.659
+      },
+      {
+        "configurationName" : "PR",
+        "deviceId" : "610EA507-710F-4AA6-943C-AF57C0035F07",
+        "deviceName" : "CubeGuide graphics runtime control",
+        "exportedFileName" : "65DB88C6-6AC6-456C-94D5-A380C5971E73.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "A07-static-light-labels-true_0_30AEE6BB-509F-46FE-8851-4BB308C0D42A.png",
+        "timestamp" : 1790005715.652
+      },
+      {
+        "configurationName" : "PR",
+        "deviceId" : "610EA507-710F-4AA6-943C-AF57C0035F07",
+        "deviceName" : "CubeGuide graphics runtime control",
+        "exportedFileName" : "58AA5F9E-EDDB-4F6B-9C0C-21AC85D4D53A.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "A07-static-light-labels-false_0_08C76EB7-2534-4C7F-80D1-6E50D338CABF.png",
+        "timestamp" : 1790005715.643
+      }
+    ],
+    "testIdentifier" : "CompletionArtworkVisualTests/testStaticCompletionAppearance()",
+    "testIdentifierURL" : "test://com.apple.xcode/cubeguide/cubeguideTests/CompletionArtworkVisualTests/testStaticCompletionAppearance"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "PR",
+        "deviceId" : "610EA507-710F-4AA6-943C-AF57C0035F07",
+        "deviceName" : "CubeGuide graphics runtime control",
+        "exportedFileName" : "E743A4F6-607C-4C01-A63D-3732A0E80C6C.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Entered solved colors retain custom palette_0_C1F67516-6E56-452A-9300-C1A3034C494D.png",
+        "timestamp" : 1790006033.674
+      },
+      {
+        "configurationName" : "PR",
+        "deviceId" : "610EA507-710F-4AA6-943C-AF57C0035F07",
+        "deviceName" : "CubeGuide graphics runtime control",
+        "exportedFileName" : "8042F116-9E93-4E3C-92AD-778BD8597FB9.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Related stickers for count correction_0_962A7A7B-4F64-4F18-8678-BD47D7D57B4C.png",
+        "timestamp" : 1790006019.675
+      }
+    ],
+    "testIdentifier" : "FoundationUITests/testManualValidationAndSolvedCompletion()",
+    "testIdentifierURL" : "test://com.apple.xcode/cubeguide/cubeguideUITests/FoundationUITests/testManualValidationAndSolvedCompletion"
+  }
+]
