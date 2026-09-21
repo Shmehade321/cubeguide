@@ -257,6 +257,7 @@ func persistenceEventMatrix() throws {
     .session
   let rows: [(Session, String)] = [
     (Session(), "IIRRRRIIRRR"), (editing, "IIRRRRIIRRR"),
+    (try startingManualSession(), "IIRRRRIIRRR"), (try manualStartErrorSession(), "IIRRRRIIRRR"),
     (deleting, "IIRRRRIIRRR"), (deletionError, "IIRRRRIIRRR"),
     (draftSaving, "IIRRRRIIRRR"), (draftError, "IIRRRRIIRRR"),
     (apply(editing, .validate(try Facelets(bad))).session, "IIRRRRIIRRR"),

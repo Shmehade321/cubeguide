@@ -44,7 +44,7 @@ func deletionBarrier() throws {
   #expect(home.guideProgress == nil && home.draft == nil && home.confirmedCube == nil)
   #expect(home.pendingDeletion == nil)
   #expect(home.revision > guide.revision)
-  #expect(apply(home, .startManual(replacing: false)).session.phase == .editing)
+  #expect(apply(home, .startManual(replacing: false)).session.phase == .startingManual)
 }
 
 @Test("V15: failed deletion stays visible; retries and late callbacks cannot reset a newer attempt")
@@ -101,6 +101,7 @@ func deletionEventMatrix() throws {
   // Columns: unconfirmed delete, confirmed delete, retry, success, failure.
   let rows: [(Session, String)] = [
     (Session(), "RARII"), (editing, "RARII"),
+    (try startingManualSession(), "RARII"), (try manualStartErrorSession(), "RARII"),
     (apply(editing, .validate(try Facelets(bad))).session, "RARII"),
     (apply(editing, .validate(.solved)).session, "RARII"),
     (try offeredSession(), "RARII"), (solving, "RARII"),

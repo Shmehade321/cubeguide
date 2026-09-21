@@ -4,7 +4,7 @@ import CubeSolver3
 public enum SessionPhase: String, CaseIterable, Sendable {
   case home, editing, invalid, alreadySolved, offer, solving, solveError, preparingAction,
     resumeCheck, guide, savingAcknowledgement, storageError, expectedSolved, recovery, savingDraft,
-    draftStorageError, deleting, deletionError
+    draftStorageError, deleting, deletionError, startingManual, manualStartError
 }
 public enum SessionRejection: Equatable, Sendable {
   case unavailableEvent, replacementRequired, revisionExhausted, confirmationRequired
@@ -20,6 +20,9 @@ public enum SessionEvent: Sendable {
   case deleted(DeletionID)
   case deletionFailed(DeletionID)
   case startManual(replacing: Bool)
+  case manualStarted(SaveID)
+  case manualStartFailed(SaveID)
+  case retryManualStart
   case edit
   case editDraft(DraftEdit)
   case validateDraft, retryDraftSave
@@ -37,6 +40,7 @@ public enum SessionEvent: Sendable {
   case compare(PhysicalComparison)
 }
 public enum SessionCommand: Sendable {
+  case startManual(SaveID)
   case deleteLocalData(DeletionID)
   case solve(LegalCube, revision: UInt64, budget: SolveBudget)
   case cancelSolve(revision: UInt64)
@@ -49,6 +53,8 @@ public struct Session: Equatable, Sendable {
   public fileprivate(set) var phase: SessionPhase = .home
   public fileprivate(set) var revision: UInt64
   public fileprivate(set) var hasWork = false
+  public fileprivate(set) var pendingManualStart: SaveID?
+  fileprivate var exitAfterManualStart = false
   public fileprivate(set) var pendingDeletion: DeletionID?
   public fileprivate(set) var draft: ManualDraft?
   public fileprivate(set) var durableDraft: ManualDraft?
@@ -71,6 +77,11 @@ public struct Session: Equatable, Sendable {
   fileprivate var interruptedSave = false
   fileprivate var failedSaveKind: GuideSaveKind?
   public init(revision: UInt64 = 0) { self.revision = revision }
+  init(restoringManualStart revision: UInt64) {
+    self.init(revision: revision)
+    phase = .editing
+    hasWork = true
+  }
   public init(restoringDraft draft: ManualDraft) {
     self.init(revision: draft.revision)
     self.draft = draft
@@ -140,6 +151,16 @@ public enum SessionReducer {
       next.phase = .savingDraft
       commands.append(.saveDraft(request))
     }
+    func beginManualStart() -> Bool {
+      let (sequence, overflow) = next.saveSequence.addingReportingOverflow(1)
+      guard !overflow else { return false }
+      next.saveSequence = sequence
+      let id = SaveID(revision: next.revision, sequence: sequence)
+      next.pendingManualStart = id
+      next.phase = .startingManual
+      commands.append(.startManual(id))
+      return true
+    }
     func beginDeletion() {
       // Even at the final revision, deletion remains possible without wrapping counters.
       _ = advanceRevision()
@@ -147,6 +168,8 @@ public enum SessionReducer {
       next.pendingDeletion = id
       next.pendingSave = nil
       next.pendingDraftSave = nil
+      next.pendingManualStart = nil
+      next.exitAfterManualStart = false
       next.exitAfterDraftSave = false
       next.preview = .idle
       next.playbackID = nil
@@ -155,6 +178,22 @@ public enum SessionReducer {
       commands = [.cancelSolve(revision: session.revision), .stopPreview, .deleteLocalData(id)]
     }
     switch event {
+    case .manualStarted(let id):
+      guard session.phase == .startingManual, session.pendingManualStart == id else {
+        return ignored()
+      }
+      next = Session(restoringManualStart: id.revision)
+      if session.exitAfterManualStart { next.phase = .home }
+    case .manualStartFailed(let id):
+      guard session.phase == .startingManual, session.pendingManualStart == id else {
+        return ignored()
+      }
+      next.phase = .manualStartError
+      next.pendingManualStart = nil
+      next.exitAfterManualStart = false
+    case .retryManualStart:
+      guard session.phase == .manualStartError else { return rejected() }
+      guard beginManualStart() else { return rejected(.revisionExhausted) }
     case .deleteLocalData(let confirmed):
       guard confirmed else { return rejected(.confirmationRequired) }
       if session.phase == .deleting { return ignored() }
@@ -319,12 +358,20 @@ public enum SessionReducer {
       guard !session.hasWork || replacing else { return rejected(.replacementRequired) }
       let (revision, overflow) = session.revision.addingReportingOverflow(1)
       guard !overflow else { return rejected(.revisionExhausted) }
-      next = Session(revision: revision)
-      next.phase = .editing
-      next.hasWork = true
+      next.revision = revision
+      next.saveSequence = 0
+      next.pendingSave = nil
+      next.pendingDraftSave = nil
+      next.aligned = false
+      next.preview = .idle
+      next.playbackID = nil
+      guard beginManualStart() else { return rejected(.revisionExhausted) }
     case .cancel, .background:
       if session.phase == .deleting { return ignored() }
-      if session.phase == .savingDraft {
+      if session.phase == .startingManual {
+        if case .background = event { return ignored() }
+        next.exitAfterManualStart = true
+      } else if session.phase == .savingDraft {
         if case .background = event { return ignored() }
         next.exitAfterDraftSave = true
       } else if [.preparingAction, .guide, .savingAcknowledgement].contains(session.phase) {

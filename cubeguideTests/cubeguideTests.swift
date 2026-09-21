@@ -42,6 +42,9 @@ func protectedGuideStorage() async throws {
   let faces = try Facelets(notation: "UUFUUFUUFRRRRRRRRRFFDFFDFFDDDBDDBDDBLLLLLLLLLUBBUBBUBB")
   var session = Session()
   session = SessionReducer.reduce(session, event: .startManual(replacing: false)).session
+  session =
+    SessionReducer.reduce(session, event: .manualStarted(try #require(session.pendingManualStart)))
+    .session
   session = SessionReducer.reduce(session, event: .validate(faces)).session
   session = SessionReducer.reduce(session, event: .consent(true)).session
   let cube = try #require(session.confirmedCube)
@@ -103,6 +106,11 @@ func appSessionCoordinator() async throws {
   let controller = dependencies.makeSessionController(playback: playback)
   await controller.load()
   #expect(controller.send(.startManual(replacing: false)) == .accepted)
+  let startDeadline = ContinuousClock.now.advanced(by: .seconds(10))
+  while controller.session.phase == .startingManual && ContinuousClock.now < startDeadline {
+    try await Task.sleep(for: .milliseconds(5))
+  }
+  #expect(controller.session.phase == .editing)
   let palette = try CenterPalette([.green, .white, .orange, .blue, .yellow, .red])
   #expect(controller.send(.editDraft(.centers(palette))) == .accepted)
   let saveDeadline = ContinuousClock.now.advanced(by: .seconds(10))

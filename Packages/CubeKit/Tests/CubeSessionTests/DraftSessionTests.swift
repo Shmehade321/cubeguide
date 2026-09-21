@@ -107,6 +107,7 @@ func draftEventMatrix() throws {
     .session
   let rows: [(Session, String)] = [
     (Session(), "RRRRRII"), (editing, "ARRRRII"),
+    (try startingManualSession(), "RRRRRII"), (try manualStartErrorSession(), "RRRRRII"),
     (deleting, "RRRRRII"), (deletionError, "RRRRRII"),
     (saving, "RRRRRAA"), (failed, "RRRRAII"),
     (ready, "AAARRII"), (complete, "AAAARII"),

@@ -8,31 +8,35 @@ let literalRight = "UUFUUFUUFRRRRRRRRRFFDFFDFFDDDBDDBDDBLLLLLLLLLUBBUBBUBB"
 func apply(_ session: Session, _ event: SessionEvent) -> SessionTransition {
   SessionReducer.reduce(session, event: event)
 }
-func editor() throws -> Session {
-  let transition = apply(Session(), .startManual(replacing: false))
-  try #require(transition.session.phase == .editing)
-  return transition.session
+func editor(revision: UInt64 = 0) throws -> Session {
+  let transition = apply(Session(revision: revision), .startManual(replacing: false))
+  let ready = apply(
+    transition.session, .manualStarted(try #require(transition.session.pendingManualStart))
+  ).session
+  try #require(ready.phase == .editing)
+  return ready
 }
 
-@Test("V09: a new manual session is empty and existing work cannot be silently replaced")
+@Test("V09: a new manual session is durable before editing and replacement needs consent")
 func manualStartAndReplacement() throws {
-  let initial = Session()
-  let started = apply(initial, .startManual(replacing: false))
+  let started = apply(Session(), .startManual(replacing: false))
   #expect(started.disposition == .accepted)
-  #expect(started.session.phase == .editing)
-  #expect(started.session.revision == 1)
-  #expect(started.session.hasWork)
-  #expect(started.session.confirmedCube == nil)
-  #expect(started.commands.isEmpty)
-  let home = apply(started.session, .cancel)
-  #expect(home.session.phase == .home)
-  let refused = apply(home.session, .startManual(replacing: false))
+  #expect(started.session.phase == .startingManual && started.session.revision == 1)
+  let id = try #require(started.session.pendingManualStart)
+  if case .startManual(let command) = started.commands.first {
+    #expect(command == id)
+  } else {
+    Issue.record("Manual entry must emit a durable start request")
+  }
+  let ready = apply(started.session, .manualStarted(id)).session
+  #expect(ready.phase == .editing && ready.hasWork && ready.confirmedCube == nil)
+  let home = apply(ready, .cancel).session
+  let refused = apply(home, .startManual(replacing: false))
   #expect(refused.disposition == .rejected(.replacementRequired))
-  #expect(refused.session == home.session)
-  let replaced = apply(home.session, .startManual(replacing: true))
-  #expect(replaced.disposition == .accepted)
-  #expect(replaced.session.phase == .editing)
-  #expect(replaced.session.revision > home.session.revision)
+  #expect(refused.session == home)
+  let replaced = apply(home, .startManual(replacing: true))
+  #expect(replaced.disposition == .accepted && replaced.session.phase == .startingManual)
+  #expect(replaced.session.revision > home.revision)
 }
 
 @Test("V09: real validation separates solved, invalid and scrambled states without solving")
@@ -255,6 +259,8 @@ func preGuideTransitionMatrix() throws {
     .session
   let rows: [(Session, SessionPhase, String)] = [
     (Session(), .home, "ARRRRRIRRI"),
+    (try startingManualSession(), .startingManual, "RRRRRAIRRI"),
+    (try manualStartErrorSession(), .manualStartError, "RRRRRRIRRI"),
     (deleting, .deleting, "RRRRRIIRRI"), (deletionError, .deletionError, "RRRRRRIRRI"),
     (draftSaving, .savingDraft, "RRRRRAIRRI"),
     (draftError, .draftStorageError, "RRRRRRIRRI"),
@@ -315,7 +321,7 @@ func sessionSolverIntegration() async throws {
 
 @Test("V09: cancelling at the maximum revision remains possible and cannot accept its late result")
 func cancelAtFinalRevision() throws {
-  let editing = apply(Session(revision: .max - 3), .startManual(replacing: false)).session
+  let editing = try editor(revision: .max - 3)
   let offered = apply(editing, .validate(try Facelets(notation: literalRight))).session
   let solving = apply(offered, .consent(true)).session
   try #require(solving.phase == .solving && solving.revision == .max)

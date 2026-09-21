@@ -35,10 +35,41 @@ public actor SessionStore {
         [.protectionKey: FileProtectionType.complete], ofItemAtPath: url.path)
     #endif
   }
+  public func startManual(revision: UInt64, lease: StorageLease) throws {
+    guard lease == self.lease else { throw SessionStoreError.staleLease }
+    let previous = try loadManualStart()
+    if previous != revision {
+      let guide = try load()
+      let draft = try loadDraft()
+      let latest = max(previous ?? 0, guide?.saveID.revision ?? 0, draft?.revision ?? 0)
+      guard revision > latest else { throw SessionStoreError.staleWrite }
+    }
+    // Repeat synchronization even if a prior failed callback left this marker in place.
+    // Rewriting the same boundary cannot discard a newer draft or guide.
+    try replace(
+      ManualStartArchive.encode(revision: revision),
+      file: manualStartFile, temporary: manualStartTemporary)
+  }
+
+  private func loadManualStart() throws -> UInt64? {
+    guard let bytes = try read(manualStartFile) else { return nil }
+    return try ManualStartArchive.decode(bytes)
+  }
+  private func checkManualStartBoundary(_ revision: UInt64) throws {
+    if let boundary = try loadManualStart(), revision <= boundary {
+      throw SessionStoreError.staleWrite
+    }
+  }
+
   public func restore() throws -> SessionRestoration {
     // No suspension point: these reads and the lease belong to one actor snapshot.
-    let guide = try load()
-    let draft = try loadDraft()
+    let boundary = try loadManualStart()
+    var guide = try load()
+    var draft = try loadDraft()
+    if let boundary {
+      if let existing = guide, existing.saveID.revision <= boundary { guide = nil }
+      if let existing = draft, existing.revision <= boundary { draft = nil }
+    }
     if let guide {
       if let draft, draft.revision == guide.progress.revision {
         guard draft.palette == guide.palette,
@@ -55,6 +86,10 @@ public actor SessionStore {
       return SessionRestoration(
         session: Session(restoringDraft: draft), palette: draft.palette, lease: lease)
     }
+    if let boundary {
+      return SessionRestoration(
+        session: Session(restoringManualStart: boundary), palette: nil, lease: lease)
+    }
     return SessionRestoration(session: Session(), palette: nil, lease: lease)
   }
   public func loadDraft() throws -> ManualDraft? {
@@ -63,6 +98,7 @@ public actor SessionStore {
   }
   public func saveDraft(_ draft: ManualDraft, lease: StorageLease) throws {
     guard lease == self.lease else { throw SessionStoreError.staleLease }
+    try checkManualStartBoundary(draft.revision)
     let existing: ManualDraft?
     do { existing = try loadDraft() } catch { throw SessionStoreError.existingArchiveNeedsReview }
     if let existing {
@@ -74,6 +110,8 @@ public actor SessionStore {
     try replace(bytes, file: draftFile, temporary: draftTemporary)
   }
   public func currentLease() -> StorageLease { lease }
+  private var manualStartFile: URL { directory.appendingPathComponent("manual-start.json") }
+  private var manualStartTemporary: URL { directory.appendingPathComponent("manual-start.pending") }
   private var file: URL { directory.appendingPathComponent("guide.json") }
   private var temporary: URL { directory.appendingPathComponent("guide.pending") }
   private var draftFile: URL { directory.appendingPathComponent("draft.json") }
@@ -104,6 +142,7 @@ public actor SessionStore {
   public func save(_ request: GuideSaveRequest, palette: CenterPalette, lease: StorageLease) throws
   {
     guard lease == self.lease else { throw SessionStoreError.staleLease }
+    try checkManualStartBoundary(request.id.revision)
     let existing: RestoredGuide?
     do { existing = try load() } catch { throw SessionStoreError.existingArchiveNeedsReview }
     if let existing {
@@ -153,7 +192,9 @@ public actor SessionStore {
     guard lease == self.lease else { throw SessionStoreError.staleLease }
     self.lease = StorageLease(value: UUID())
     try checkpoint(.beforeDelete)
-    for ownedFile in [file, temporary, draftFile, draftTemporary] {
+    for ownedFile in [
+      file, temporary, draftFile, draftTemporary, manualStartFile, manualStartTemporary,
+    ] {
       if FileManager.default.fileExists(atPath: ownedFile.path) {
         try FileManager.default.removeItem(at: ownedFile)
       }

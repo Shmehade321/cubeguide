@@ -34,6 +34,7 @@ func controllerRealFlow() async throws {
   await controller.load()
   #expect(controller.loadStatus == .ready)
   #expect(controller.send(.startManual(replacing: false)) == .accepted)
+  await controller.waitForEffects()
   let palette = try archivePalette()
   #expect(controller.send(.editDraft(.centers(palette))) == .accepted)
   await controller.waitForEffects()
@@ -128,19 +129,32 @@ actor ControlledStorage: SessionStorage {
   let real: SessionStore
   let restoreGate: ControllerGate?
   let draftGate: ControllerGate?
+  let startGate: ControllerGate?
+  var failStart: Bool
   var failGuide: Bool
   var failDraft: Bool
   var failDelete: Bool
   init(
     _ real: SessionStore, restoreGate: ControllerGate? = nil, draftGate: ControllerGate? = nil,
-    failDraft: Bool = false, failDelete: Bool = false, failGuide: Bool = false
+    failDraft: Bool = false, failDelete: Bool = false, failGuide: Bool = false,
+    startGate: ControllerGate? = nil, failStart: Bool = false
   ) {
     self.real = real
     self.restoreGate = restoreGate
     self.draftGate = draftGate
+    self.startGate = startGate
+    self.failStart = failStart
     self.failGuide = failGuide
     self.failDraft = failDraft
     self.failDelete = failDelete
+  }
+  func startManual(revision: UInt64, lease: StorageLease) async throws {
+    try await real.startManual(revision: revision, lease: lease)
+    await startGate?.pause()
+    if failStart {
+      failStart = false
+      throw ControllerInjectedFailure.afterWrite
+    }
   }
   func restore() async throws -> SessionRestoration {
     let result = try await real.restore()
@@ -197,6 +211,7 @@ func controllerLateRestore() async throws {
   #expect(try await real.loadDraft() == nil)
   // New input uses the new lease, rather than the lease in the late snapshot.
   #expect(controller.send(.startManual(replacing: false)) == .accepted)
+  await controller.waitForEffects()
   #expect(controller.send(.editDraft(.centers(try archivePalette()))) == .accepted)
   await controller.waitForEffects()
   #expect(controller.session.phase == .editing)
@@ -215,6 +230,7 @@ func controllerDeleteDuringWrite() async throws {
     solver: SolverService(), playback: RecordingPlayback())
   await controller.load()
   controller.send(.startManual(replacing: false))
+  await controller.waitForEffects()
   controller.send(.editDraft(.centers(try archivePalette())))
   await gate.waitUntilEntered()
   #expect(controller.session.phase == .savingDraft)
@@ -238,6 +254,7 @@ func controllerStorageRetries() async throws {
     solver: SolverService(), playback: RecordingPlayback())
   await controller.load()
   controller.send(.startManual(replacing: false))
+  await controller.waitForEffects()
   controller.send(.editDraft(.centers(try archivePalette())))
   await controller.waitForEffects()
   #expect(controller.session.phase == .draftStorageError)
@@ -281,6 +298,7 @@ func controllerLateSolve() async throws {
   let controller = SessionController(storage: real, solver: solver, playback: RecordingPlayback())
   await controller.load()
   controller.send(.startManual(replacing: false))
+  await controller.waitForEffects()
   controller.send(.validate(try Facelets(notation: literalRight)))
   controller.send(.consent(true))
   await gate.waitUntilEntered()
@@ -332,6 +350,7 @@ func controllerPlaybackLifecycle() async throws {
   #expect(controller.session.preview == .idle && !controller.session.aligned)
   controller.send(.cancel)
   #expect(controller.send(.startManual(replacing: true)) == .accepted)
+  await controller.waitForEffects()
   #expect(controller.palette == nil)
 }
 
@@ -345,6 +364,7 @@ func controllerMissingPalette() async throws {
     storage: store, solver: SolverService(), playback: RecordingPlayback())
   await controller.load()
   controller.send(.startManual(replacing: false))
+  await controller.waitForEffects()
   controller.send(.validate(try Facelets(notation: literalRight)))
   controller.send(.consent(true))
   await controller.waitForEffects()
@@ -380,4 +400,68 @@ func controllerGuideFailure() async throws {
   #expect(controller.session.phase == .guide && controller.session.preparationDurable)
   #expect(controller.lastError == nil)
   #expect(try await real.load()?.progress == controller.session.guideProgress)
+}
+
+@MainActor
+@Test(
+  "R05/V11: confirmed replacement survives relaunch before colors exist and retries an ambiguous save"
+)
+func controllerManualReplacement() async throws {
+  let directory = try storeDirectory()
+  defer { try? FileManager.default.removeItem(at: directory) }
+  let real = SessionStore(directory: directory)
+  let old = try #require(try preparingSession().pendingSave)
+  try await real.save(old, palette: archivePalette(), lease: real.currentLease())
+  let gate = ControllerGate()
+  let controller = SessionController(
+    storage: ControlledStorage(real, startGate: gate, failStart: true),
+    solver: SolverService(), playback: RecordingPlayback())
+  await controller.load()
+  controller.send(.cancel)
+  #expect(controller.send(.startManual(replacing: false)) == .rejected(.replacementRequired))
+  #expect(try await real.restore().session.plan == old.progress.plan)
+  #expect(controller.send(.startManual(replacing: true)) == .accepted)
+  await gate.waitUntilEntered()
+  #expect(
+    controller.session.phase == .startingManual && controller.session.plan == old.progress.plan)
+  #expect(
+    controller.send(.editDraft(.centers(try archivePalette()))) == .rejected(.unavailableEvent))
+  let restored = try await real.restore()
+  #expect(
+    restored.session.phase == .editing && restored.session.plan == nil && restored.palette == nil)
+  await gate.release()
+  await controller.waitForEffects()
+  #expect(controller.session.phase == .manualStartError && controller.lastError != nil)
+  #expect(controller.send(.retryManualStart) == .accepted)
+  await controller.waitForEffects()
+  #expect(controller.session.phase == .editing && controller.lastError == nil)
+  #expect(
+    controller.session.plan == nil && controller.palette == nil && controller.session.draft == nil)
+  #expect(controller.session == restored.session)
+  controller.send(.editDraft(.centers(try archivePalette())))
+  await controller.waitForEffects()
+  #expect(try await real.restore().session.draft == controller.session.draft)
+}
+
+@MainActor
+@Test("R18: delete during a manual-start write removes the boundary and rejects its late success")
+func controllerDeleteDuringManualStart() async throws {
+  let directory = try storeDirectory()
+  defer { try? FileManager.default.removeItem(at: directory) }
+  let real = SessionStore(directory: directory)
+  let gate = ControllerGate()
+  let controller = SessionController(
+    storage: ControlledStorage(real, startGate: gate),
+    solver: SolverService(), playback: RecordingPlayback())
+  await controller.load()
+  controller.send(.startManual(replacing: false))
+  await gate.waitUntilEntered()
+  controller.send(.deleteLocalData(confirmed: true))
+  await gate.release()
+  await controller.waitForEffects()
+  #expect(controller.session.phase == .home && !controller.session.hasWork)
+  #expect(try await real.restore().session == Session())
+  #expect(
+    !FileManager.default.fileExists(
+      atPath: directory.appendingPathComponent("manual-start.json").path))
 }

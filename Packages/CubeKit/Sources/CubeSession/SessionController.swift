@@ -4,6 +4,7 @@ import Foundation
 import Observation
 
 public protocol SessionStorage: Actor {
+  func startManual(revision: UInt64, lease: StorageLease) async throws
   func restore() async throws -> SessionRestoration
   func currentLease() async -> StorageLease
   func save(_ request: GuideSaveRequest, palette: CenterPalette, lease: StorageLease) async throws
@@ -80,7 +81,7 @@ public final class SessionController {
     let transition = SessionReducer.reduce(session, event: event)
     guard transition.disposition == .accepted else { return transition.disposition }
     session = transition.session
-    if case .startManual = event { palette = nil }
+    if case .manualStarted = event { palette = nil }
     if let draft = session.draft { palette = draft.palette }
     if transition.commands.contains(where: {
       if case .deleteLocalData = $0 { return true }
@@ -97,6 +98,20 @@ public final class SessionController {
   private func execute(_ command: SessionCommand) {
     let expectedGeneration = generation
     switch command {
+    case .startManual(let id):
+      let retainedLease = lease
+      enqueueStorage { [self] in
+        guard generation == expectedGeneration else { return }
+        do {
+          guard let retainedLease else { throw SessionControllerError.storageNotLoaded }
+          try await storage.startManual(revision: id.revision, lease: retainedLease)
+          guard generation == expectedGeneration else { return }
+          receive(.manualStarted(id))
+        } catch {
+          guard generation == expectedGeneration else { return }
+          receive(.manualStartFailed(id), error: error)
+        }
+      }
     case .solve(let cube, let revision, let budget):
       solveTask?.cancel()
       solveRevision = revision
