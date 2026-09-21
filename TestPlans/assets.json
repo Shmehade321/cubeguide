@@ -2,6 +2,11 @@
   "version": 1,
   "assets": [
     {
+      "id": "A01",
+      "path": "cubeguide/Assets.xcassets/AppIcon.appiconset/AppIcon.png",
+      "source": "docs/graphics-provenance.md"
+    },
+    {
       "id": "A07",
       "path": "cubeguide/CompletionArtwork.swift",
       "source": "docs/graphics-provenance.md"
