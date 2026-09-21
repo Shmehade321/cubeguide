@@ -95,13 +95,13 @@ public actor SessionStore {
       if !draftIsNewer {
         return try SessionRestoration(
           session: Session(restoring: guide), palette: guide.palette, lease: lease,
-          pendingScan: pendingScan)
+          pendingScan: pendingScan, retainedGuideID: guide.saveID)
       }
     }
     if let draft {
       return SessionRestoration(
         session: Session(restoringDraft: draft), palette: draft.palette, lease: lease,
-        pendingScan: pendingScan)
+        pendingScan: pendingScan, retainedGuideID: guide?.saveID)
     }
     if let boundary {
       return SessionRestoration(

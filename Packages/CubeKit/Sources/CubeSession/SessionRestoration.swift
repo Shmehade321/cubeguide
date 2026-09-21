@@ -4,12 +4,15 @@ public struct SessionRestoration: Equatable, Sendable {
   public let palette: CenterPalette?
   public let lease: StorageLease
   public let pendingScan: PendingScan?
+  public let retainedGuideID: SaveID?
   init(
-    session: Session, palette: CenterPalette?, lease: StorageLease, pendingScan: PendingScan? = nil
+    session: Session, palette: CenterPalette?, lease: StorageLease, pendingScan: PendingScan? = nil,
+    retainedGuideID: SaveID? = nil
   ) {
     self.session = session
     self.palette = palette
     self.lease = lease
     self.pendingScan = pendingScan
+    self.retainedGuideID = retainedGuideID
   }
 }

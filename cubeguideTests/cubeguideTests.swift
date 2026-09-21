@@ -8,7 +8,9 @@ import Testing
 @testable import cubeguide
 
 @MainActor
-@Test("R18: installed app preserves accepted scan observations separately from guide completion")
+@Test(
+  "R18: installed app executes fixture capture and scan-save commands without claiming camera qualification"
+)
 func appScanStorage() async throws {
   let directory = AppDependencies.guideDirectory.appendingPathComponent("scan-test-\(UUID())")
   defer { try? FileManager.default.removeItem(at: directory) }
@@ -25,22 +27,56 @@ func appScanStorage() async throws {
     pose: .identity, samplingVersion: "app-storage-fixture-v1")
   let face = try ScanFace(
     slot: .front, measurements: Array(repeating: sample, count: 9), metadata: metadata)
-  let scan = try PendingScan(draft: ScanDraft().accepting(face), purpose: .newCube)
   let store = dependencies.sessionStore
-  try await store.saveScanDraft(scan, lease: store.currentLease())
+  let camera = CompositionScanCamera(face: face)
+  let controller = dependencies.makeSessionController(
+    playback: CompositionPlayback(), camera: camera)
+  await controller.load()
+  #expect(await controller.startScan(purpose: .newCube) == .accepted)
+  var deadline = ContinuousClock.now + .seconds(5)
+  while controller.scanWorkflow?.phase == .saving, ContinuousClock.now < deadline {
+    try await Task.sleep(for: .milliseconds(10))
+  }
+  try #require(controller.scanWorkflow?.phase == .scanning && controller.isCameraReady)
+  #expect(controller.sendScan(.capture) == .accepted)
+  #expect(controller.scanWorkflow?.phase == .faceReview)
+  #expect(controller.sendScan(.accept) == .accepted)
+  deadline = ContinuousClock.now + .seconds(5)
+  while controller.scanWorkflow?.phase == .saving, ContinuousClock.now < deadline {
+    try await Task.sleep(for: .milliseconds(10))
+  }
+  let scan = try #require(controller.pendingScan)
+  #expect(scan.draft.acceptedCount == 1 && controller.session.completion == nil)
   let reopened = AppDependencies(guideDirectory: directory)
   #expect(try await reopened.restoreSession().pendingScan == scan)
-  let controller = reopened.makeSessionController(playback: CompositionPlayback())
-  await controller.load()
-  #expect(controller.pendingScan == scan && controller.session.completion == nil)
+  let resumed = reopened.makeSessionController(playback: CompositionPlayback())
+  await resumed.load()
+  #expect(resumed.scanWorkflow?.phase == .pausedCapture && !resumed.isCameraReady)
   #expect(controller.send(.deleteLocalData(confirmed: true)) == .accepted)
   // Wait for the actual app's asynchronous storage effect, with a bounded timeout.
-  let deadline = ContinuousClock.now + .seconds(5)
+  deadline = ContinuousClock.now + .seconds(5)
   while controller.session.phase == .deleting, ContinuousClock.now < deadline {
     try await Task.sleep(for: .milliseconds(10))
   }
   #expect(controller.session.phase == .home && controller.pendingScan == nil)
   #expect(try await store.loadScanDraft() == nil)
+}
+
+@MainActor
+private final class CompositionScanCamera: ScanCamera {
+  let face: ScanFace
+  init(face: ScanFace) { self.face = face }
+  func start(slot: Face, event: @escaping @MainActor @Sendable (ScanCameraEvent) -> Void) {
+    event(.ready)
+  }
+  func freeze(
+    id: ScanOperationID, slot: Face,
+    completion: @escaping @MainActor @Sendable (ScanCameraResult) -> Void
+  ) {
+    completion(.captured(face))
+  }
+  func stop() {}
+  func discardFrame() {}
 }
 
 struct AppCompositionTests {

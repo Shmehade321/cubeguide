@@ -1,4 +1,5 @@
 import CubeCore
+import CubeScan
 import CubeSolver3
 import Foundation
 import Observation
@@ -9,6 +10,7 @@ public protocol SessionStorage: Actor {
   func currentLease() async -> StorageLease
   func save(_ request: GuideSaveRequest, palette: CenterPalette, lease: StorageLease) async throws
   func saveDraft(_ draft: ManualDraft, lease: StorageLease) async throws
+  func saveScanDraft(_ scan: PendingScan, lease: StorageLease) async throws
   func delete(lease: StorageLease) async throws -> StorageLease
 }
 extension SessionStore: SessionStorage {}
@@ -37,22 +39,121 @@ public final class SessionController {
   public private(set) var lastError: (any Error)?
   public private(set) var palette: CenterPalette?
   public private(set) var pendingScan: PendingScan?
+  public private(set) var scanWorkflow: ScanWorkflow?
+  public private(set) var isStartingScan = false
+  public private(set) var isCameraReady = false
 
   @ObservationIgnored private let storage: any SessionStorage
   @ObservationIgnored private let solver: any SessionSolving
   @ObservationIgnored private let playback: any GuidePlayback
+  @ObservationIgnored private let camera: (any ScanCamera)?
   @ObservationIgnored private var lease: StorageLease?
   @ObservationIgnored private var generation = UUID()
   @ObservationIgnored private var storageTail: Task<Void, Never>?
   @ObservationIgnored private var effects: [UUID: Task<Void, Never>] = [:]
   @ObservationIgnored private var solveTask: Task<Void, Never>?
   @ObservationIgnored private var solveRevision: UInt64?
+  @ObservationIgnored private var scanStart: UUID?
+  @ObservationIgnored private var cameraRun: UUID?
 
-  public init(storage: any SessionStorage, solver: any SessionSolving, playback: any GuidePlayback)
-  {
+  public init(
+    storage: any SessionStorage, solver: any SessionSolving, playback: any GuidePlayback,
+    camera: (any ScanCamera)? = nil
+  ) {
     self.storage = storage
     self.solver = solver
     self.playback = playback
+    self.camera = camera
+  }
+
+  @discardableResult public func startScan(purpose: ScanPurpose, replacing: Bool = false) async
+    -> EventDisposition
+  {
+    guard loadStatus == .ready, scanWorkflow == nil, !isStartingScan,
+      session.pendingSave == nil, session.pendingDraftSave == nil,
+      session.pendingManualStart == nil, session.pendingDeletion == nil
+    else {
+      return .rejected(.unavailableEvent)
+    }
+    switch purpose {
+    case .newCube:
+      guard session.phase == .home else { return .rejected(.unavailableEvent) }
+      if session.hasWork && !replacing { return .rejected(.replacementRequired) }
+    case .recovery:
+      guard session.phase == .recovery else { return .rejected(.unavailableEvent) }
+    case .verification:
+      guard session.phase == .expectedSolved || session.phase == .completed else {
+        return .rejected(.unavailableEvent)
+      }
+    }
+    guard camera != nil else {
+      lastError = SessionControllerError.missingCamera
+      return .rejected(.unavailableEvent)
+    }
+    let token = UUID()
+    let expectedGeneration = generation
+    scanStart = token
+    isStartingScan = true
+    lastError = nil
+    defer {
+      if scanStart == token {
+        scanStart = nil
+        isStartingScan = false
+      }
+    }
+    do {
+      let restored = try await storage.restore()
+      guard scanStart == token, generation == expectedGeneration, !Task.isCancelled else {
+        return .ignored
+      }
+      guard restored.pendingScan == nil else { throw SessionStoreError.conflictingRecords }
+      if purpose == .verification, restored.session.guideProgress?.isComplete != true {
+        throw SessionStoreError.conflictingRecords
+      }
+      if purpose == .newCube, restored.session.hasWork && !replacing {
+        return .rejected(.replacementRequired)
+      }
+      let latest = max(
+        session.revision, restored.session.revision, restored.retainedGuideID?.revision ?? 0)
+      let (revision, overflow) = latest.addingReportingOverflow(1)
+      guard !overflow else { return .rejected(.revisionExhausted) }
+      let pending = try PendingScan(
+        draft: ScanDraft(revision: revision), purpose: purpose,
+        retainedGuide: restored.retainedGuideID)
+      // Adopt the actual durable context, which may include a write whose callback failed.
+      let workflow = try ScanWorkflow(starting: pending)
+      session = restored.session
+      palette = restored.palette
+      lease = restored.lease
+      pendingScan = nil
+      scanWorkflow = workflow
+      generation = UUID()
+      scanStart = nil
+      isStartingScan = false
+      solveTask?.cancel()
+      playback.stop()
+      stopCamera(discard: true)
+      return sendScan(.begin) == .accepted ? .accepted : .rejected(.unavailableEvent)
+    } catch {
+      guard scanStart == token, generation == expectedGeneration else { return .ignored }
+      lastError = error
+      return .rejected(.unavailableEvent)
+    }
+  }
+  @discardableResult public func sendScan(_ event: ScanEvent) -> ScanDisposition {
+    guard loadStatus == .ready, !isStartingScan, let workflow = scanWorkflow,
+      session.phase != .deleting, session.phase != .deletionError
+    else {
+      return .rejected(.unavailableEvent)
+    }
+    if case .capture = event, !isCameraReady { return .rejected(.unavailableEvent) }
+    let transition = ScanReducer.reduce(workflow, event: event)
+    guard transition.disposition == .accepted else { return transition.disposition }
+    scanWorkflow = transition.workflow
+    pendingScan = transition.workflow.durable
+    if case .saved = event { lastError = nil }
+    for command in transition.commands { executeScan(command) }
+    return transition.disposition
   }
 
   /// Load once before accepting workflow input. Failed reads retain the files for retry or deletion.
@@ -67,6 +168,7 @@ public final class SessionController {
       session = restored.session
       palette = restored.palette
       pendingScan = restored.pendingScan
+      scanWorkflow = restored.pendingScan.map { ScanWorkflow(restoring: $0) }
       lease = restored.lease
       loadStatus = .ready
     } catch {
@@ -80,10 +182,22 @@ public final class SessionController {
     if loadStatus != .ready {
       guard case .deleteLocalData = event else { return .rejected(.unavailableEvent) }
     }
-    if pendingScan != nil {
-      // The capture workflow owns this draft. Do not resume or replace its retained guide
-      // through the unrelated manual/guide reducer while scan input is outstanding.
+    if isStartingScan {
       switch event {
+      case .background, .cancel:
+        scanStart = nil
+        isStartingScan = false
+        return .accepted
+      case .deleteLocalData: break
+      default: return .rejected(.unavailableEvent)
+      }
+    }
+    if scanWorkflow != nil {
+      // Lifecycle/navigation events belong to the scan while it retains the old guide.
+      switch event {
+      case .background: return scanLifecycle(.interrupt(.background))
+      case .cancel: return scanLifecycle(.cancel)
+      case .resume: return scanLifecycle(.open)
       case .deleteLocalData, .retryDeletion, .deleted, .deletionFailed: break
       default: return .rejected(.unavailableEvent)
       }
@@ -91,7 +205,10 @@ public final class SessionController {
     let transition = SessionReducer.reduce(session, event: event)
     guard transition.disposition == .accepted else { return transition.disposition }
     session = transition.session
-    if case .deleted = event { pendingScan = nil }
+    if case .deleted = event {
+      pendingScan = nil
+      scanWorkflow = nil
+    }
     if case .manualStarted = event { palette = nil }
     if let draft = session.draft { palette = draft.palette }
     if transition.commands.contains(where: {
@@ -100,10 +217,78 @@ public final class SessionController {
     }) {
       // Invalidates restores and callbacks immediately, before asynchronous deletion starts.
       generation = UUID()
+      scanStart = nil
+      isStartingScan = false
+      stopCamera(discard: true)
       loadStatus = .ready
     }
     for command in transition.commands { execute(command) }
     return transition.disposition
+  }
+
+  private func scanLifecycle(_ event: ScanEvent) -> EventDisposition {
+    switch sendScan(event) {
+    case .accepted: .accepted
+    case .ignored: .ignored
+    case .rejected: .rejected(.unavailableEvent)
+    }
+  }
+  private func stopCamera(discard: Bool) {
+    cameraRun = nil
+    isCameraReady = false
+    camera?.stop()
+    if discard { camera?.discardFrame() }
+  }
+  private func executeScan(_ command: ScanCommand) {
+    let expectedGeneration = generation
+    switch command {
+    case .save(let request):
+      let retainedLease = lease
+      enqueueStorage { [self] in
+        guard generation == expectedGeneration else { return }
+        do {
+          guard let retainedLease else { throw SessionControllerError.storageNotLoaded }
+          try await storage.saveScanDraft(request.scan, lease: retainedLease)
+          guard generation == expectedGeneration else { return }
+          sendScan(.saved(request.id))
+        } catch {
+          guard generation == expectedGeneration else { return }
+          if sendScan(.saveFailed(request.id)) == .accepted { lastError = error }
+        }
+      }
+    case .startCapture(let slot):
+      guard let camera else {
+        lastError = SessionControllerError.missingCamera
+        sendScan(.interrupt(.cameraUnavailable))
+        return
+      }
+      let run = UUID()
+      cameraRun = run
+      isCameraReady = false
+      camera.start(slot: slot) { [weak self] event in
+        guard let self, self.generation == expectedGeneration, self.cameraRun == run else { return }
+        switch event {
+        case .ready:
+          if self.scanWorkflow?.phase == .scanning { self.isCameraReady = true }
+        case .interrupted(let reason): self.sendScan(.interrupt(reason))
+        }
+      }
+    case .freeze(let id, let slot):
+      guard let camera, let run = cameraRun else {
+        lastError = SessionControllerError.missingCamera
+        sendScan(.captureFailed(id, .cameraUnavailable))
+        return
+      }
+      camera.freeze(id: id, slot: slot) { [weak self] result in
+        guard let self, self.generation == expectedGeneration, self.cameraRun == run else { return }
+        switch result {
+        case .captured(let face): self.sendScan(.captured(id, face))
+        case .failed(let reason): self.sendScan(.captureFailed(id, reason))
+        }
+      }
+    case .stopCapture: stopCamera(discard: false)
+    case .discardFrame: camera?.discardFrame()
+    }
   }
 
   private func execute(_ command: SessionCommand) {
@@ -224,5 +409,5 @@ public final class SessionController {
 }
 
 public enum SessionControllerError: Error, Equatable, Sendable {
-  case storageNotLoaded, missingPalette
+  case storageNotLoaded, missingPalette, missingCamera
 }

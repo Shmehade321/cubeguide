@@ -127,7 +127,7 @@ actor ControllerGate {
 enum ControllerInjectedFailure: Error { case afterWrite, afterDeletion }
 actor ControlledStorage: SessionStorage {
   let real: SessionStore
-  let restoreGate: ControllerGate?
+  var restoreGate: ControllerGate?
   let draftGate: ControllerGate?
   let startGate: ControllerGate?
   var failStart: Bool
@@ -158,9 +158,12 @@ actor ControlledStorage: SessionStorage {
   }
   func restore() async throws -> SessionRestoration {
     let result = try await real.restore()
-    await restoreGate?.pause()
+    let gate = restoreGate
+    restoreGate = nil
+    await gate?.pause()
     return result
   }
+  func gateNextRestore(_ gate: ControllerGate) { restoreGate = gate }
   func currentLease() async -> StorageLease { await real.currentLease() }
   func save(_ request: GuideSaveRequest, palette: CenterPalette, lease: StorageLease) async throws {
     try await real.save(request, palette: palette, lease: lease)
@@ -171,6 +174,14 @@ actor ControlledStorage: SessionStorage {
   }
   func saveDraft(_ draft: ManualDraft, lease: StorageLease) async throws {
     try await real.saveDraft(draft, lease: lease)
+    await draftGate?.pause()
+    if failDraft {
+      failDraft = false
+      throw ControllerInjectedFailure.afterWrite
+    }
+  }
+  func saveScanDraft(_ scan: PendingScan, lease: StorageLease) async throws {
+    try await real.saveScanDraft(scan, lease: lease)
     await draftGate?.pause()
     if failDraft {
       failDraft = false
