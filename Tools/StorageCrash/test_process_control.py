@@ -27,6 +27,25 @@ class ProcessControlTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "seed contract"):
             validate_snapshots(wrong, wrong, "guide")
 
+    def test_discard_must_clear_scan_and_preserve_revision_floor(self):
+        before = {"phase": "resumeCheck", "revision": 3, "hasWork": True, "hasPlan": True,
+                  "aligned": False, "acknowledged": 0, "storedGuideAcknowledged": 0,
+                  "latestInputRevision": 5, "scanRevision": 5, "scanAcceptedCount": 1}
+        correct = {key: value for key, value in before.items()
+                   if key not in ("scanRevision", "scanAcceptedCount")}
+        correct["latestInputRevision"] = 6
+        validate_snapshots(before, correct, "discardScan")
+        for wrong in (dict(before, latestInputRevision=6), dict(correct, latestInputRevision=3),
+                      dict(correct, acknowledged=1), dict(correct, aligned=True)):
+            with self.assertRaisesRegex(RuntimeError, "operation contract"):
+                validate_snapshots(before, wrong, "discardScan")
+
+    def test_discard_empty_entry_cannot_reopen_the_editor(self):
+        before = {"phase": "editing", "revision": 4, "hasWork": True, "hasPlan": False,
+                  "aligned": False, "storedGuideAcknowledged": 0}
+        with self.assertRaisesRegex(RuntimeError, "operation contract"):
+            validate_snapshots(before, dict(before, latestInputRevision=6), "discardEmpty")
+
     def test_confirmed_stop_is_killed(self):
         result = stop_and_kill(command('print("BOUNDARY test",flush=True); os.kill(os.getpid(),signal.SIGSTOP)'),
                                "BOUNDARY test")

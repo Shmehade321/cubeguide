@@ -14,7 +14,7 @@ let package = Package(
         .testTarget(name: "CubeScanTests", dependencies: ["CubeScan", "CubeCore"]),
         .target(name: "CubeSession", dependencies: ["CubeCore", "CubeSolver3", "CubeScan"]),
         .testTarget(name: "CubeSessionTests", dependencies: ["CubeSession", "CubeCore", "CubeSolver3"]),
-        .executableTarget(name: "SessionStoreCrashProbe", dependencies: ["CubeSession", "CubeCore", "CubeSolver3"]),
+        .executableTarget(name: "SessionStoreCrashProbe", dependencies: ["CubeSession", "CubeCore", "CubeSolver3", "CubeScan"]),
         .executableTarget(name: "SolverBenchmark", dependencies: ["CubeSolver3", "CubeCore"]),
         .executableTarget(name: "TableGenerator", dependencies: ["CubeTableTools", "CubeSolver3"]),
         .target(name: "CubeTableTools", dependencies: ["CubeSolver3", "CubeCore"]),

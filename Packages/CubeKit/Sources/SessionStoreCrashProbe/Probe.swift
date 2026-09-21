@@ -1,4 +1,5 @@
 import CubeCore
+import CubeScan
 import CubeSession
 import CubeSolver3
 import Darwin
@@ -16,21 +17,61 @@ struct SessionStoreCrashProbe {
     let store = SessionStore(directory: directory)
     switch args[0] {
     case "seed":
-      guard args.count == 2 || (args.count == 3 && args[2] == "turn") else {
+      guard
+        args.count == 2
+          || (args.count == 3
+            && ["turn", "discardScan", "discardManual", "discardEmpty"].contains(args[2]))
+      else {
         throw ProbeError.arguments
       }
       try await store.startManual(revision: 1, lease: store.currentLease())
       try await store.saveDraft(
         ManualDraft(palette: palette(), revision: 2), lease: store.currentLease())
       try await store.save(
-        preparation(afterAcknowledgements: args.count == 3 ? 1 : 0), palette: palette(),
+        preparation(afterAcknowledgements: args.last == "turn" ? 1 : 0), palette: palette(),
         lease: store.currentLease())
+      if args.last == "discardScan" {
+        let guide = try await store.load()
+        let sample = try ColorMeasurement(
+          median: LabColor(lightness: 50, a: 10, b: 20),
+          display: DisplaySRGB(red: 0.6, green: 0.3, blue: 0.1), spread: 1, sampleCount: 1600)
+        let metadata = try CaptureMetadata(
+          width: 1920, height: 1440, sourceOrientation: .up,
+          sourceMirrored: false,
+          corners: [
+            ImagePoint(x: 0, y: 0), ImagePoint(x: 1, y: 0),
+            ImagePoint(x: 1, y: 1), ImagePoint(x: 0, y: 1),
+          ], pose: .identity, samplingVersion: "crash-fixture-v1")
+        let face = try ScanFace(
+          slot: .front, measurements: Array(repeating: sample, count: 9), metadata: metadata)
+        let pending = try PendingScan(
+          draft: ScanDraft(revision: 4).accepting(face), purpose: .recovery,
+          retainedGuide: guide?.saveID)
+        try await store.saveScanDraft(pending, lease: store.currentLease())
+      } else if args.last == "discardManual" || args.last == "discardEmpty" {
+        try await store.startManual(revision: 4, lease: store.currentLease())
+        if args.last == "discardManual" {
+          try await store.saveDraft(
+            ManualDraft(palette: palette(), revision: 5), lease: store.currentLease())
+        }
+      }
+    case "continueManual":
+      guard args.count == 2 else { throw ProbeError.arguments }
+      var session = try await store.restore().session
+      if session.phase != .home { session = SessionReducer.reduce(session, event: .cancel).session }
+      session = SessionReducer.reduce(session, event: .startManual(replacing: true)).session
+      guard let request = session.pendingManualStart else { throw ProbeError.unexpectedState }
+      try await store.startManual(revision: request.revision, lease: store.currentLease())
     case "inspect":
       guard args.count == 2 else { throw ProbeError.arguments }
       let restored = try await store.restore()
       let session = restored.session
       let snapshot = Snapshot(
         phase: session.phase.rawValue, revision: session.revision,
+        latestInputRevision: session.latestInputRevision == session.revision
+          ? nil : session.latestInputRevision,
+        scanRevision: restored.pendingScan?.draft.revision,
+        scanAcceptedCount: restored.pendingScan?.draft.acceptedCount,
         hasWork: session.hasWork, hasPlan: session.plan != nil, aligned: session.aligned,
         recoveryRequired: session.recoveryRequired ? true : nil,
         acknowledged: session.guideProgress?.acknowledgedActions,
@@ -80,6 +121,8 @@ struct SessionStoreCrashProbe {
         try await interrupted.saveDraft(draft, lease: interrupted.currentLease())
       case "manual":
         try await interrupted.startManual(revision: 4, lease: interrupted.currentLease())
+      case "discardScan", "discardManual", "discardEmpty":
+        _ = try await interrupted.discardDraft(revision: 6, lease: interrupted.currentLease())
       case "delete":
         _ = try await interrupted.delete(lease: interrupted.currentLease())
       default: throw ProbeError.arguments
@@ -91,6 +134,9 @@ struct SessionStoreCrashProbe {
   private struct Snapshot: Encodable {
     let phase: String
     let revision: UInt64
+    let latestInputRevision: UInt64?
+    let scanRevision: UInt64?
+    let scanAcceptedCount: Int?
     let hasWork: Bool
     let hasPlan: Bool
     let aligned: Bool

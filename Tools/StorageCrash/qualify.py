@@ -12,7 +12,7 @@ import subprocess
 import time
 
 BOUNDARIES = ("beforeWrite", "temporarySynced", "beforeReplace", "afterReplace")
-CASES = [(kind, boundary) for kind in ("guide", "turn", "draft", "manual", "recovery") for boundary in BOUNDARIES]
+CASES = [(kind, boundary) for kind in ("guide", "turn", "draft", "manual", "recovery", "discardScan", "discardManual", "discardEmpty") for boundary in BOUNDARIES]
 CASES.append(("delete", "beforeDelete"))
 
 
@@ -64,9 +64,25 @@ def validate_snapshots(before, after, kind):
             "aligned": False, "acknowledged": 0, "storedGuideAcknowledged": 0}
     if kind == "turn":
         seed.update(acknowledged=1, storedGuideAcknowledged=1)
+    if kind == "discardScan":
+        seed.update(latestInputRevision=5, scanRevision=5, scanAcceptedCount=1)
+    elif kind in ("discardManual", "discardEmpty"):
+        seed = {"phase": "editing", "revision": 4, "hasWork": True, "hasPlan": False,
+                "aligned": False, "storedGuideAcknowledged": 0}
+        if kind == "discardManual":
+            cells = [None] * 54
+            for face, color in enumerate(("green", "white", "orange", "blue", "yellow", "red")):
+                cells[face * 9 + 4] = color
+            seed.update(revision=5, draftRevision=5, draftCells=cells)
     if before != seed:
         raise RuntimeError("Writer did not produce the fixed seed contract")
-    if kind == "guide":
+    if kind == "discardScan":
+        expected = {key: value for key, value in seed.items() if key not in ("scanRevision", "scanAcceptedCount")}
+        expected["latestInputRevision"] = 6
+    elif kind in ("discardManual", "discardEmpty"):
+        expected = {"phase": "home", "revision": 0, "latestInputRevision": 6,
+                    "hasWork": False, "hasPlan": False, "aligned": False, "storedGuideAcknowledged": 0}
+    elif kind == "guide":
         expected = dict(seed, acknowledged=1, storedGuideAcknowledged=1)
     elif kind == "recovery":
         expected = dict(seed, phase="recovery", recoveryRequired=True)
@@ -101,10 +117,11 @@ def qualify(probe, output):
         baseline.mkdir()
         entry = {"operation": kind, "boundary": boundary, "result": "failed"}
         try:
-            seed_arguments = ["turn"] if kind == "turn" else []
+            seed_arguments = [kind] if kind == "turn" or kind.startswith("discard") else []
             invoke(probe, "seed", working, *seed_arguments)
             invoke(probe, "seed", baseline, *seed_arguments)
             before = snapshot(probe, working)
+            original_guide_hash = hashes(working).get("guide.json")
             invoke(probe, "mutate", baseline, kind, "none")
             after = snapshot(probe, baseline)
             validate_snapshots(before, after, kind)
@@ -126,6 +143,16 @@ def qualify(probe, output):
             if retried != after:
                 raise RuntimeError("Retry did not recover to the complete expected state")
             entry["retried"] = retried
+            if kind.startswith("discard"):
+                if hashes(working).get("guide.json") != original_guide_hash:
+                    raise RuntimeError("Discard changed the retained guide bytes")
+                invoke(probe, "continueManual", working)
+                continued = snapshot(probe, working)
+                expected_continuation = {"phase": "editing", "revision": 7, "hasWork": True,
+                                         "hasPlan": False, "aligned": False, "storedGuideAcknowledged": 0}
+                if continued != expected_continuation:
+                    raise RuntimeError("New input did not advance beyond the discarded revision")
+                entry["continued"] = continued
             entry["result"] = "passed"
         except Exception as error:
             entry["error"] = str(error)
