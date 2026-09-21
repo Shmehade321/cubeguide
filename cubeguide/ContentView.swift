@@ -7,6 +7,7 @@ import SwiftUI
 struct ContentView: View {
   @State private var controller: SessionController
   @State private var presentation: GuidePresentation?
+  @State private var camera: CameraCapture?
   private let isPractice: Bool
   @State private var showingPractice = false
   @State private var replacingAfterRecovery = false
@@ -21,15 +22,18 @@ struct ContentView: View {
 
   init() {
     let presentation = GuidePresentation()
-    let controller = AppDependencies().makeSessionController(playback: presentation)
+    let camera = CameraCapture()
+    let controller = AppDependencies().makeSessionController(playback: presentation, camera: camera)
     presentation.bind(controller)
     _controller = State(initialValue: controller)
     _presentation = State(initialValue: presentation)
+    _camera = State(initialValue: camera)
     isPractice = false
   }
   init(controller: SessionController, isPractice: Bool, presentation: GuidePresentation? = nil) {
     _presentation = State(initialValue: presentation)
     _controller = State(initialValue: controller)
+    _camera = State(initialValue: nil)
     self.isPractice = isPractice
   }
 
@@ -61,6 +65,8 @@ struct ContentView: View {
               controller.send(.startManual(replacing: controller.session.hasWork))
             }
           )
+        } else if controller.scanWorkflow != nil, let camera {
+          ScanFlowView(controller: controller, camera: camera)
         } else if let scan = controller.pendingScan {
           CenterAssignmentView(initial: scan.draft.confirmedCenters) { palette in
             controller.switchScanToManual(confirmedCenters: palette, confirmed: true)
@@ -333,10 +339,6 @@ struct ContentView: View {
       failure("Couldn't start a new cube") { controller.send(.retryManualStart) }
     case .deletionError:
       failure("Couldn't delete your saved cube") { controller.send(.retryDeletion) }
-    default:
-      ContentUnavailableView(
-        "Saved guide", systemImage: "cube",
-        description: Text("Your saved cube is retained. Guidance is currently unavailable."))
     }
   }
 
