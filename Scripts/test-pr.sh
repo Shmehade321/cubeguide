@@ -18,6 +18,7 @@ Scripts/run-logged.sh "$ARTIFACT_DIR/table-oracle-tests.log" python3 -m unittest
 Scripts/run-logged.sh "$ARTIFACT_DIR/corpus-tests.log" python3 -m unittest discover -s Tools/Corpus -v
 Scripts/run-logged.sh "$ARTIFACT_DIR/reference-tests.log" python3 -m unittest discover -s Tools/ReferenceSolver -v
 Scripts/test-package.sh
+Scripts/test-storage-crashes.sh
 Scripts/test-solver.sh
 # Require an explicit installed simulator; never substitute a different OS silently.
 : "${SIMULATOR_UDID:?Set SIMULATOR_UDID to an installed qualification simulator}"

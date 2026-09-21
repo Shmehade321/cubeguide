@@ -1,0 +1,11 @@
+# Host storage process-interruption qualification
+
+Run `ARTIFACT_DIR=Artifacts/<new-run> Scripts/test-storage-crashes.sh` on macOS. The PR pipeline runs this automatically. The output directory must be new; the harness refuses to overwrite an earlier run.
+
+The development-only `SessionStoreCrashProbe` executable uses the actual CubeSession reducer, SessionStore, archive loaders and independent runtime plan replay. Its fixed literal R fixture creates a verified guide with zero acknowledged actions (or one acknowledged regrip and the final turn prepared), a partial draft and a manual-entry record. It does not use a fake filesystem or inject a thrown error to represent termination.
+
+For regrip acknowledgement, final face-turn acknowledgement, draft replacement and a new manual-entry boundary, the parent stops the child at `beforeWrite`, `temporarySynced`, `beforeReplace` and `afterReplace` (after directory synchronization). It also tests `beforeDelete`. It observes `SIGSTOP` through `waitpid`, sends `SIGKILL`, requires the matching exit signal, and starts a fresh process to read the files. A normal exit, missing/wrong announcement or timeout cannot pass. Children are killed/reaped on errors too.
+
+The 17 cases require the exact independently specified seed and operation snapshots. Before atomic replacement, the old snapshot must remain active; after replacement, the new snapshot must be active. Restored physical alignment must be false. A subsequent explicit retry must reach the expected complete state even with an abandoned temporary file. `files-at-interruption/` preserves the actual interrupted files before retry; `report.json` records hashes, snapshots, signals, host/tool provenance and every result. The writer binary is a package executable target, not an app dependency. Its checkpoint initializer and enum have package access only; application callers use the normal public initializer.
+
+This proves behavior for actual host **process termination at those boundaries**. It does not simulate power loss, torn device writes, sudden OS shutdown, a locked physical phone, low disk space or killing an installed iOS app. It does not test interruption between individual file removals during deletion. Those remaining qualification gates require separate evidence.

@@ -7,7 +7,7 @@ public enum SessionStoreError: Error, Equatable {
 public struct StorageLease: Equatable, Sendable {
   fileprivate let value: UUID
 }
-enum StoreBoundary: CaseIterable, Sendable {
+package enum StoreBoundary: String, CaseIterable, Sendable {
   case beforeWrite, temporarySynced, beforeReplace, afterReplace, beforeDelete
 }
 /// One instance owns guide and draft files in its directory; callers retain its lease for each asynchronous producer.
@@ -21,7 +21,7 @@ public actor SessionStore {
     self.checkpoint = { _ in }
     self.protection = Self.applyProtection
   }
-  init(
+  package init(
     directory: URL, checkpoint: @escaping @Sendable (StoreBoundary) throws -> Void,
     protection: @escaping @Sendable (URL) throws -> Void = SessionStore.applyProtection
   ) {

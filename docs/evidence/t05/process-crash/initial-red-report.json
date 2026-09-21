@@ -1,0 +1,87 @@
+{
+  "result": "failed",
+  "scope": "macOS host process termination; not power loss or physical iOS qualification",
+  "host": "macOS-27.0-arm64-arm-64bit",
+  "probeSHA256": "67b4bb8025ac6a3b467ffa580a7f29bb14b423254b155823b887beaaf8f7ccec",
+  "caseCount": 13,
+  "cases": [
+    {
+      "operation": "guide",
+      "boundary": "beforeWrite",
+      "result": "failed",
+      "error": "Uninterrupted operation did not change durable state"
+    },
+    {
+      "operation": "guide",
+      "boundary": "temporarySynced",
+      "result": "failed",
+      "error": "Uninterrupted operation did not change durable state"
+    },
+    {
+      "operation": "guide",
+      "boundary": "beforeReplace",
+      "result": "failed",
+      "error": "Uninterrupted operation did not change durable state"
+    },
+    {
+      "operation": "guide",
+      "boundary": "afterReplace",
+      "result": "failed",
+      "error": "Uninterrupted operation did not change durable state"
+    },
+    {
+      "operation": "draft",
+      "boundary": "beforeWrite",
+      "result": "failed",
+      "error": "Uninterrupted operation did not change durable state"
+    },
+    {
+      "operation": "draft",
+      "boundary": "temporarySynced",
+      "result": "failed",
+      "error": "Uninterrupted operation did not change durable state"
+    },
+    {
+      "operation": "draft",
+      "boundary": "beforeReplace",
+      "result": "failed",
+      "error": "Uninterrupted operation did not change durable state"
+    },
+    {
+      "operation": "draft",
+      "boundary": "afterReplace",
+      "result": "failed",
+      "error": "Uninterrupted operation did not change durable state"
+    },
+    {
+      "operation": "manual",
+      "boundary": "beforeWrite",
+      "result": "failed",
+      "error": "Uninterrupted operation did not change durable state"
+    },
+    {
+      "operation": "manual",
+      "boundary": "temporarySynced",
+      "result": "failed",
+      "error": "Uninterrupted operation did not change durable state"
+    },
+    {
+      "operation": "manual",
+      "boundary": "beforeReplace",
+      "result": "failed",
+      "error": "Uninterrupted operation did not change durable state"
+    },
+    {
+      "operation": "manual",
+      "boundary": "afterReplace",
+      "result": "failed",
+      "error": "Uninterrupted operation did not change durable state"
+    },
+    {
+      "operation": "delete",
+      "boundary": "beforeDelete",
+      "result": "failed",
+      "error": "Uninterrupted operation did not change durable state"
+    }
+  ]
+}
