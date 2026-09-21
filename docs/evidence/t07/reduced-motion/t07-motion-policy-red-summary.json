@@ -1,0 +1,60 @@
+{
+  "devicesAndConfigurations" : [
+    {
+      "device" : {
+        "architecture" : "arm64",
+        "deviceId" : "67DB7428-A25B-4167-8FC2-24F47A392E81",
+        "deviceName" : "iPhone 16 Pro",
+        "modelName" : "iPhone 16 Pro",
+        "osBuildNumber" : "22F77",
+        "osVersion" : "18.5",
+        "platform" : "iOS Simulator"
+      },
+      "expectedFailures" : 0,
+      "failedTests" : 2,
+      "passedTests" : 27,
+      "skippedTests" : 0,
+      "testPlanConfiguration" : {
+        "configurationId" : "1",
+        "configurationName" : "PR"
+      }
+    }
+  ],
+  "environmentDescription" : "PR · Built with macOS 27.0",
+  "expectedFailures" : 0,
+  "failedTests" : 2,
+  "finishTime" : 1789986813.137,
+  "passedTests" : 27,
+  "result" : "Failed",
+  "runtimeWarnings" : [
+
+  ],
+  "skippedTests" : 0,
+  "startTime" : 1789986605.32,
+  "statistics" : [
+
+  ],
+  "testFailures" : [
+    {
+      "failureText" : "Expectation failed: controller.session.phase == .resumeCheck && !controller.session.aligned\ncontroller.session.phase == .resumeCheck → false\n!controller.session.aligned → <not evaluated>",
+      "targetName" : "cubeguideTests",
+      "testIdentifier" : 18,
+      "testIdentifierString" : "PresentationTests/GuideMotionPolicyTests/policyInterruption()",
+      "testIdentifierURL" : "test://com.apple.xcode/cubeguide/cubeguideTests/PresentationTests/GuideMotionPolicyTests/policyInterruption()",
+      "testName" : "R12/R11: changing motion policy during playing or paused previews requires physical comparison"
+    },
+    {
+      "failureText" : "Expectation failed: presentation.reduceMotion && presentation.scene == nil\npresentation.reduceMotion → false\npresentation.scene == nil → <not evaluated>",
+      "targetName" : "cubeguideTests",
+      "testIdentifier" : 17,
+      "testIdentifierString" : "PresentationTests/GuideMotionPolicyTests/staticComposition()",
+      "testIdentifierURL" : "test://com.apple.xcode/cubeguide/cubeguideTests/PresentationTests/GuideMotionPolicyTests/staticComposition()",
+      "testName" : "R12/R09: reduced-motion guide uses static deadlines and never advances physical progress"
+    }
+  ],
+  "title" : "Test - cubeguide",
+  "topInsights" : [
+
+  ],
+  "totalTestCount" : 29
+}

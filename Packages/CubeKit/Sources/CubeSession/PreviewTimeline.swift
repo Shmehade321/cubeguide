@@ -24,6 +24,9 @@ public struct PreviewTimeline: Sendable {
     return seconds(elapsed - beforeHold) / seconds(rotationDuration)
   }
 
+  /// Delay until the endpoint from the last sample; paused wall time is excluded.
+  public var remainingDuration: Duration { beforeHold + rotationDuration - elapsed }
+
   public mutating func play(at time: Duration, restart: Bool = false) {
     if restart || status == .idle || status == .finished {
       elapsed = .zero

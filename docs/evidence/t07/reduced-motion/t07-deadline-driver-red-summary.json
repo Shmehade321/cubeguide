@@ -1,0 +1,60 @@
+{
+  "devicesAndConfigurations" : [
+    {
+      "device" : {
+        "architecture" : "arm64",
+        "deviceId" : "67DB7428-A25B-4167-8FC2-24F47A392E81",
+        "deviceName" : "iPhone 16 Pro",
+        "modelName" : "iPhone 16 Pro",
+        "osBuildNumber" : "22F77",
+        "osVersion" : "18.5",
+        "platform" : "iOS Simulator"
+      },
+      "expectedFailures" : 0,
+      "failedTests" : 2,
+      "passedTests" : 25,
+      "skippedTests" : 0,
+      "testPlanConfiguration" : {
+        "configurationId" : "1",
+        "configurationName" : "PR"
+      }
+    }
+  ],
+  "environmentDescription" : "PR · Built with macOS 27.0",
+  "expectedFailures" : 0,
+  "failedTests" : 2,
+  "finishTime" : 1789986503.214,
+  "passedTests" : 25,
+  "result" : "Failed",
+  "runtimeWarnings" : [
+
+  ],
+  "skippedTests" : 0,
+  "startTime" : 1789986457.489,
+  "statistics" : [
+
+  ],
+  "testFailures" : [
+    {
+      "failureText" : "Expectation failed: await XCTWaiter.fulfillment(of: [replacement], timeout: 2) == .completed",
+      "targetName" : "cubeguideTests",
+      "testIdentifier" : 19,
+      "testIdentifierString" : "PresentationTests/PreviewDeadlineTests/cancellationAndRelease()",
+      "testIdentifierURL" : "test://com.apple.xcode/cubeguide/cubeguideTests/PresentationTests/PreviewDeadlineTests/cancellationAndRelease()",
+      "testName" : "R12/R18: cancelled, replaced and released deadlines never deliver"
+    },
+    {
+      "failureText" : "Expectation failed: await XCTWaiter.fulfillment(of: [delivered], timeout: 2) == .completed",
+      "targetName" : "cubeguideTests",
+      "testIdentifier" : 18,
+      "testIdentifierString" : "PresentationTests/PreviewDeadlineTests/delivery()",
+      "testIdentifierURL" : "test://com.apple.xcode/cubeguide/cubeguideTests/PresentationTests/PreviewDeadlineTests/delivery()",
+      "testName" : "R12/R18: production deadline fires once after its delay"
+    }
+  ],
+  "title" : "Test - cubeguide",
+  "topInsights" : [
+
+  ],
+  "totalTestCount" : 27
+}

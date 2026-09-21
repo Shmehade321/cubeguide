@@ -9,8 +9,16 @@ struct GuideFlowView: View {
   let controller: SessionController
   let presentation: GuidePresentation
   @State private var comparisonAfter = false
+  @Environment(\.dynamicTypeSize) private var textSize
+  private var controlsLayout: AnyLayout {
+    textSize.isAccessibilitySize ? AnyLayout(VStackLayout(spacing: 8)) : AnyLayout(HStackLayout(spacing: 8))
+  }
   @Environment(\.accessibilityDifferentiateWithoutColor) private var differentiate
-  private var showingAfter: Bool { comparisonAfter || controller.session.preview == .finished }
+  @Environment(\.accessibilityReduceMotion) private var reduceMotion
+  private var showingAfter: Bool {
+    comparisonAfter || controller.session.preview == .finished ||
+      (presentation.reduceMotion && presentation.staticPlayer?.showingAfter == true)
+  }
 
   var body: some View {
     ScrollView {
@@ -24,8 +32,13 @@ struct GuideFlowView: View {
         }
         if let action = controller.session.pendingAction {
           Text(caption(action)).font(.headline).multilineTextAlignment(.center)
-          Text(comparisonAfter ? "Expected after this action" : presentation.previewDescription)
-          if let scene = presentation.scene {
+          if !presentation.reduceMotion {
+            Text(comparisonAfter ? "Expected after this action" : presentation.previewDescription)
+          }
+          if presentation.reduceMotion, let palette = controller.palette {
+            StaticGuideView(action: action, palette: palette, after: showingAfter,
+              showColorLabels: controller.preferences.colorLabelsEnabled(differentiateWithoutColor: differentiate))
+          } else if let scene = presentation.scene {
             GuideSceneSurface(model: scene, showColorLabels:
               controller.preferences.colorLabelsEnabled(differentiateWithoutColor: differentiate))
               .frame(height: 220)
@@ -36,7 +49,7 @@ struct GuideFlowView: View {
             ProgressView("Saving your progress…")
           } else if [.resumeCheck, .storageError].contains(controller.session.phase) {
             Text("Compare your physical cube before continuing. If a regrip was interrupted, return to the pictured holding position.")
-            HStack {
+            controlsLayout {
               Button("Show before") {
                 comparisonAfter = false
                 presentation.showComparison(after: false)
@@ -58,7 +71,7 @@ struct GuideFlowView: View {
             Button("I'm holding it like this") { controller.send(.confirmAlignment) }
               .accessibilityIdentifier("guide.align")
           } else {
-            HStack {
+            controlsLayout {
               Button(controller.session.preview == .paused ? "Continue preview" : "Play") {
                 controller.send(.play)
               }.accessibilityIdentifier("guide.play").disabled(controller.session.preview == .playing)
@@ -79,12 +92,14 @@ struct GuideFlowView: View {
     }
     .task(id: controller.session.pendingAction?.id) {
       comparisonAfter = false
+      presentation.setReduceMotion(reduceMotion)
       presentation.refreshLabels(differentiateWithoutColor: differentiate)
       presentation.prepare()
     }
     .onChange(of: differentiate) { _, value in
       presentation.refreshLabels(differentiateWithoutColor: value)
     }
+    .onChange(of: reduceMotion) { _, value in presentation.setReduceMotion(value) }
     .onChange(of: controller.session.phase) { _, _ in comparisonAfter = false }
     .onDisappear { presentation.stop() }
   }

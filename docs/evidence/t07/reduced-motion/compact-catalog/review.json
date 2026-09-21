@@ -1,0 +1,296 @@
+{
+  "sourceResult": "Artifacts/t07-compact-static.xcresult",
+  "scope": "normal-text regular/compact catalog; actual largest-text interaction tested separately on iPhone SE 3 iOS 18.5 simulator",
+  "compact": [
+    {
+      "name": "N01-dark-compact-static-before-after",
+      "path": "docs/evidence/t07/reduced-motion/compact-catalog/N01-dark-compact-static-before-after.png",
+      "sha256": "6faaa319c1393a0a431b95a3cfd4535e34d76b63e41eeead1a3738802506e4db",
+      "size": [
+        1500,
+        640
+      ],
+      "review": "Individually inspected: captions, sticker letters, before/after views and separate unclipped direction cue visible. Full physical comprehension and contrast qualification remain open."
+    },
+    {
+      "name": "N01-light-compact-static-before-after",
+      "path": "docs/evidence/t07/reduced-motion/compact-catalog/N01-light-compact-static-before-after.png",
+      "sha256": "6960236fa61ddcd7169291ebe0191657b969c6333045d34f951c400a90873d41",
+      "size": [
+        1500,
+        640
+      ],
+      "review": "Individually inspected: captions, sticker letters, before/after views and separate unclipped direction cue visible. Full physical comprehension and contrast qualification remain open."
+    },
+    {
+      "name": "N02-dark-compact-static-before-after",
+      "path": "docs/evidence/t07/reduced-motion/compact-catalog/N02-dark-compact-static-before-after.png",
+      "sha256": "bdf1a973ba913050441349e53e2d511d30fb7dc880645e1d2f358bb118f2c51f",
+      "size": [
+        1500,
+        640
+      ],
+      "review": "Individually inspected: captions, sticker letters, before/after views and separate unclipped direction cue visible. Full physical comprehension and contrast qualification remain open."
+    },
+    {
+      "name": "N02-light-compact-static-before-after",
+      "path": "docs/evidence/t07/reduced-motion/compact-catalog/N02-light-compact-static-before-after.png",
+      "sha256": "323a55a60535bece496a7920d278b8a1c4963e0bdbb430f6f0ba74effa8f9cc0",
+      "size": [
+        1500,
+        640
+      ],
+      "review": "Individually inspected: captions, sticker letters, before/after views and separate unclipped direction cue visible. Full physical comprehension and contrast qualification remain open."
+    },
+    {
+      "name": "N03-dark-compact-static-before-after",
+      "path": "docs/evidence/t07/reduced-motion/compact-catalog/N03-dark-compact-static-before-after.png",
+      "sha256": "31ed78ef14fc93382d05f98960260fc83f570e81e1f705c3eff1dc601c82b9dd",
+      "size": [
+        1500,
+        640
+      ],
+      "review": "Individually inspected: captions, sticker letters, before/after views and separate unclipped direction cue visible. Full physical comprehension and contrast qualification remain open."
+    },
+    {
+      "name": "N03-light-compact-static-before-after",
+      "path": "docs/evidence/t07/reduced-motion/compact-catalog/N03-light-compact-static-before-after.png",
+      "sha256": "5659c2b4137f354d252d3ee99c0bf07d51497b47aa3bfb8fd13c4d1eed6665be",
+      "size": [
+        1500,
+        640
+      ],
+      "review": "Individually inspected: captions, sticker letters, before/after views and separate unclipped direction cue visible. Full physical comprehension and contrast qualification remain open."
+    },
+    {
+      "name": "N04-dark-compact-static-before-after",
+      "path": "docs/evidence/t07/reduced-motion/compact-catalog/N04-dark-compact-static-before-after.png",
+      "sha256": "3af2b1f8e1cfc59680894d0c1513d12b2a4ad16f15fc48e02f53d57efd60bde3",
+      "size": [
+        1500,
+        640
+      ],
+      "review": "Individually inspected: captions, sticker letters, before/after views and separate unclipped direction cue visible. Full physical comprehension and contrast qualification remain open."
+    },
+    {
+      "name": "N04-light-compact-static-before-after",
+      "path": "docs/evidence/t07/reduced-motion/compact-catalog/N04-light-compact-static-before-after.png",
+      "sha256": "216e4670a76db9454c6a912c9ae2f288d546dc95e8b089d8693eb50b5600f0fe",
+      "size": [
+        1500,
+        640
+      ],
+      "review": "Individually inspected: captions, sticker letters, before/after views and separate unclipped direction cue visible. Full physical comprehension and contrast qualification remain open."
+    },
+    {
+      "name": "N05-dark-compact-static-before-after",
+      "path": "docs/evidence/t07/reduced-motion/compact-catalog/N05-dark-compact-static-before-after.png",
+      "sha256": "b18885e948cee1345aff5da0e54dd244add95c3d951dbc506de831737a5473d1",
+      "size": [
+        1500,
+        640
+      ],
+      "review": "Individually inspected: captions, sticker letters, before/after views and separate unclipped direction cue visible. Full physical comprehension and contrast qualification remain open."
+    },
+    {
+      "name": "N05-light-compact-static-before-after",
+      "path": "docs/evidence/t07/reduced-motion/compact-catalog/N05-light-compact-static-before-after.png",
+      "sha256": "87be85763c61b899003a7ba5f61d9e4cbc494eaea630660b26c4168b841dea95",
+      "size": [
+        1500,
+        640
+      ],
+      "review": "Individually inspected: captions, sticker letters, before/after views and separate unclipped direction cue visible. Full physical comprehension and contrast qualification remain open."
+    },
+    {
+      "name": "N06-dark-compact-static-before-after",
+      "path": "docs/evidence/t07/reduced-motion/compact-catalog/N06-dark-compact-static-before-after.png",
+      "sha256": "61a9b731652d59d7fbc73161df42e05d5990d7fa9fafb29b78c022e0d59110bf",
+      "size": [
+        1500,
+        640
+      ],
+      "review": "Individually inspected: captions, sticker letters, before/after views and separate unclipped direction cue visible. Full physical comprehension and contrast qualification remain open."
+    },
+    {
+      "name": "N06-light-compact-static-before-after",
+      "path": "docs/evidence/t07/reduced-motion/compact-catalog/N06-light-compact-static-before-after.png",
+      "sha256": "880b228c04fe8492488c7e2728f90fb91d3627f356993eb7a6a288b8293affcc",
+      "size": [
+        1500,
+        640
+      ],
+      "review": "Individually inspected: captions, sticker letters, before/after views and separate unclipped direction cue visible. Full physical comprehension and contrast qualification remain open."
+    },
+    {
+      "name": "N07-dark-compact-static-before-after",
+      "path": "docs/evidence/t07/reduced-motion/compact-catalog/N07-dark-compact-static-before-after.png",
+      "sha256": "e46c1df70045c88d934ed3947a168bc15c34993d7815f553653f1a06799c6d89",
+      "size": [
+        1500,
+        640
+      ],
+      "review": "Individually inspected: captions, sticker letters, before/after views and separate unclipped direction cue visible. Full physical comprehension and contrast qualification remain open."
+    },
+    {
+      "name": "N07-light-compact-static-before-after",
+      "path": "docs/evidence/t07/reduced-motion/compact-catalog/N07-light-compact-static-before-after.png",
+      "sha256": "f022bf6817592a9e81d1102c62327f9b3e03704cf8399895c2b3c63e55899bd1",
+      "size": [
+        1500,
+        640
+      ],
+      "review": "Individually inspected: captions, sticker letters, before/after views and separate unclipped direction cue visible. Full physical comprehension and contrast qualification remain open."
+    },
+    {
+      "name": "N08-dark-compact-static-before-after",
+      "path": "docs/evidence/t07/reduced-motion/compact-catalog/N08-dark-compact-static-before-after.png",
+      "sha256": "70fcfced5f85cdddfa90c6dde4683bb0765c4d9288fa78d1df49e072eb0f2f14",
+      "size": [
+        1500,
+        640
+      ],
+      "review": "Individually inspected: captions, sticker letters, before/after views and separate unclipped direction cue visible. Full physical comprehension and contrast qualification remain open."
+    },
+    {
+      "name": "N08-light-compact-static-before-after",
+      "path": "docs/evidence/t07/reduced-motion/compact-catalog/N08-light-compact-static-before-after.png",
+      "sha256": "8b24c01c59f7636d1c4048cc65dd6cc5d9bfcfb23efa25f54023c73f50898571",
+      "size": [
+        1500,
+        640
+      ],
+      "review": "Individually inspected: captions, sticker letters, before/after views and separate unclipped direction cue visible. Full physical comprehension and contrast qualification remain open."
+    },
+    {
+      "name": "N09-dark-compact-static-before-after",
+      "path": "docs/evidence/t07/reduced-motion/compact-catalog/N09-dark-compact-static-before-after.png",
+      "sha256": "11d6cf4124c58716590798247ea0008f9d75bcea97804d4e7b20ff24e346a356",
+      "size": [
+        1500,
+        640
+      ],
+      "review": "Individually inspected: captions, sticker letters, before/after views and separate unclipped direction cue visible. Full physical comprehension and contrast qualification remain open."
+    },
+    {
+      "name": "N09-light-compact-static-before-after",
+      "path": "docs/evidence/t07/reduced-motion/compact-catalog/N09-light-compact-static-before-after.png",
+      "sha256": "7f2d3b290ac8ba9275012c7feeaeb4e4c34e9b4b49ebfbe679373d484b97de16",
+      "size": [
+        1500,
+        640
+      ],
+      "review": "Individually inspected: captions, sticker letters, before/after views and separate unclipped direction cue visible. Full physical comprehension and contrast qualification remain open."
+    }
+  ],
+  "regularComparison": [
+    {
+      "name": "N01-dark-static-before-after",
+      "pixelIdentical": true,
+      "previous": "docs/evidence/t07/reduced-motion/catalog/N01-dark-static-before-after.png",
+      "current": "Artifacts/t07-compact-static-images/4DF969F7-87EE-4D7B-B16E-3E787EB3E655.png"
+    },
+    {
+      "name": "N01-light-static-before-after",
+      "pixelIdentical": true,
+      "previous": "docs/evidence/t07/reduced-motion/catalog/N01-light-static-before-after.png",
+      "current": "Artifacts/t07-compact-static-images/DFB11A1F-801C-4600-881E-C62C34112E8D.png"
+    },
+    {
+      "name": "N02-dark-static-before-after",
+      "pixelIdentical": true,
+      "previous": "docs/evidence/t07/reduced-motion/catalog/N02-dark-static-before-after.png",
+      "current": "Artifacts/t07-compact-static-images/690C38E6-B745-4F8B-B471-008F206DF8FB.png"
+    },
+    {
+      "name": "N02-light-static-before-after",
+      "pixelIdentical": true,
+      "previous": "docs/evidence/t07/reduced-motion/catalog/N02-light-static-before-after.png",
+      "current": "Artifacts/t07-compact-static-images/4BAF8BB4-C60E-4C76-8C0F-F9A2659626F7.png"
+    },
+    {
+      "name": "N03-dark-static-before-after",
+      "pixelIdentical": true,
+      "previous": "docs/evidence/t07/reduced-motion/catalog/N03-dark-static-before-after.png",
+      "current": "Artifacts/t07-compact-static-images/44F1A114-2E3A-4071-ABF2-02D6791F152C.png"
+    },
+    {
+      "name": "N03-light-static-before-after",
+      "pixelIdentical": true,
+      "previous": "docs/evidence/t07/reduced-motion/catalog/N03-light-static-before-after.png",
+      "current": "Artifacts/t07-compact-static-images/1B16DE7E-57D0-4F55-8434-11724DC586A4.png"
+    },
+    {
+      "name": "N04-dark-static-before-after",
+      "pixelIdentical": true,
+      "previous": "docs/evidence/t07/reduced-motion/catalog/N04-dark-static-before-after.png",
+      "current": "Artifacts/t07-compact-static-images/C20B8634-3F9C-4C6B-84F4-57779A1F7D4A.png"
+    },
+    {
+      "name": "N04-light-static-before-after",
+      "pixelIdentical": true,
+      "previous": "docs/evidence/t07/reduced-motion/catalog/N04-light-static-before-after.png",
+      "current": "Artifacts/t07-compact-static-images/AA3E44B8-D16D-4253-9E0D-BE0A06DC2F50.png"
+    },
+    {
+      "name": "N05-dark-static-before-after",
+      "pixelIdentical": true,
+      "previous": "docs/evidence/t07/reduced-motion/catalog/N05-dark-static-before-after.png",
+      "current": "Artifacts/t07-compact-static-images/7F540B12-6DB2-4294-A766-9F4EC57EEDE6.png"
+    },
+    {
+      "name": "N05-light-static-before-after",
+      "pixelIdentical": true,
+      "previous": "docs/evidence/t07/reduced-motion/catalog/N05-light-static-before-after.png",
+      "current": "Artifacts/t07-compact-static-images/5FAFE9B3-718E-4B78-B2C4-CDD7CA72DD83.png"
+    },
+    {
+      "name": "N06-dark-static-before-after",
+      "pixelIdentical": true,
+      "previous": "docs/evidence/t07/reduced-motion/catalog/N06-dark-static-before-after.png",
+      "current": "Artifacts/t07-compact-static-images/1DDE918B-A561-46EE-9FFD-5D45D506371E.png"
+    },
+    {
+      "name": "N06-light-static-before-after",
+      "pixelIdentical": true,
+      "previous": "docs/evidence/t07/reduced-motion/catalog/N06-light-static-before-after.png",
+      "current": "Artifacts/t07-compact-static-images/12743523-9D41-4B7E-84EA-12C29E6644B9.png"
+    },
+    {
+      "name": "N07-dark-static-before-after",
+      "pixelIdentical": true,
+      "previous": "docs/evidence/t07/reduced-motion/catalog/N07-dark-static-before-after.png",
+      "current": "Artifacts/t07-compact-static-images/55044CD8-72F6-4881-93E7-46A51162F060.png"
+    },
+    {
+      "name": "N07-light-static-before-after",
+      "pixelIdentical": true,
+      "previous": "docs/evidence/t07/reduced-motion/catalog/N07-light-static-before-after.png",
+      "current": "Artifacts/t07-compact-static-images/D46D075A-5691-465B-8ADA-9E72265EA69F.png"
+    },
+    {
+      "name": "N08-dark-static-before-after",
+      "pixelIdentical": true,
+      "previous": "docs/evidence/t07/reduced-motion/catalog/N08-dark-static-before-after.png",
+      "current": "Artifacts/t07-compact-static-images/E6A5FFDE-D968-4940-B80F-EAAD3E227D39.png"
+    },
+    {
+      "name": "N08-light-static-before-after",
+      "pixelIdentical": true,
+      "previous": "docs/evidence/t07/reduced-motion/catalog/N08-light-static-before-after.png",
+      "current": "Artifacts/t07-compact-static-images/21C0723A-3FBF-4F76-9389-D799E6E751E5.png"
+    },
+    {
+      "name": "N09-dark-static-before-after",
+      "pixelIdentical": true,
+      "previous": "docs/evidence/t07/reduced-motion/catalog/N09-dark-static-before-after.png",
+      "current": "Artifacts/t07-compact-static-images/570B383E-81C3-4B4D-A24D-4B1B56885182.png"
+    },
+    {
+      "name": "N09-light-static-before-after",
+      "pixelIdentical": true,
+      "previous": "docs/evidence/t07/reduced-motion/catalog/N09-light-static-before-after.png",
+      "current": "Artifacts/t07-compact-static-images/03483491-8094-4258-A3B2-E1F8169DBEEC.png"
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "cubeguide/StaticGuidePlayback.swift": "76b7a7454361fa9ed3bea582aad984bb5c5dd810d3c47e1c263cd9dc358f78f5",
+  "cubeguideTests/StaticGuidePlaybackTests.swift": "b10bffb8233a7102de6fe6fad37344a1740a68da469f8763bad3aa40f06f3584",
+  "Packages/CubeKit/Sources/CubeSession/PreviewTimeline.swift": "d0db09618712cc91347162deb491f64da28da3fa8b78e9e07534ed7c92b4c9ab",
+  "Packages/CubeKit/Tests/CubeSessionTests/PreviewTimelineTests.swift": "abe392f948d723c8149ce776180b0db903653d799500f6e8f9c980aa0a299f0f"
+}

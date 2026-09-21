@@ -1,0 +1,41 @@
+Attributes: Button, 0x104786e40, {{20.0, -127.0}, {102.5, 251.5}}, identifier: 'guide.play', label: 'Play'
+Element subtree:
+ →Button, 0x104786e40, {{20.0, -127.0}, {102.5, 251.5}}, identifier: 'guide.play', label: 'Play'
+Path to element:
+ →Application, 0x104734ac0, pid: 4250, label: 'cubeguide'
+  ↳Window (Main), 0x1047362d0, {{0.0, 0.0}, {375.0, 667.0}}
+   ↳Other, 0x104736620, {{0.0, 0.0}, {375.0, 667.0}}
+    ↳Other, 0x104735850, {{0.0, 0.0}, {375.0, 667.0}}
+     ↳Other, 0x10470a660, {{0.0, 0.0}, {375.0, 667.0}}
+      ↳Other, 0x10472a9f0, {{0.0, 283.0}, {375.0, 384.0}}
+       ↳Other, 0x104733d20, {{0.0, 283.0}, {375.0, 384.0}}
+        ↳Other, 0x10471d840, {{0.0, 283.0}, {375.0, 384.0}}
+         ↳Other, 0x104752cd0, {{0.0, 283.0}, {375.0, 384.0}}
+          ↳Other, 0x104754140, {{0.0, 283.0}, {375.0, 384.0}}
+           ↳ScrollView, 0x104745590, {{0.0, 283.0}, {375.0, 384.0}}
+            ↳Other, 0x104786d20, {{0.0, -1568.0}, {375.0, 2235.0}}
+             ↳Button, 0x104786e40, {{20.0, -127.0}, {102.5, 251.5}}, identifier: 'guide.play', label: 'Play'
+Query chain:
+ →Find: Target Application 'hasancorp.cubeguide'
+  Output: {
+    Application, 0x104554770, pid: 4250, label: 'cubeguide'
+  }
+  ↪︎Find: Descendants matching type Button
+    Output: {
+      Button, 0x10435e050, {{50.0, 192.0}, {275.0, 75.0}}, identifier: 'practice.exit', label: 'Exit practice'
+      Button, 0x10435e830, {{316.0, 283.0}, {51.0, 44.0}}, identifier: 'navigation.help', label: 'Help'
+      Button, 0x10435e5f0, {{16.0, 286.0}, {63.0, 38.0}}, identifier: 'editor.home', label: 'Home'
+      Button, 0x10435ce50, {{18.0, 295.5}, {334.0, 105.0}}, identifier: 'home.enterColors', label: 'Enter colors'
+      Button, 0x10435d1b0, {{18.0, 424.5}, {337.0, 75.0}}, identifier: 'home.practice', label: 'Practice with an example'
+      Button, 0x10435d510, {{18.0, 523.5}, {258.5, 75.0}}, identifier: 'home.settings', label: 'Settings'
+      Button, 0x10435d870, {{18.0, 622.5}, {175.5, 75.0}}, identifier: 'home.help', label: 'Help'
+      Button, 0x10435fa30, {{20.0, -127.0}, {102.5, 251.5}}, identifier: 'guide.play', label: 'Play'
+      Button, 0x10435fb50, {{130.5, -200.5}, {89.0, 398.0}}, identifier: 'guide.pause', label: 'Pause', Disabled
+      Button, 0x10435fc70, {{227.5, -127.0}, {127.5, 251.5}}, identifier: 'guide.replay', label: 'Replay'
+      Button, 0x10435fd90, {{58.5, 209.5}, {258.0, 178.0}}, identifier: 'guide.acknowledge', label: 'I did this move', Disabled
+      Button, 0x10435feb0, {{55.0, 399.5}, {265.5, 251.5}}, identifier: 'guide.mismatch', label: 'My cube looks different'
+    }
+    ↪︎Find: Elements matching predicate '"guide.play" IN identifiers'
+      Output: {
+        Button, 0x10422e0c0, {{20.0, -127.0}, {102.5, 251.5}}, identifier: 'guide.play', label: 'Play'
+      }

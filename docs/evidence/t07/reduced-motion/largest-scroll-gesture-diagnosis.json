@@ -1,0 +1,60 @@
+{
+  "sourceResult": "Artifacts/t07-largest-controls-scroll.xcresult",
+  "scrollFrame": {
+    "y": 429.5,
+    "height": 237.5
+  },
+  "visibleNavigationBar": {
+    "minY": 429.5,
+    "maxY": 474
+  },
+  "events": [
+    {
+      "attachment": "E7FE0B75-D1E8-4475-8944-251DD1F503D6",
+      "points": [
+        {
+          "coordinate.x": 187.5,
+          "coordinate.y": 448.25,
+          "offset": 0.0,
+          "eventType": 1
+        },
+        {
+          "coordinate.x": 187.5,
+          "coordinate.y": 648.25,
+          "offset": 0.26666666666666666,
+          "eventType": 2
+        },
+        {
+          "coordinate.x": 187.5,
+          "coordinate.y": 648.25,
+          "offset": 0.26666666666666666,
+          "eventType": 3
+        }
+      ]
+    },
+    {
+      "attachment": "778B6A35-F1EC-4B56-8520-041D23B50C93",
+      "points": [
+        {
+          "coordinate.x": 187.5,
+          "coordinate.y": 448.25,
+          "offset": 0.0,
+          "eventType": 1
+        },
+        {
+          "coordinate.x": 187.5,
+          "coordinate.y": 648.25,
+          "offset": 0.26666666666666666,
+          "eventType": 2
+        },
+        {
+          "coordinate.x": 187.5,
+          "coordinate.y": 648.25,
+          "offset": 0.26666666666666666,
+          "eventType": 3
+        }
+      ]
+    }
+  ],
+  "interpretation": "Downward gestures begin inside the navigation bar rather than the scrollable content."
+}

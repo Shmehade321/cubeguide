@@ -1,0 +1,41 @@
+Attributes: Button, 0x13abb9b10, {{71.5, 150.4}, {524.0, 105.0}}, identifier: 'guide.acknowledge', label: 'I'm holding it like this'
+Element subtree:
+ →Button, 0x13abb9b10, {{71.5, 150.4}, {524.0, 105.0}}, identifier: 'guide.acknowledge', label: 'I'm holding it like this'
+Path to element:
+ →Application, 0x13aba86c0, pid: 10949, label: 'cubeguide'
+  ↳Window (Main), 0x13aba6530, {{0.0, 0.0}, {667.0, 375.0}}
+   ↳Other, 0x13abb1000, {{0.0, 0.0}, {667.0, 375.0}}
+    ↳Other, 0x13ab9d480, {{0.0, 0.0}, {667.0, 375.0}}
+     ↳Other, 0x13abb31e0, {{0.0, 0.0}, {667.0, 375.0}}
+      ↳Other, 0x13abb9690, {{0.0, 263.0}, {667.0, 112.0}}
+       ↳Other, 0x13abaf4d0, {{0.0, 263.0}, {667.0, 112.0}}
+        ↳Other, 0x13aba6110, {{0.0, 263.0}, {667.0, 112.0}}
+         ↳Other, 0x13abb9c30, {{0.0, 263.0}, {667.0, 112.0}}
+          ↳Other, 0x13abb97b0, {{0.0, 263.0}, {667.0, 112.0}}
+           ↳ScrollView, 0x13abb98d0, {{0.0, 263.0}, {667.0, 112.0}}
+            ↳Other, 0x13abb99f0, {{0.0, -1225.1}, {667.0, 1613.5}}
+             ↳Button, 0x13abb9b10, {{71.5, 150.4}, {524.0, 105.0}}, identifier: 'guide.acknowledge', label: 'I'm holding it like this'
+Query chain:
+ →Find: Target Application 'hasancorp.cubeguide'
+  Output: {
+    Application, 0x13abcce40, pid: 10949, label: 'cubeguide'
+  }
+  ↪︎Find: Descendants matching type Button
+    Output: {
+      Button, 0x13aca8820, {{196.0, 172.0}, {275.0, 75.0}}, identifier: 'practice.exit', label: 'Exit practice'
+      Button, 0x13aca9000, {{604.0, 263.0}, {51.0, 44.0}}, identifier: 'navigation.help', label: 'Help'
+      Button, 0x13aca8dc0, {{20.0, 269.0}, {63.0, 32.0}}, identifier: 'editor.home', label: 'Home'
+      Button, 0x13aca7620, {{16.5, 97.0}, {383.5, 105.0}}, identifier: 'home.enterColors', label: 'Enter colors'
+      Button, 0x13aca7980, {{16.5, 226.0}, {628.5, 75.0}}, identifier: 'home.practice', label: 'Practice with an example'
+      Button, 0x13aca7ce0, {{16.5, 325.0}, {258.5, 75.0}}, identifier: 'home.settings', label: 'Settings'
+      Button, 0x13aca8040, {{16.5, 424.0}, {175.5, 75.0}}, identifier: 'home.help', label: 'Help'
+      Button, 0x13acaa200, {{256.0, -192.6}, {155.5, 105.0}}, identifier: 'guide.play', label: 'Play'
+      Button, 0x13acaa320, {{235.5, -79.6}, {196.5, 105.0}}, identifier: 'guide.pause', label: 'Pause', Disabled
+      Button, 0x13acaa440, {{227.0, 33.4}, {213.5, 105.0}}, identifier: 'guide.replay', label: 'Replay'
+      Button, 0x13acaa560, {{71.5, 150.4}, {524.0, 105.0}}, identifier: 'guide.acknowledge', label: 'I'm holding it like this'
+      Button, 0x13acaa680, {{43.5, 267.4}, {580.5, 105.0}}, identifier: 'guide.mismatch', label: 'My cube looks different'
+    }
+    ↪︎Find: Elements matching predicate '"guide.acknowledge" IN identifiers'
+      Output: {
+        Button, 0x13aad42e0, {{71.5, 150.4}, {524.0, 105.0}}, identifier: 'guide.acknowledge', label: 'I'm holding it like this'
+      }

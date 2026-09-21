@@ -2,6 +2,42 @@ import CubeCore
 import Testing
 @testable import CubeSession
 
+@Test("R12: static preview deadlines retain remaining hold and duration across pause and replay")
+func previewTimelineRemainingDuration() {
+  // A zero/fresh-duration deadline on resume would finish early or repeat the
+  // full demonstration; counting paused wall time would skip the static hold.
+  let cases: [(GuideOperation, GuideSpeed, Int64)] = [
+    (.turn(Move(face: .front, turns: .clockwise)), .normal, 1700),
+    (.turn(Move(face: .front, turns: .counterclockwise)), .slow, 2900),
+    (.turn(Move(face: .front, turns: .half)), .fast, 1400),
+    (.regrip(.topToward), .normal, 1700),
+  ]
+  for (operation, speed, total) in cases {
+    var timeline = PreviewTimeline(operation: operation, speed: speed)
+    #expect(timeline.remainingDuration == .milliseconds(total))
+    timeline.play(at: .seconds(10))
+    timeline.pause(at: .milliseconds(10200))
+    #expect(timeline.remainingDuration == .milliseconds(total - 200))
+    timeline.advance(to: .seconds(100))
+    #expect(timeline.remainingDuration == .milliseconds(total - 200))
+    timeline.play(at: .seconds(100))
+    timeline.advance(to: .milliseconds(100000 + total - 201))
+    #expect(timeline.remainingDuration == .milliseconds(1))
+    #expect(timeline.status == .playing)
+    timeline.advance(to: .milliseconds(100000 + total - 200))
+    #expect(timeline.remainingDuration == .zero)
+    #expect(timeline.status == .finished)
+    timeline.play(at: .seconds(200), restart: true)
+    #expect(timeline.remainingDuration == .milliseconds(total))
+    timeline.advance(to: .milliseconds(200800))
+    #expect(timeline.remainingDuration == .milliseconds(total - 800))
+    timeline.advance(to: .seconds(150))
+    #expect(timeline.remainingDuration == .milliseconds(total - 800))
+    timeline.stop()
+    #expect(timeline.remainingDuration == .milliseconds(total))
+  }
+}
+
 @Test("R08/V10: preview holds before and uses specified turn/regrip durations at every speed")
 func previewTimelineDurations() {
   // Removing the before hold, treating half turns as quarters, or reversing
