@@ -1,0 +1,71 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "PR",
+        "deviceId" : "67DB7428-A25B-4167-8FC2-24F47A392E81",
+        "deviceName" : "iPhone 16 Pro",
+        "exportedFileName" : "3C5272D1-79D4-4ACA-9441-823FBDFAE2B1.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Expected solved requires physical confirmation_0_4E6340E8-A1EB-4094-85B3-BB0350045694.png",
+        "timestamp" : 1789985828.785
+      }
+    ],
+    "testIdentifier" : "GuideUITests/testGuideCompletionRequiresSeparatePhysicalConfirmation()",
+    "testIdentifierURL" : "test://com.apple.xcode/cubeguide/cubeguideUITests/GuideUITests/testGuideCompletionRequiresSeparatePhysicalConfirmation"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "PR",
+        "deviceId" : "67DB7428-A25B-4167-8FC2-24F47A392E81",
+        "deviceName" : "iPhone 16 Pro",
+        "exportedFileName" : "01E4CDD1-BF9F-4E67-8382-3AF4E9D640B1.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Guide color labels visible_0_C17467DA-010F-4337-827B-517312E51EED.png",
+        "timestamp" : 1789985882.535
+      },
+      {
+        "configurationName" : "PR",
+        "deviceId" : "67DB7428-A25B-4167-8FC2-24F47A392E81",
+        "deviceName" : "iPhone 16 Pro",
+        "exportedFileName" : "FB5B58F2-9C36-4C18-83F4-4F98699C4D70.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Guide color labels hidden_0_ED87FFD5-A877-4E2B-8400-925E124BC4DA.png",
+        "timestamp" : 1789985862.972
+      }
+    ],
+    "testIdentifier" : "GuideUITests/testGuideRendersSavedLabelChoice()",
+    "testIdentifierURL" : "test://com.apple.xcode/cubeguide/cubeguideUITests/GuideUITests/testGuideRendersSavedLabelChoice"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "PR",
+        "deviceId" : "67DB7428-A25B-4167-8FC2-24F47A392E81",
+        "deviceName" : "iPhone 16 Pro",
+        "exportedFileName" : "710F7A70-603C-44AD-9F21-5A777ED01AA2.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Practice guide expected after preview_0_9988FC4A-EF5F-498F-92B1-153275D339AF.png",
+        "timestamp" : 1789985906.853
+      }
+    ],
+    "testIdentifier" : "GuideUITests/testPracticeGuideRequiresAlignmentAndExplicitAcknowledgement()",
+    "testIdentifierURL" : "test://com.apple.xcode/cubeguide/cubeguideUITests/GuideUITests/testPracticeGuideRequiresAlignmentAndExplicitAcknowledgement"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "PR",
+        "deviceId" : "67DB7428-A25B-4167-8FC2-24F47A392E81",
+        "deviceName" : "iPhone 16 Pro",
+        "exportedFileName" : "077682A1-9653-4665-91F0-EDDB5109ADE0.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Recovery retains guide until replacement_0_7C527C20-9ECE-4100-BC79-ED8209ADC7B5.png",
+        "timestamp" : 1789985940.679
+      }
+    ],
+    "testIdentifier" : "GuideUITests/testUncertainGuideCanKeepOrReplaceWithManualInput()",
+    "testIdentifierURL" : "test://com.apple.xcode/cubeguide/cubeguideUITests/GuideUITests/testUncertainGuideCanKeepOrReplaceWithManualInput"
+  }
+]

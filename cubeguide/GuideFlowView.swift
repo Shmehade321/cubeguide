@@ -9,6 +9,7 @@ struct GuideFlowView: View {
   let controller: SessionController
   let presentation: GuidePresentation
   @State private var comparisonAfter = false
+  @Environment(\.accessibilityDifferentiateWithoutColor) private var differentiate
   private var showingAfter: Bool { comparisonAfter || controller.session.preview == .finished }
 
   var body: some View {
@@ -25,7 +26,9 @@ struct GuideFlowView: View {
           Text(caption(action)).font(.headline).multilineTextAlignment(.center)
           Text(comparisonAfter ? "Expected after this action" : presentation.previewDescription)
           if let scene = presentation.scene {
-            GuideSceneSurface(model: scene).frame(height: 220)
+            GuideSceneSurface(model: scene, showColorLabels:
+              controller.preferences.colorLabelsEnabled(differentiateWithoutColor: differentiate))
+              .frame(height: 220)
               .accessibilityLabel("Cube demonstration")
           }
           Text(anchors(action)).font(.subheadline).multilineTextAlignment(.center)
@@ -76,7 +79,11 @@ struct GuideFlowView: View {
     }
     .task(id: controller.session.pendingAction?.id) {
       comparisonAfter = false
+      presentation.refreshLabels(differentiateWithoutColor: differentiate)
       presentation.prepare()
+    }
+    .onChange(of: differentiate) { _, value in
+      presentation.refreshLabels(differentiateWithoutColor: value)
     }
     .onChange(of: controller.session.phase) { _, _ in comparisonAfter = false }
     .onDisappear { presentation.stop() }
@@ -116,9 +123,11 @@ struct GuideFlowView: View {
 /// SwiftUI updates must never reset the model's in-flight animation.
 struct GuideSceneSurface: UIViewRepresentable {
   let model: CubeSceneModel
+  let showColorLabels: Bool
   @Environment(\.colorScheme) private var colorScheme
   func makeUIView(context: Context) -> ARView { CubeSceneView.makeView(model: model) }
   func updateUIView(_ view: ARView, context: Context) {
+    model.setColorLabels(showColorLabels)
     view.environment.background = .color(colorScheme == .dark ? UIColor(white: 0.04, alpha: 1) : UIColor(white: 0.97, alpha: 1))
   }
   static func dismantleUIView(_ view: ARView, coordinator: ()) {

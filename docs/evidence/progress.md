@@ -25,7 +25,7 @@ Baseline: 78f7fbc. User authorized full implementation with TDD, quality checks 
 | T04 Search | automated exit passed; physical qualification open | task-04.md |
 | T05 Session/storage | running: guide/manual/scan storage and durable discard implemented; full lifecycle pending | task-05.md |
 | T06 Manual flow | running: Home/editor, validation/solver result UI, offline Help, persisted Settings, isolated practice and calculation-state UI coverage | task-06.md |
-| T07 Graphics | running: static preview plus animation and initial guide/comparison/recovery/completion increment qualified locally; overlays, accessibility, artwork and media qualification pending | task-07.md |
+| T07 Graphics | running: static preview plus animation and initial guide/comparison/recovery/completion increment qualified locally; live label propagation qualified; overlays, Reduce Motion, broader accessibility, artwork and media qualification pending | task-07.md |
 | T08 Guidance/audio | notRun | — |
 | T09 Camera | notRun | — |
 | T10 Accessibility/physical | notRun | — |

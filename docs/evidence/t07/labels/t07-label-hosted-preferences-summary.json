@@ -1,0 +1,56 @@
+{
+  "devicesAndConfigurations" : [
+    {
+      "device" : {
+        "architecture" : "arm64",
+        "deviceId" : "67DB7428-A25B-4167-8FC2-24F47A392E81",
+        "deviceName" : "iPhone 16 Pro",
+        "modelName" : "iPhone 16 Pro",
+        "osBuildNumber" : "22F77",
+        "osVersion" : "18.5",
+        "platform" : "iOS Simulator"
+      },
+      "expectedFailures" : 0,
+      "failedTests" : 1,
+      "passedTests" : 22,
+      "skippedTests" : 0,
+      "testPlanConfiguration" : {
+        "configurationId" : "1",
+        "configurationName" : "PR"
+      }
+    }
+  ],
+  "environmentDescription" : "PR · Built with macOS 27.0",
+  "expectedFailures" : 0,
+  "failedTests" : 1,
+  "finishTime" : 1789983593.148,
+  "passedTests" : 22,
+  "result" : "Failed",
+  "runtimeWarnings" : [
+
+  ],
+  "skippedTests" : 0,
+  "startTime" : 1789983560.287,
+  "statistics" : [
+
+  ],
+  "testFailures" : [
+    {
+      "failureText" : "Expectation failed: scene.bodies.mapValues { $0.transformMatrix(relativeTo: scene.root) } == transforms\nscene.bodies.mapValues { $0.transformMatrix(relativeTo: scene.root) } → [CubeCore.CubePosition(x: -1, y: 1, z: 1): simd_float4x4([[0.5, -0.8660254, 0.0, 0.0], [0.8660254, 0.5, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.36602542, 1.3660254, 1.0, 1.0000001]]), CubeCore.CubePosition(x: -1, y: 0, z: -1): simd_float4x4([[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [-1.0, 0.0, -1.0, 1.0000001]]), CubeCore.CubePosition(x: 0, y: -1, z: 0): simd_float4x4([[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, -1.0, 0.0, 1.0000001]]), CubeCore.CubePosition(x: 1, y: -1, z: -1): simd_float4x4([[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [1.0, -1.0, -1.0, 1.0000001]]), CubeCore.CubePosition(x: 0, y: 1, z: 1): simd_float4x4([[0.5, -0.8660254, 0.0, 0.0], [0.8660254, 0.5, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.8660254, 0.5, 1.0, 1.0000001]]), CubeCore.CubePosition(x: 1, y: 0, z: 1): simd_float4x4([[0.5, -0.8660254, 0.0, 0.0], [0.8660254, 0.5, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.5, -0.8660254, 1.0, 1.0000001]]), CubeCore.CubePosition(x: -1, y: 1, z: -1): simd_float4x4([[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [-1.0, 1.0, -1.0, 1.0000001]]), CubeCore.CubePosition(x: 0, y: 0, z: 1): simd_float4x4([[0.5, -0.8660254, 0.0, 0.0], [0.8660254, 0.5, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 1.0, 1.0000001]]), CubeCore.CubePosition(x: 0, y: -1, z: -1): simd_float4x4([[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, -1.0, -1.0, 1.0000001]]), CubeCore.CubePosition(x: 0, y: -1, z: 1): simd_float4x4([[0.5, -0.8660254, 0.0, 0.0], [0.8660254, 0.5, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [-0.8660254, -0.5, 1.0, 1.0000001]]), CubeCore.CubePosition(x: -1, y: 1, z: 0): simd_float4x4([[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [-1.0, 1.0, 0.0, 1.0000001]]), CubeCore.CubePosition(x: 1, y: 1, z: 0): simd_float4x4([[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [1.0, 1.0, 0.0, 1.0000001]]), CubeCore.CubePosition(x: 1, y: -1, z: 1): simd_float4x4([[0.5, -0.8660254, 0.0, 0.0], [0.8660254, 0.5, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [-0.36602542, -1.3660254, 1.0, 1.0000001]]), CubeCore.CubePosition(x: 1, y: 1, z: 1): simd_float4x4([[0.5, -0.8660254, 0.0, 0.0], [0.8660254, 0.5, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [1.3660254, -0.36602542, 1.0, 1.0000001]]), CubeCore.CubePosition(x: 0, y: 1, z: -1): simd_float4x4([[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 1.0, -1.0, 1.0000001]]), CubeCore.CubePosition(x: -1, y: 0, z: 1): simd_float4x4([[0.5, -0.8660254, 0.0, 0.0], [0.8660254, 0.5, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [-0.5, 0.8660254, 1.0, 1.0000001]]), CubeCore.CubePosition(x: 0, y: 0, z: -1): simd_float4x4([[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, -1.0, 1.0000001]]), CubeCore.CubePosition(x: 1, y: 0, z: -1): simd_float4x4([[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [1.0, 0.0, -1.0, 1.0000001]]), CubeCore.CubePosition(x: 0, y: 1, z: 0): simd_float4x4([[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 1.0, 0.0, 1.0000001]]), CubeCore.CubePosition(x: -1, y: 0, z: 0): simd_float4x4([[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [-1.0, 0.0, 0.0, 1.0000001]]), CubeCore.CubePosition(x: -1, y: -1, z: -1): simd_float4x4([[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [-1.0, -1.0, -1.0, 1.0000001]]), CubeCore.CubePosition(x: 1, y: 0, z: 0): simd_float4x4([[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [1.0, 0.0, 0.0, 1.0000001]]), CubeCore.CubePosition(x: 1, y: -1, z: 0): simd_float4x4([[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [1.0, -1.0, 0.0, 1.0000001]]), CubeCore.CubePosition(x: 1, y: 1, z: -1): simd_float4x4([[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [1.0, 1.0, -1.0, 1.0000001]]), CubeCore.CubePosition(x: -1, y: -1, z: 0): simd_float4x4([[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [-1.0, -1.0, 0.0, 1.0000001]]), CubeCore.CubePosition(x: -1, y: -1, z: 1): simd_float4x4([[0.5, -0.8660254, 0.0, 0.0], [0.8660254, 0.5, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [-1.3660254, 0.36602542, 1.0, 1.0000001]])]\ntransforms → [CubeCore.CubePosition(x: -1, y: 1, z: 1): simd_float4x4([[0.5, -0.8660254, 0.0, 0.0], [0.8660254, 0.5, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.36602536, 1.3660254, 1.0, 1.0000001]]), CubeCore.CubePosition(x: -1, y: 0, z: -1): simd_float4x4([[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [-1.0, 0.0, -1.0, 1.0000001]]), CubeCore.CubePosition(x: 0, y: -1, z: 0): simd_float4x4([[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, -1.0, 0.0, 1.0000001]]), CubeCore.CubePosition(x: 1, y: -1, z: -1): simd_float4x4([[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [1.0, -1.0, -1.0, 1.0000001]]), CubeCore.CubePosition(x: 0, y: 1, z: 1): simd_float4x4([[0.5, -0.8660254, 0.0, 0.0], [0.8660254, 0.5, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.8660254, 0.5, 1.0, 1.0000001]]), CubeCore.CubePosition(x: 1, y: 0, z: 1): simd_float4x4([[0.5, -0.8660254, 0.0, 0.0], [0.8660254, 0.5, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.5, -0.8660254, 1.0, 1.0000001]]), CubeCore.CubePosition(x: -1, y: 1, z: -1): simd_float4x4([[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [-1.0, 1.0, -1.0, 1.0000001]]), CubeCore.CubePosition(x: 0, y: 0, z: 1): simd_float4x4([[0.5, -0.8660254, 0.0, 0.0], [0.8660254, 0.5, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 1.0, 1.0000001]]), CubeCore.CubePosition(x: 0, y: -1, z: -1): simd_float4x4([[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, -1.0, -1.0, 1.0000001]]), CubeCore.CubePosition(x: 0, y: -1, z: 1): simd_float4x4([[0.5, -0.8660254, 0.0, 0.0], [0.8660254, 0.5, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [-0.8660254, -0.5, 1.0, 1.0000001]]), CubeCore.CubePosition(x: -1, y: 1, z: 0): simd_float4x4([[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [-1.0, 1.0, 0.0, 1.0000001]]), CubeCore.CubePosition(x: 1, y: 1, z: 0): simd_float4x4([[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [1.0, 1.0, 0.0, 1.0000001]]), CubeCore.CubePosition(x: 1, y: -1, z: 1): simd_float4x4([[0.5, -0.8660254, 0.0, 0.0], [0.8660254, 0.5, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [-0.36602536, -1.3660254, 1.0, 1.0000001]]), CubeCore.CubePosition(x: 1, y: 1, z: 1): simd_float4x4([[0.5, -0.8660254, 0.0, 0.0], [0.8660254, 0.5, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [1.3660254, -0.36602536, 1.0, 1.0000001]]), CubeCore.CubePosition(x: 0, y: 1, z: -1): simd_float4x4([[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 1.0, -1.0, 1.0000001]]), CubeCore.CubePosition(x: -1, y: 0, z: 1): simd_float4x4([[0.5, -0.8660254, 0.0, 0.0], [0.8660254, 0.5, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [-0.5, 0.8660254, 1.0, 1.0000001]]), CubeCore.CubePosition(x: 0, y: 0, z: -1): simd_float4x4([[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, -1.0, 1.0000001]]), CubeCore.CubePosition(x: 1, y: 0, z: -1): simd_float4x4([[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [1.0, 0.0, -1.0, 1.0000001]]), CubeCore.CubePosition(x: 0, y: 1, z: 0): simd_float4x4([[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 1.0, 0.0, 1.0000001]]), CubeCore.CubePosition(x: -1, y: 0, z: 0): simd_float4x4([[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [-1.0, 0.0, 0.0, 1.0000001]]), CubeCore.CubePosition(x: -1, y: -1, z: -1): simd_float4x4([[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [-1.0, -1.0, -1.0, 1.0000001]]), CubeCore.CubePosition(x: 1, y: 0, z: 0): simd_float4x4([[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [1.0, 0.0, 0.0, 1.0000001]]), CubeCore.CubePosition(x: 1, y: -1, z: 0): simd_float4x4([[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [1.0, -1.0, 0.0, 1.0000001]]), CubeCore.CubePosition(x: 1, y: 1, z: -1): simd_float4x4([[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [1.0, 1.0, -1.0, 1.0000001]]), CubeCore.CubePosition(x: -1, y: -1, z: 0): simd_float4x4([[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [-1.0, -1.0, 0.0, 1.0000001]]), CubeCore.CubePosition(x: -1, y: -1, z: 1): simd_float4x4([[0.5, -0.8660254, 0.0, 0.0], [0.8660254, 0.5, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [-1.3660254, 0.36602536, 1.0, 1.0000001]])]",
+      "targetName" : "cubeguideTests",
+      "testIdentifier" : 15,
+      "testIdentifierString" : "PresentationTests/GuideLabelsTests/hostedPolicy()",
+      "testIdentifierURL" : "test://com.apple.xcode/cubeguide/cubeguideTests/PresentationTests/GuideLabelsTests/hostedPolicy()",
+      "testName" : "R12: hosted guide observes saved label preferences without resetting playback"
+    }
+  ],
+  "title" : "Test - cubeguide",
+  "topInsights" : [
+    {
+      "category" : "Common Failures",
+      "impact" : "100% of failures",
+      "text" : "2 runs of 1 test failed with Expectation failed: scene.bodies.mapValues { $0.transformMatrix(relativeTo: scene.root) } == transforms"
+    }
+  ],
+  "totalTestCount" : 23
+}

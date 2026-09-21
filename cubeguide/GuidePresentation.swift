@@ -20,6 +20,14 @@ final class GuidePresentation: GuidePlayback {
   @ObservationIgnored private var player: GuideScenePlayback?
   @ObservationIgnored private var palette: CenterPalette?
   @ObservationIgnored private var preparedAction: GuideAction?
+  @ObservationIgnored private var differentiateWithoutColor = false
+
+  private var effectivePreferences: AppPreferences {
+    var preferences = controller?.preferences ?? AppPreferences()
+    preferences.showColorLabels = preferences.colorLabelsEnabled(
+      differentiateWithoutColor: differentiateWithoutColor)
+    return preferences
+  }
 
   init(frames: any PreviewFrameSource, now: @escaping () -> Duration) {
     self.frames = frames
@@ -45,18 +53,21 @@ final class GuidePresentation: GuidePlayback {
   @discardableResult func prepare() -> Bool {
     guard let controller, let palette = controller.palette,
       let action = controller.session.guideProgress?.pending else { return false }
-    if preparedAction == action, self.palette == palette, scene != nil { return true }
+    if preparedAction == action, self.palette == palette, let scene {
+      scene.setColorLabels(effectivePreferences.showColorLabels)
+      return true
+    }
     player?.stop()
     if self.palette != palette || scene == nil {
       let scene = CubeSceneModel(draft: ManualDraft(palette: palette))
       self.scene = scene
       self.palette = palette
       player = GuideScenePlayback(scene: scene, palette: palette,
-        preferences: { [weak controller] in controller?.preferences ?? AppPreferences() },
+        preferences: { [weak self] in self?.effectivePreferences ?? AppPreferences() },
         frames: frames, now: now)
     }
     guard let scene else { return false }
-    scene.beginPreview(action, palette: palette, showColorLabels: controller.preferences.showColorLabels)
+    scene.beginPreview(action, palette: palette, showColorLabels: effectivePreferences.showColorLabels)
     scene.cancelPreview()
     preparedAction = action
     return true
@@ -76,8 +87,13 @@ final class GuidePresentation: GuidePlayback {
       let action = controller.session.pendingAction, let palette = controller.palette,
       prepare(), let scene else { return }
     player?.stop()
-    scene.beginPreview(action, palette: palette, showColorLabels: controller.preferences.showColorLabels)
+    scene.beginPreview(action, palette: palette, showColorLabels: effectivePreferences.showColorLabels)
     if after { scene.samplePreview(progress: 1) } else { scene.cancelPreview() }
+  }
+
+  func refreshLabels(differentiateWithoutColor: Bool) {
+    self.differentiateWithoutColor = differentiateWithoutColor
+    scene?.setColorLabels(effectivePreferences.showColorLabels)
   }
 
   func pause() { player?.pause() }

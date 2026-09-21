@@ -2,6 +2,39 @@ import XCTest
 
 final class GuideUITests: XCTestCase {
   @MainActor
+  func testGuideRendersSavedLabelChoice() {
+    continueAfterFailure = false
+    let app = XCUIApplication()
+    app.launch()
+    if app.buttons["editor.home"].waitForExistence(timeout: 2) { tap(app.buttons["editor.home"]) }
+    for visible in [false, true] {
+      tap(app.buttons["home.settings"])
+      let control = app.switches["settings.labels"]
+      let ready = NSPredicate(format: "exists == true AND hittable == true AND enabled == true")
+      XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: ready, object: control)], timeout: 10), .completed)
+      let wanted = visible ? "1" : "0"
+      if control.value as? String != wanted {
+        control.coordinate(withNormalizedOffset: CGVector(dx: 0.92, dy: 0.5)).tap()
+      }
+      XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(
+        predicate: NSPredicate(format: "value == %@ AND enabled == true", wanted), object: control)], timeout: 10), .completed)
+      tap(app.buttons["settings.done"])
+      tap(app.buttons["home.practice"])
+      tap(app.buttons["editor.validate"])
+      tap(app.buttons["solve.consent"])
+      XCTAssertTrue(app.buttons["guide.align"].waitForExistence(timeout: 20))
+      tap(app.buttons["guide.align"])
+      let progress = app.staticTexts["guide.progress"].label
+      tap(app.buttons["guide.play"])
+      XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(
+        predicate: NSPredicate(format: "enabled == true"), object: app.buttons["guide.acknowledge"])], timeout: 10), .completed)
+      XCTAssertEqual(app.staticTexts["guide.progress"].label, progress)
+      capture(app, name: visible ? "Guide color labels visible" : "Guide color labels hidden")
+      tap(app.buttons["practice.exit"])
+    }
+  }
+
+  @MainActor
   func testPracticeGuideRequiresAlignmentAndExplicitAcknowledgement() {
     continueAfterFailure = false
     let app = XCUIApplication()

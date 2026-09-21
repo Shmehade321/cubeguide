@@ -13,6 +13,7 @@ final class CubeSceneModel {
   private(set) var stickers: [Int: ModelEntity] = [:]
   private let pivot = Entity()
   private var previewFinished = false
+  private var displayedColors: [CubeColor?] = []
   private var preview: (action: GuideAction, palette: CenterPalette, labels: Bool, rotation: CubeRotation)?
   private static let bodyMesh = MeshResource.generateBox(size: 0.92, cornerRadius: 0.06)
   private static let stickerMesh = MeshResource.generateBox(
@@ -44,6 +45,7 @@ final class CubeSceneModel {
   }
 
   private func display(colors: [CubeColor?], pose: CubeOrientation, showColorLabels: Bool) {
+    displayedColors = colors
     preview = nil
     previewFinished = false
     for (point, body) in bodies {
@@ -63,8 +65,20 @@ final class CubeSceneModel {
       let color = colors[source.index]
       let tint = color.map { UIColor($0.swatch) } ?? UIColor(white: 0.30, alpha: 1)
       sticker.model?.materials = [SimpleMaterial(color: tint, roughness: 0.6, isMetallic: false)]
+    }
+    setColorLabels(showColorLabels)
+  }
+
+  /// Refresh only glyphs, preserving an active pivot and every body/sticker transform.
+  func setColorLabels(_ enabled: Bool) {
+    if var current = preview {
+      current.labels = enabled
+      preview = current
+    }
+    for (index, sticker) in stickers {
+      let color = displayedColors[index]
       let label: String?
-      if let color { label = showColorLabels ? String(color.title.prefix(1)) : nil }
+      if let color { label = enabled ? String(color.title.prefix(1)) : nil }
       else { label = "?" }
       updateLabel(label, on: sticker, light: color == nil || color == .blue)
     }
