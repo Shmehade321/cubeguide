@@ -134,6 +134,8 @@ actor ControlledStorage: SessionStorage {
   var failGuide: Bool
   var failDraft: Bool
   var failDelete: Bool
+  var failDiscard = false
+  var discardGate: ControllerGate?
   init(
     _ real: SessionStore, restoreGate: ControllerGate? = nil, draftGate: ControllerGate? = nil,
     failDraft: Bool = false, failDelete: Bool = false, failGuide: Bool = false,
@@ -187,6 +189,19 @@ actor ControlledStorage: SessionStorage {
       failDraft = false
       throw ControllerInjectedFailure.afterWrite
     }
+  }
+  func configureDiscard(fail: Bool = false, gate: ControllerGate? = nil) {
+    failDiscard = fail
+    discardGate = gate
+  }
+  func discardDraft(revision: UInt64, lease: StorageLease) async throws -> StorageLease {
+    let result = try await real.discardDraft(revision: revision, lease: lease)
+    await discardGate?.pause()
+    if failDiscard {
+      failDiscard = false
+      throw ControllerInjectedFailure.afterWrite
+    }
+    return result
   }
   func delete(lease: StorageLease) async throws -> StorageLease {
     let result = try await real.delete(lease: lease)

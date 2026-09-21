@@ -11,6 +11,7 @@ public protocol SessionStorage: Actor {
   func save(_ request: GuideSaveRequest, palette: CenterPalette, lease: StorageLease) async throws
   func saveDraft(_ draft: ManualDraft, lease: StorageLease) async throws
   func saveScanDraft(_ scan: PendingScan, lease: StorageLease) async throws
+  func discardDraft(revision: UInt64, lease: StorageLease) async throws -> StorageLease
   func delete(lease: StorageLease) async throws -> StorageLease
 }
 extension SessionStore: SessionStorage {}
@@ -30,10 +31,83 @@ public protocol GuidePlayback: AnyObject {
   func stop()
 }
 
+public enum DraftDiscardStatus: Equatable, Sendable { case idle, saving, failed }
+
 public enum SessionLoadStatus: Equatable, Sendable { case idle, loading, ready, failed }
 
 @MainActor @Observable
 public final class SessionController {
+  public private(set) var discardStatus: DraftDiscardStatus = .idle
+  @ObservationIgnored private var discardRevision: UInt64?
+  @discardableResult public func discardDraft(confirmed: Bool) -> EventDisposition {
+    guard loadStatus == .ready, !isStartingScan, session.phase != .deleting,
+      session.phase != .deletionError
+    else { return .rejected(.unavailableEvent) }
+    if discardStatus == .saving { return .ignored }
+    guard discardStatus == .idle else { return .rejected(.unavailableEvent) }
+    let inputPhases: Set<SessionPhase> = [
+      .home, .editing, .invalid, .alreadySolved,
+      .offer, .solving, .solveError, .savingDraft, .draftStorageError,
+    ]
+    guard
+      scanWorkflow != nil
+        || (inputPhases.contains(session.phase)
+          && session.hasWork && session.guideProgress == nil)
+    else { return .rejected(.unavailableEvent) }
+    guard confirmed else { return .rejected(.confirmationRequired) }
+    let latest = max(
+      session.latestInputRevision,
+      scanWorkflow?.pendingSave?.scan.draft.revision ?? 0,
+      pendingScan?.draft.revision ?? 0)
+    let (revision, overflow) = latest.addingReportingOverflow(1)
+    guard !overflow else { return .rejected(.revisionExhausted) }
+    discardRevision = revision
+    beginDiscard()
+    return .accepted
+  }
+  @discardableResult public func retryDraftDiscard() -> EventDisposition {
+    guard discardStatus == .failed, discardRevision != nil else {
+      return .rejected(.unavailableEvent)
+    }
+    beginDiscard()
+    return .accepted
+  }
+  private func beginDiscard() {
+    guard let revision = discardRevision else { return }
+    generation = UUID()
+    let expectedGeneration = generation
+    discardStatus = .saving
+    lastError = nil
+    solveTask?.cancel()
+    playback.stop()
+    stopCamera(discard: true)
+    enqueueStorage { [self] in
+      guard generation == expectedGeneration else { return }
+      do {
+        let current = await storage.currentLease()
+        guard generation == expectedGeneration else { return }
+        _ = try await storage.discardDraft(revision: revision, lease: current)
+        guard generation == expectedGeneration else { return }
+        let restored = try await storage.restore()
+        guard generation == expectedGeneration else { return }
+        session = restored.session
+        palette = restored.palette
+        lease = restored.lease
+        pendingScan = restored.pendingScan
+        scanWorkflow = restored.pendingScan.map { ScanWorkflow(restoring: $0) }
+        discardStatus = .idle
+        discardRevision = nil
+        lastError = nil
+      } catch {
+        guard generation == expectedGeneration else { return }
+        let current = await storage.currentLease()
+        guard generation == expectedGeneration else { return }
+        lease = current
+        discardStatus = .failed
+        lastError = error
+      }
+    }
+  }
   public private(set) var session = Session()
   public private(set) var loadStatus: SessionLoadStatus = .idle
   public private(set) var lastError: (any Error)?
@@ -69,7 +143,7 @@ public final class SessionController {
   @discardableResult public func startScan(purpose: ScanPurpose, replacing: Bool = false) async
     -> EventDisposition
   {
-    guard loadStatus == .ready, scanWorkflow == nil, !isStartingScan,
+    guard loadStatus == .ready, discardStatus == .idle, scanWorkflow == nil, !isStartingScan,
       session.pendingSave == nil, session.pendingDraftSave == nil,
       session.pendingManualStart == nil, session.pendingDeletion == nil
     else {
@@ -114,7 +188,8 @@ public final class SessionController {
         return .rejected(.replacementRequired)
       }
       let latest = max(
-        session.revision, restored.session.revision, restored.retainedGuideID?.revision ?? 0)
+        session.latestInputRevision, restored.session.latestInputRevision,
+        restored.retainedGuideID?.revision ?? 0)
       let (revision, overflow) = latest.addingReportingOverflow(1)
       guard !overflow else { return .rejected(.revisionExhausted) }
       let pending = try PendingScan(
@@ -141,7 +216,8 @@ public final class SessionController {
     }
   }
   @discardableResult public func sendScan(_ event: ScanEvent) -> ScanDisposition {
-    guard loadStatus == .ready, !isStartingScan, let workflow = scanWorkflow,
+    guard loadStatus == .ready, discardStatus == .idle, !isStartingScan,
+      let workflow = scanWorkflow,
       session.phase != .deleting, session.phase != .deletionError
     else {
       return .rejected(.unavailableEvent)
@@ -182,6 +258,12 @@ public final class SessionController {
     if loadStatus != .ready {
       guard case .deleteLocalData = event else { return .rejected(.unavailableEvent) }
     }
+    if discardStatus != .idle {
+      switch event {
+      case .deleteLocalData, .retryDeletion, .deleted, .deletionFailed: break
+      default: return .rejected(.unavailableEvent)
+      }
+    }
     if isStartingScan {
       switch event {
       case .background, .cancel:
@@ -215,6 +297,8 @@ public final class SessionController {
       if case .deleteLocalData = $0 { return true }
       return false
     }) {
+      discardStatus = .idle
+      discardRevision = nil
       // Invalidates restores and callbacks immediately, before asynchronous deletion starts.
       generation = UUID()
       scanStart = nil

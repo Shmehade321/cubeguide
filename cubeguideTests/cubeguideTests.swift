@@ -52,6 +52,15 @@ func appScanStorage() async throws {
   let resumed = reopened.makeSessionController(playback: CompositionPlayback())
   await resumed.load()
   #expect(resumed.scanWorkflow?.phase == .pausedCapture && !resumed.isCameraReady)
+  #expect(controller.discardDraft(confirmed: true) == .accepted)
+  deadline = ContinuousClock.now + .seconds(5)
+  while controller.discardStatus == .saving, ContinuousClock.now < deadline {
+    try await Task.sleep(for: .milliseconds(10))
+  }
+  #expect(controller.discardStatus == .idle && controller.scanWorkflow == nil)
+  let discarded = try await reopened.restoreSession()
+  #expect(discarded.pendingScan == nil && !discarded.session.hasWork)
+  #expect(discarded.session.latestInputRevision > scan.draft.revision)
   #expect(controller.send(.deleteLocalData(confirmed: true)) == .accepted)
   // Wait for the actual app's asynchronous storage effect, with a bounded timeout.
   deadline = ContinuousClock.now + .seconds(5)

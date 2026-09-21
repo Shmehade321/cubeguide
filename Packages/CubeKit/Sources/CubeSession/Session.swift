@@ -54,6 +54,13 @@ public enum SessionCommand: Sendable {
 }
 public struct Session: Equatable, Sendable {
   public fileprivate(set) var phase: SessionPhase = .home
+  fileprivate var revisionFloor: UInt64 = 0
+  public var latestInputRevision: UInt64 { max(revision, revisionFloor) }
+  func retainingInputRevision(_ floor: UInt64) -> Session {
+    var result = self
+    if floor > latestInputRevision { result.revisionFloor = floor }
+    return result
+  }
   public fileprivate(set) var revision: UInt64
   public fileprivate(set) var hasWork = false
   public fileprivate(set) var recoveryRequired = false
@@ -131,7 +138,7 @@ public enum SessionReducer {
       SessionTransition(session: session, disposition: .ignored, commands: [])
     }
     func advanceRevision() -> Bool {
-      let (revision, overflow) = session.revision.addingReportingOverflow(1)
+      let (revision, overflow) = session.latestInputRevision.addingReportingOverflow(1)
       guard !overflow else { return false }
       next.revision = revision
       return true
@@ -436,7 +443,7 @@ public enum SessionReducer {
     case .startManual(let replacing):
       guard session.phase == .home || session.phase == .recovery else { return rejected() }
       guard !session.hasWork || replacing else { return rejected(.replacementRequired) }
-      let (revision, overflow) = session.revision.addingReportingOverflow(1)
+      let (revision, overflow) = session.latestInputRevision.addingReportingOverflow(1)
       guard !overflow else { return rejected(.revisionExhausted) }
       next.revision = revision
       next.saveSequence = 0
@@ -498,7 +505,7 @@ public enum SessionReducer {
           return rejected()
         }
       }
-      let (revision, overflow) = session.revision.addingReportingOverflow(1)
+      let (revision, overflow) = session.latestInputRevision.addingReportingOverflow(1)
       guard !overflow else { return rejected(.revisionExhausted) }
       next.revision = revision
       switch CubeValidation.validate(faces) {
@@ -514,7 +521,7 @@ public enum SessionReducer {
     case .consent(let accepted):
       guard session.phase == .offer, let cube = session.confirmedCube else { return rejected() }
       if accepted {
-        let (revision, overflow) = session.revision.addingReportingOverflow(1)
+        let (revision, overflow) = session.latestInputRevision.addingReportingOverflow(1)
         guard !overflow else { return rejected(.revisionExhausted) }
         next.revision = revision
         next.phase = .solving

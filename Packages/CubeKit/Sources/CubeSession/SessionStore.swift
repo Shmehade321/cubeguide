@@ -66,6 +66,7 @@ public actor SessionStore {
     let boundary = try loadManualStart()
     var guide = try load()
     var record = try loadDraftRecord()
+    let latest = max(boundary ?? 0, guide?.saveID.revision ?? 0, record?.revision ?? 0)
     if let boundary {
       if let existing = guide, existing.saveID.revision <= boundary { guide = nil }
       if let existing = record, existing.revision <= boundary { record = nil }
@@ -83,6 +84,7 @@ public actor SessionStore {
         try validateScanBinding(scan, guide: guide)
         pendingScan = scan
       }
+    case .discarded(let marker): try validateDiscardBinding(marker, guide: guide)
     case nil: break
     }
     if let guide {
@@ -94,22 +96,30 @@ public actor SessionStore {
       let draftIsNewer = draft.map { $0.revision > guide.progress.revision } ?? false
       if !draftIsNewer {
         return try SessionRestoration(
-          session: Session(restoring: guide), palette: guide.palette, lease: lease,
+          session: Session(restoring: guide).retainingInputRevision(latest), palette: guide.palette,
+          lease: lease,
           pendingScan: pendingScan, retainedGuideID: guide.saveID)
       }
     }
     if let draft {
       return SessionRestoration(
-        session: Session(restoringDraft: draft), palette: draft.palette, lease: lease,
+        session: Session(restoringDraft: draft).retainingInputRevision(latest),
+        palette: draft.palette, lease: lease,
         pendingScan: pendingScan, retainedGuideID: guide?.saveID)
+    }
+    if case .discarded = record {
+      return SessionRestoration(
+        session: Session().retainingInputRevision(latest), palette: nil, lease: lease)
     }
     if let boundary {
       return SessionRestoration(
-        session: Session(restoringManualStart: boundary), palette: nil, lease: lease,
+        session: Session(restoringManualStart: boundary).retainingInputRevision(latest),
+        palette: nil, lease: lease,
         pendingScan: pendingScan)
     }
     return SessionRestoration(
-      session: Session(), palette: nil, lease: lease, pendingScan: pendingScan)
+      session: Session().retainingInputRevision(latest), palette: nil, lease: lease,
+      pendingScan: pendingScan)
   }
   private func loadDraftRecord() throws -> DraftRecord? {
     guard let bytes = try read(draftFile) else { return nil }
@@ -160,6 +170,39 @@ public actor SessionStore {
     let bytes = try DraftArchive.encode(draft)
     try replace(bytes, file: draftFile, temporary: draftTemporary)
   }
+  private func validateDiscardBinding(_ marker: DiscardedDraft, guide: RestoredGuide?) throws {
+    if let guide, guide.saveID.revision > marker.revision { return }
+    if let retained = marker.retainedGuide {
+      guard let guide, guide.saveID.revision == retained.revision,
+        guide.saveID.sequence >= retained.sequence
+      else { throw SessionStoreError.conflictingRecords }
+    } else if guide != nil {
+      throw SessionStoreError.conflictingRecords
+    }
+  }
+  public func discardDraft(revision: UInt64, lease: StorageLease) throws -> StorageLease {
+    guard lease == self.lease else { throw SessionStoreError.staleLease }
+    let boundary = try loadManualStart()
+    let record = try loadDraftRecord()
+    var guide = try load()
+    let latest = max(boundary ?? 0, record?.revision ?? 0, guide?.saveID.revision ?? 0)
+    if let boundary, let existing = guide, existing.saveID.revision <= boundary { guide = nil }
+    let marker: DiscardedDraft
+    if case .discarded(let existing) = record, existing.revision == revision {
+      guard revision > (boundary ?? 0), guide.map({ $0.saveID.revision < revision }) ?? true else {
+        throw SessionStoreError.staleWrite
+      }
+      try validateDiscardBinding(existing, guide: guide)
+      marker = existing
+    } else {
+      guard revision > latest else { throw SessionStoreError.staleWrite }
+      marker = try DiscardedDraft(revision: revision, retainedGuide: guide?.saveID)
+    }
+    let bytes = try CheckedArchive.encode(DraftRecord.discarded(marker))
+    self.lease = StorageLease(value: UUID())
+    try replace(bytes, file: draftFile, temporary: draftTemporary)
+    return self.lease
+  }
   public func currentLease() -> StorageLease { lease }
   private var manualStartFile: URL { directory.appendingPathComponent("manual-start.json") }
   private var manualStartTemporary: URL { directory.appendingPathComponent("manual-start.pending") }
@@ -197,6 +240,12 @@ public actor SessionStore {
     if case .scan(let scan) = try loadDraftRecord(), scan.draft.revision >= request.id.revision {
       guard scan.draft.revision > request.id.revision, scan.retainedGuide == request.id else {
         throw SessionStoreError.conflictingRecords
+      }
+    }
+    if case .discarded(let marker) = try loadDraftRecord(), request.id.revision <= marker.revision {
+      try validateDiscardBinding(marker, guide: load())
+      guard request.id.revision == marker.retainedGuide?.revision else {
+        throw SessionStoreError.staleWrite
       }
     }
     let existing: RestoredGuide?
