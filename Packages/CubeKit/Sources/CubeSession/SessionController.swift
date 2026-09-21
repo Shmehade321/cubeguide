@@ -83,7 +83,7 @@ public final class SessionController {
     manualFallbackStatus = .saving
     lastError = nil
     solveTask?.cancel()
-    playback.stop()
+    playback?.stop()
     stopCamera(discard: true)
     enqueueStorage { [self] in
       guard generation == expectedGeneration else { return }
@@ -152,7 +152,7 @@ public final class SessionController {
     discardStatus = .saving
     lastError = nil
     solveTask?.cancel()
-    playback.stop()
+    playback?.stop()
     stopCamera(discard: true)
     enqueueStorage { [self] in
       guard generation == expectedGeneration else { return }
@@ -192,7 +192,7 @@ public final class SessionController {
 
   @ObservationIgnored private let storage: any SessionStorage
   @ObservationIgnored private let solver: any SessionSolving
-  @ObservationIgnored private let playback: any GuidePlayback
+  @ObservationIgnored private let playback: (any GuidePlayback)?
   @ObservationIgnored private let camera: (any ScanCamera)?
   @ObservationIgnored private var lease: StorageLease?
   @ObservationIgnored private var generation = UUID()
@@ -204,7 +204,7 @@ public final class SessionController {
   @ObservationIgnored private var cameraRun: UUID?
 
   public init(
-    storage: any SessionStorage, solver: any SessionSolving, playback: any GuidePlayback,
+    storage: any SessionStorage, solver: any SessionSolving, playback: (any GuidePlayback)? = nil,
     camera: (any ScanCamera)? = nil
   ) {
     self.storage = storage
@@ -280,7 +280,7 @@ public final class SessionController {
       scanStart = nil
       isStartingScan = false
       solveTask?.cancel()
-      playback.stop()
+      playback?.stop()
       stopCamera(discard: true)
       return sendScan(.begin) == .accepted ? .accepted : .rejected(.unavailableEvent)
     } catch {
@@ -330,6 +330,14 @@ public final class SessionController {
   }
 
   @discardableResult public func send(_ event: SessionEvent) -> EventDisposition {
+    if playback == nil {
+      switch event {
+      case .play, .replay:
+        lastError = SessionControllerError.missingPlayback
+        return .rejected(.unavailableEvent)
+      default: break
+      }
+    }
     if loadStatus != .ready {
       guard case .deleteLocalData = event else { return .rejected(.unavailableEvent) }
     }
@@ -538,12 +546,12 @@ public final class SessionController {
         }
       }
     case .playPreview(let action, let id, let restart):
-      playback.play(action, id: id, restart: restart) { [weak self] completed in
+      playback?.play(action, id: id, restart: restart) { [weak self] completed in
         guard let self, self.generation == expectedGeneration else { return }
         self.send(.previewFinished(completed))
       }
-    case .pausePreview: playback.pause()
-    case .stopPreview: playback.stop()
+    case .pausePreview: playback?.pause()
+    case .stopPreview: playback?.stop()
     }
   }
 
@@ -570,5 +578,5 @@ public final class SessionController {
 }
 
 public enum SessionControllerError: Error, Equatable, Sendable {
-  case storageNotLoaded, missingPalette, missingCamera
+  case storageNotLoaded, missingPalette, missingCamera, missingPlayback
 }

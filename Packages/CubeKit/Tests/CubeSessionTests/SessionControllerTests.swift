@@ -491,3 +491,21 @@ func controllerDeleteDuringManualStart() async throws {
     !FileManager.default.fileExists(
       atPath: directory.appendingPathComponent("manual-start.json").path))
 }
+
+@MainActor
+@Test("R08/R13: unavailable playback cannot pretend to start or complete a guide preview")
+func controllerMissingPlayback() async throws {
+  let directory = try storeDirectory()
+  defer { try? FileManager.default.removeItem(at: directory) }
+  let store = SessionStore(directory: directory)
+  let request = try #require(try preparingSession().pendingSave)
+  try await store.save(request, palette: archivePalette(), lease: store.currentLease())
+  let controller = SessionController(storage: store, solver: SolverService())
+  await controller.load()
+  #expect(controller.send(.compare(.before)) == .accepted)
+  #expect(controller.send(.play) == .rejected(.unavailableEvent))
+  #expect(controller.send(.replay) == .rejected(.unavailableEvent))
+  #expect(controller.session.preview == .idle)
+  #expect(controller.lastError != nil)
+  #expect(controller.session.guideProgress == request.progress)
+}

@@ -13,6 +13,8 @@ Baseline: 78f7fbc. User authorized full implementation with TDD, quality checks 
 - T07/T08/T09 → T10/T11/T12: automated results cannot replace physical, listening, image-corpus or distribution evidence.
 - Task code will use the supplied task headings directly as briefs; their T01–T12 identifiers and committed evidence files are the durable tracking system.
 
+- Execution-order refinement at T06: T05's implemented manual/session/storage contracts and 17-mutation catalog are qualified locally. Final camera-classified input acceptance depends on T09 classification/capture work; physical lifecycle gates also remain open. Start independent T06 manual UI integration against those real contracts while keeping T05 explicitly running. This does not waive any T05 or release gate or substitute the manual flow for the full product.
+
 ## Tasks
 
 | Task | Status | Evidence |
@@ -22,7 +24,7 @@ Baseline: 78f7fbc. User authorized full implementation with TDD, quality checks 
 | T03 Tables | local exit passed; remote CI not run | task-03.md |
 | T04 Search | automated exit passed; physical qualification open | task-04.md |
 | T05 Session/storage | running: guide/manual/scan storage and durable discard implemented; full lifecycle pending | task-05.md |
-| T06 Manual flow | notRun | — |
+| T06 Manual flow | running: Home and durable manual editor UI | task-06.md |
 | T07 Graphics | notRun | — |
 | T08 Guidance/audio | notRun | — |
 | T09 Camera | notRun | — |
@@ -36,4 +38,4 @@ Physical phones/cubes, supervised participants, owned human narration, final sto
 
 ## Shipping status
 
-Code: foundation, cube mathematics, independently validated tables and real verified search implemented; session workflow, guide planning, durable-save protocol and recovery decisions implemented; guide archive/restore and filesystem store implemented; scan command coordination, durable draft discard and scan-to-manual fallback implemented; full lifecycle integration in progress. Automated qualification: not complete. Media/device qualification: not run. Archive: not ready. TestFlight/submitted/approved/released: not performed.
+Code: foundation, cube mathematics, independently validated tables and real verified search implemented; session workflow, guide planning, durable-save protocol and recovery decisions implemented; guide archive/restore and filesystem store implemented; scan command coordination, durable draft discard and scan-to-manual fallback implemented; Home and durable manual editor UI implemented; full lifecycle and manual product flow integration in progress. Automated qualification: not complete. Media/device qualification: not run. Archive: not ready. TestFlight/submitted/approved/released: not performed.

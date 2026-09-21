@@ -1,0 +1,20 @@
+{
+  "result": "passed",
+  "count": 8,
+  "expectedCount": 8,
+  "caseCount": 8,
+  "outcomes": {
+    "verified": 4,
+    "invalidInput": 4
+  },
+  "timeouts": 0,
+  "p50Seconds": 0,
+  "p95Seconds": 0.007273625,
+  "p99Seconds": 0.007273625,
+  "maximumSeconds": 0.007273625,
+  "failures": [],
+  "corpusSHA256": "c4e08afe48da03f2d584ec564c4d2e79f35f72ef554a3a2e5d0fc0b382f7666d",
+  "resultsSHA256": "d34cb68aef879c0e24cfd6157e52484715ebc83fffd7b957f5804ffaf3384609",
+  "resourceVersion": "2267e6550b3719ffdb39bfb764e94494b066c992c5baf487018bf83fee4714a4",
+  "analyzerSHA256": "e745a4292bdfd555f4909365defeadbafc59368020619b607d64e2643248dcf7"
+}
