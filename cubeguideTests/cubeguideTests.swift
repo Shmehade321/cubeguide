@@ -50,10 +50,11 @@ func protectedGuideStorage() async throws {
   let request = try #require(session.pendingSave)
   let palette = try CenterPalette([.green, .white, .orange, .blue, .yellow, .red])
   let store = dependencies.sessionStore
-  let partial = try ManualDraft(palette: palette, revision: 10)
+  let partial = try ManualDraft(palette: palette, revision: 0)
     .setting(face: .front, row: 0, column: 2, color: .blue)
   try await store.saveDraft(partial, lease: store.currentLease())
   #expect(try await store.loadDraft() == partial)
+  #expect(try await dependencies.restoreSession().session.draft == partial)
   try await store.save(request, palette: palette, lease: store.currentLease())
   // Simulator does not expose the protection attribute on this runtime.
   // Physical qualification must run these assertions and locked-device I/O checks.
@@ -69,9 +70,12 @@ func protectedGuideStorage() async throws {
   let restored = try #require(try await store.load())
   #expect(restored.progress == request.progress)
   #expect(restored.palette == palette)
-  let resumed = try Session(restoring: restored)
+  let snapshot = try await dependencies.restoreSession()
+  #expect(snapshot.palette == palette)
+  let resumed = snapshot.session
   #expect(resumed.phase == .resumeCheck && !resumed.aligned)
   _ = try await store.delete(lease: store.currentLease())
   #expect(try await store.load() == nil)
   #expect(try await store.loadDraft() == nil)
+  #expect(try await dependencies.restoreSession().session.phase == .home)
 }

@@ -2,7 +2,7 @@ import Darwin
 import Foundation
 
 public enum SessionStoreError: Error, Equatable {
-  case staleLease, staleWrite, existingArchiveNeedsReview
+  case staleLease, staleWrite, existingArchiveNeedsReview, conflictingRecords
 }
 public struct StorageLease: Equatable, Sendable {
   fileprivate let value: UUID
@@ -34,6 +34,28 @@ public actor SessionStore {
       try FileManager.default.setAttributes(
         [.protectionKey: FileProtectionType.complete], ofItemAtPath: url.path)
     #endif
+  }
+  public func restore() throws -> SessionRestoration {
+    // No suspension point: these reads and the lease belong to one actor snapshot.
+    let guide = try load()
+    let draft = try loadDraft()
+    if let guide {
+      if let draft, draft.revision == guide.progress.revision {
+        guard draft.palette == guide.palette,
+          (try? draft.canonicalFacelets()) == guide.progress.plan.original
+        else { throw SessionStoreError.conflictingRecords }
+      }
+      let draftIsNewer = draft.map { $0.revision > guide.progress.revision } ?? false
+      if !draftIsNewer {
+        return try SessionRestoration(
+          session: Session(restoring: guide), palette: guide.palette, lease: lease)
+      }
+    }
+    if let draft {
+      return SessionRestoration(
+        session: Session(restoringDraft: draft), palette: draft.palette, lease: lease)
+    }
+    return SessionRestoration(session: Session(), palette: nil, lease: lease)
   }
   public func loadDraft() throws -> ManualDraft? {
     guard let bytes = try read(draftFile) else { return nil }
