@@ -64,7 +64,9 @@ struct CenterAssignmentView: View {
 struct ManualEditorView: View {
   let draft: ManualDraft
   let saving: Bool
+  let validate: () -> Void
   let edit: (DraftEdit) -> Void
+  @State private var focusedFace: Face?
   @State private var selected: Cell?
   @State private var changingCenters = false
   @ScaledMetric(relativeTo: .body) private var cellSize = 44
@@ -83,28 +85,34 @@ struct ManualEditorView: View {
         )
         Text("\(draft.missingCount) stickers left").font(.headline)
         if saving { ProgressView("Saving…").accessibilityIdentifier("editor.saving") }
-        ScrollView(.horizontal) {
-          Grid(horizontalSpacing: 12, verticalSpacing: 16) {
-            GridRow {
-              blank
-              faceView(.up)
-              blank
-              blank
-            }
-            GridRow {
-              faceView(.left)
-              faceView(.front)
-              faceView(.right)
-              faceView(.back)
-            }
-            GridRow {
-              blank
-              faceView(.down)
-              blank
-              blank
-            }
-          }.padding(.horizontal, 4)
-        }.defaultScrollAnchor(.center)
+        if let focusedFace {
+          faceView(focusedFace)
+          Button("Back to net") { self.focusedFace = nil }
+            .accessibilityIdentifier("face.done")
+        } else {
+          ScrollView(.horizontal) {
+            Grid(horizontalSpacing: 12, verticalSpacing: 16) {
+              GridRow {
+                blank
+                faceView(.up)
+                blank
+                blank
+              }
+              GridRow {
+                faceView(.left)
+                faceView(.front)
+                faceView(.right)
+                faceView(.back)
+              }
+              GridRow {
+                blank
+                faceView(.down)
+                blank
+                blank
+              }
+            }.padding(.horizontal, 4)
+          }.defaultScrollAnchor(.center)
+        }
         Button("Change center colors") { changingCenters = true }
           .buttonStyle(.bordered).disabled(saving)
         Text(
@@ -113,8 +121,28 @@ struct ManualEditorView: View {
         .font(.footnote).foregroundStyle(.secondary)
       }.padding()
     }
+    .toolbar {
+      ToolbarItem(placement: .topBarTrailing) {
+        Menu {
+          ForEach(Face.allCases, id: \.rawValue) { face in
+            Button(face.title) { focusedFace = face }
+              .accessibilityIdentifier("focus.\(face.code)")
+          }
+        } label: {
+          Label("Choose face", systemImage: "square.grid.3x3")
+        }
+        .accessibilityIdentifier("editor.faceMenu")
+      }
+      ToolbarItem(placement: .bottomBar) {
+        Button("Validate", action: validate)
+          .buttonStyle(.borderedProminent)
+          .disabled(saving || draft.missingCount != 0)
+          .accessibilityIdentifier("editor.validate")
+      }
+    }
     .confirmationDialog(
-      "Choose sticker color",
+      selected.map { "\($0.face.title), row \($0.row + 1), column \($0.column + 1)" }
+        ?? "Choose sticker color",
       isPresented: Binding(get: { selected != nil }, set: { if !$0 { selected = nil } }),
       titleVisibility: .visible
     ) {

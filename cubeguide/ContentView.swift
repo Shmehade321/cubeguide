@@ -1,6 +1,7 @@
 import CubeCore
 import CubeScan
 import CubeSession
+import CubeSolver3
 import SwiftUI
 
 struct ContentView: View {
@@ -32,12 +33,15 @@ struct ContentView: View {
           sessionContent
         }
       }
-      .navigationTitle(controller.session.phase == .home ? "CubeGuide" : "Enter colors")
+      .navigationTitle(
+        controller.session.phase == .home
+          ? "CubeGuide" : (controller.session.plan == nil ? "Enter colors" : "Your cube")
+      )
       .navigationBarTitleDisplayMode(controller.session.phase == .home ? .large : .inline)
       .toolbar {
         if controller.loadStatus == .ready, controller.session.phase != .home {
           ToolbarItem(placement: .topBarLeading) {
-            Button("Home") { controller.send(.cancel) }
+            Button("Home", action: goHome)
               .accessibilityIdentifier("editor.home")
               .disabled(
                 [.deleting, .deletionError, .manualStartError, .draftStorageError].contains(
@@ -97,12 +101,96 @@ struct ContentView: View {
       }.padding()
     case .editing, .savingDraft:
       if let draft = controller.session.draft {
-        ManualEditorView(draft: draft, saving: controller.session.phase == .savingDraft) {
+        ManualEditorView(
+          draft: draft, saving: controller.session.phase == .savingDraft,
+          validate: { controller.send(.validateDraft) }
+        ) {
           controller.send(.editDraft($0))
         }
       } else {
         CenterAssignmentView(initial: nil) { controller.send(.editDraft(.centers($0))) }
       }
+    case .invalid:
+      VStack(spacing: 20) {
+        Text("Check your entered colors").font(.title.bold())
+        ForEach(
+          Array((controller.session.validationIssues?.items ?? []).enumerated()), id: \.offset
+        ) { _, issue in
+          Text(validationMessage(issue, palette: controller.palette))
+        }
+        Text(
+          "Compare your entries with the physical cube. No colors have been changed automatically.")
+        Button("Edit colors") { controller.send(.edit) }
+          .buttonStyle(.borderedProminent).accessibilityIdentifier("validation.edit")
+      }.padding()
+    case .alreadySolved:
+      VStack(spacing: 20) {
+        Text("Your entered colors are solved").font(.title.bold())
+        Text("This checks the colors you entered. Compare them with your physical cube.")
+        Button("Done") { controller.send(.confirmCompletion) }
+          .buttonStyle(.borderedProminent).accessibilityIdentifier("completion.save")
+        Button("Edit colors") { controller.send(.edit) }.accessibilityIdentifier("validation.edit")
+      }.padding()
+    case .offer:
+      VStack(spacing: 20) {
+        Text("Ready to solve?").font(.title.bold())
+        Text(
+          "Your entered colors describe a possible scrambled cube. Check that they match your cube before continuing."
+        )
+        Button("Solve") { controller.send(.consent(true)) }
+          .buttonStyle(.borderedProminent).accessibilityIdentifier("solve.consent")
+        Button("Not now") { controller.send(.consent(false)) }.accessibilityIdentifier(
+          "solve.decline")
+        Button("Edit colors") { controller.send(.edit) }.accessibilityIdentifier("validation.edit")
+      }.padding()
+    case .solving:
+      CalculationView { controller.send(.cancel) }
+    case .solveError:
+      VStack(spacing: 20) {
+        Text(
+          controller.session.solveFailure == .timedOut
+            ? "Calculation timed out" : "Couldn't prepare a solution"
+        )
+        .font(.title.bold())
+        if controller.session.solveFailure == .timedOut && !controller.session.usedExtendedAttempt {
+          Text("You can allow one longer attempt, up to 60 seconds.")
+          Button("Try longer") { controller.send(.retryLonger) }.accessibilityIdentifier(
+            "solve.retryLonger")
+        } else if case .resourceFailure = controller.session.solveFailure {
+          Text(
+            "The bundled solver resources couldn't be read. Close and restart the app. No download is required."
+          )
+        } else {
+          Text("Your colors are saved. Check your entries or return Home.")
+        }
+        Button("Edit colors") { controller.send(.edit) }.accessibilityIdentifier("validation.edit")
+      }.padding()
+    case .preparingAction: ProgressView("Saving your verified solution…")
+    case .guide, .resumeCheck:
+      VStack(spacing: 20) {
+        Text("Solution verified").font(.title.bold()).accessibilityIdentifier("solve.verified")
+        if let plan = controller.session.plan {
+          Text(
+            "\(plan.moves.count) \(plan.moves.count == 1 ? "move" : "moves") in the verified solution."
+          )
+          .accessibilityIdentifier("solve.moveCount")
+        }
+        Text(
+          "The solution has been checked against your entered colors. The animated guide is not available yet."
+        )
+      }.padding()
+    case .savingCompletion: ProgressView("Saving completion…")
+    case .completionStorageError:
+      failure("Couldn't save completion") { controller.send(.retryCompletionSave) }
+    case .completed:
+      VStack(spacing: 20) {
+        Text(
+          controller.session.completion == .enteredColorsSolved
+            ? "Your entered colors are solved" : "You confirmed your cube is solved"
+        )
+        .font(.title.bold())
+        Button("Home") { controller.send(.cancel) }.accessibilityIdentifier("completion.home")
+      }.padding()
     case .startingManual: ProgressView("Starting your cube…")
     case .deleting: ProgressView("Deleting saved cube…")
     case .draftStorageError:
@@ -115,6 +203,15 @@ struct ContentView: View {
       ContentUnavailableView(
         "Saved guide", systemImage: "cube",
         description: Text("Your saved cube is retained. Guidance is currently unavailable."))
+    }
+  }
+
+  private func goHome() {
+    controller.send(.cancel)
+    // Cancellation first preserves a safe resume/offer state. Exit that state without
+    // acknowledging an action or granting physical alignment on a later resume.
+    if [.resumeCheck, .offer].contains(controller.session.phase) {
+      controller.send(.cancel)
     }
   }
 

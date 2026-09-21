@@ -94,4 +94,168 @@ final class FoundationUITests: XCTestCase {
     XCTAssertTrue(enter.waitForExistence(timeout: 5))
     XCTAssertFalse(app.buttons["home.resume"].exists)
   }
+  @MainActor
+  func testManualValidationAndSolvedCompletion() throws {
+    let app = XCUIApplication()
+    app.launch()
+    if app.buttons["editor.home"].waitForExistence(timeout: 2) {
+      tapReady(app.buttons["editor.home"])
+    }
+    if app.buttons["home.delete"].exists {
+      tapReady(app.buttons["home.delete"])
+      tapReady(app.buttons["delete.confirm"])
+      XCTAssertTrue(app.alerts.firstMatch.waitForNonExistence(timeout: 5))
+      XCTAssertTrue(app.buttons["home.resume"].waitForNonExistence(timeout: 5))
+    }
+    tapReady(app.buttons["home.enterColors"])
+    let assignments = [
+      ("U", "Green"), ("R", "White"), ("F", "Orange"),
+      ("D", "Blue"), ("L", "Yellow"), ("B", "Red"),
+    ]
+    for (face, color) in assignments {
+      tapReady(app.buttons["center.\(face)"])
+      app.buttons[color].tap()
+    }
+    tapReady(app.buttons["centers.confirm"])
+    let validate = app.buttons["editor.validate"]
+    XCTAssertTrue(validate.waitForExistence(timeout: 5))
+    guard validate.exists else { return }
+    XCTAssertFalse(validate.isEnabled)
+    for (face, color) in assignments {
+      tapReady(app.buttons["editor.faceMenu"])
+      tapReady(app.buttons["focus.\(face)"])
+      for row in 0..<3 {
+        for column in 0..<3 where row != 1 || column != 1 {
+          let cell = app.buttons["cell.\(face).\(row).\(column)"]
+          let ready = NSPredicate(format: "exists == true AND hittable == true AND enabled == true")
+          expectation(for: ready, evaluatedWith: cell)
+          waitForExpectations(timeout: 5)
+          cell.tap()
+          let choice = app.buttons["sticker.\(color.lowercased())"]
+          expectation(for: ready, evaluatedWith: choice)
+          waitForExpectations(timeout: 5)
+          choice.tap()
+          expectation(
+            for: NSPredicate(format: "label CONTAINS %@ AND enabled == true", color),
+            evaluatedWith: cell)
+          waitForExpectations(timeout: 5)
+        }
+      }
+      tapReady(app.buttons["face.done"])
+    }
+    XCTAssertTrue(validate.isEnabled)
+    // Deliberately make one wrong entry, then correct the actual stored draft.
+    tapReady(app.buttons["editor.faceMenu"])
+    tapReady(app.buttons["focus.U"])
+    tapReady(app.buttons["cell.U.0.0"])
+    tapReady(app.buttons["sticker.blue"])
+    tapReady(app.buttons["face.done"])
+    validate.tap()
+    XCTAssertTrue(app.staticTexts["Check your entered colors"].waitForExistence(timeout: 5))
+    XCTAssertTrue(app.staticTexts["Green appears 8 times; it needs 9 stickers."].exists)
+    tapReady(app.buttons["validation.edit"])
+    tapReady(app.buttons["editor.faceMenu"])
+    tapReady(app.buttons["focus.U"])
+    tapReady(app.buttons["cell.U.0.0"])
+    tapReady(app.buttons["sticker.green"])
+    tapReady(app.buttons["face.done"])
+    validate.tap()
+    XCTAssertTrue(app.staticTexts["Your entered colors are solved"].waitForExistence(timeout: 5))
+    XCTAssertFalse(app.buttons["solve.consent"].exists)
+    tapReady(app.buttons["completion.save"])
+    XCTAssertTrue(app.buttons["completion.home"].waitForExistence(timeout: 5))
+    app.terminate()
+    app.launch()
+    XCTAssertTrue(app.staticTexts["Your entered colors are solved"].waitForExistence(timeout: 5))
+    tapReady(app.buttons["completion.home"])
+    tapReady(app.buttons["home.delete"])
+    tapReady(app.buttons["delete.confirm"])
+  }
+
+  @MainActor
+  func testManualScrambleConsentAndRealSolver() throws {
+    let app = XCUIApplication()
+    app.launch()
+    if app.buttons["editor.home"].waitForExistence(timeout: 2) {
+      tapReady(app.buttons["editor.home"])
+    }
+    if app.buttons["home.delete"].exists {
+      tapReady(app.buttons["home.delete"])
+      tapReady(app.buttons["delete.confirm"])
+      XCTAssertTrue(app.alerts.firstMatch.waitForNonExistence(timeout: 5))
+      XCTAssertTrue(app.buttons["home.resume"].waitForNonExistence(timeout: 5))
+    }
+    tapReady(app.buttons["home.enterColors"])
+    let assignments = [
+      ("U", "Green"), ("R", "White"), ("F", "Orange"),
+      ("D", "Blue"), ("L", "Yellow"), ("B", "Red"),
+    ]
+    for (face, color) in assignments {
+      tapReady(app.buttons["center.\(face)"])
+      app.buttons[color].tap()
+    }
+    tapReady(app.buttons["centers.confirm"])
+    let validate = app.buttons["editor.validate"]
+    XCTAssertTrue(validate.waitForExistence(timeout: 5))
+    guard validate.exists else { return }
+    XCTAssertFalse(validate.isEnabled)
+    // Independent literal R-turn fixture in canonical URFDLB order.
+    let facelets = Array("UUFUUFUUFRRRRRRRRRFFDFFDFFDDDBDDBDDBLLLLLLLLLUBBUBBUBB")
+    let names: [Character: String] = [
+      "U": "Green", "R": "White", "F": "Orange", "D": "Blue", "L": "Yellow", "B": "Red",
+    ]
+    for (faceIndex, assignment) in assignments.enumerated() {
+      let face = assignment.0
+      tapReady(app.buttons["editor.faceMenu"])
+      tapReady(app.buttons["focus.\(face)"])
+      for row in 0..<3 {
+        for column in 0..<3 where row != 1 || column != 1 {
+          let color = names[facelets[faceIndex * 9 + row * 3 + column]]!
+          let cell = app.buttons["cell.\(face).\(row).\(column)"]
+          let ready = NSPredicate(format: "exists == true AND hittable == true AND enabled == true")
+          expectation(for: ready, evaluatedWith: cell)
+          waitForExpectations(timeout: 5)
+          cell.tap()
+          let choice = app.buttons["sticker.\(color.lowercased())"]
+          expectation(for: ready, evaluatedWith: choice)
+          waitForExpectations(timeout: 5)
+          choice.tap()
+          expectation(
+            for: NSPredicate(format: "label CONTAINS %@ AND enabled == true", color),
+            evaluatedWith: cell)
+          waitForExpectations(timeout: 5)
+        }
+      }
+      tapReady(app.buttons["face.done"])
+    }
+    tapReady(validate)
+    XCTAssertTrue(app.buttons["solve.consent"].waitForExistence(timeout: 5))
+    XCTAssertFalse(app.staticTexts["solve.verified"].exists)
+    tapReady(app.buttons["solve.decline"])
+    XCTAssertTrue(app.buttons["home.resume"].waitForExistence(timeout: 5))
+    tapReady(app.buttons["home.resume"])
+    XCTAssertTrue(app.buttons["solve.consent"].waitForExistence(timeout: 5))
+    tapReady(app.buttons["solve.consent"])
+    XCTAssertTrue(app.staticTexts["solve.verified"].waitForExistence(timeout: 20))
+    let count = Int(app.staticTexts["solve.moveCount"].label.split(separator: " ").first ?? "")
+    XCTAssertTrue(count.map { (1...30).contains($0) } ?? false)
+    let result = XCTAttachment(screenshot: app.screenshot())
+    result.name = "Verified real solver result"
+    result.lifetime = .keepAlways
+    add(result)
+    tapReady(app.buttons["editor.home"])
+    XCTAssertTrue(app.buttons["home.delete"].waitForExistence(timeout: 5))
+    tapReady(app.buttons["home.delete"])
+    tapReady(app.buttons["delete.confirm"])
+  }
+
+  @MainActor
+  private func tapReady(_ element: XCUIElement) {
+    expectation(
+      for: NSPredicate(format: "exists == true AND hittable == true AND enabled == true"),
+      evaluatedWith: element)
+    waitForExpectations(timeout: 5)
+    element.tap()
+  }
+
 }

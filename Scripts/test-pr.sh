@@ -30,6 +30,9 @@ if len(matches) != 1:
     sys.exit('Required simulator unavailable; no fallback is permitted')
 print('Selected:', matches[0])
 PY
+# Incremental test runs on the current toolchain have omitted newly added assertions.
+# Clean app/test products before qualification; retain the clean transcript as evidence.
+Scripts/run-logged.sh "$ARTIFACT_DIR/xcode-clean.log" xcodebuild clean -project cubeguide.xcodeproj -scheme cubeguide -derivedDataPath DerivedData
 Scripts/run-logged.sh "$ARTIFACT_DIR/xcode.log" xcodebuild test -project cubeguide.xcodeproj -scheme cubeguide -testPlan "${TEST_PLAN:-PR}" -destination "platform=iOS Simulator,id=$SIMULATOR_UDID" -derivedDataPath DerivedData -resultBundlePath "$ARTIFACT_DIR/tests.xcresult" CODE_SIGNING_ALLOWED=NO
 xcrun xcresulttool get test-results summary --path "$ARTIFACT_DIR/tests.xcresult" > "$ARTIFACT_DIR/summary.json"
 python3 Scripts/check-xcode-results.py "$ARTIFACT_DIR/summary.json"
