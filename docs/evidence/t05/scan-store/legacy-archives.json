@@ -1,0 +1,93 @@
+{
+  "result": "passed",
+  "caseCount": 21,
+  "sourceReportSHA256": "c00c1ba5ad2e55220b9d0b1e07c869dc02ca7dc7f0f92c96f6ad758f1be7f5d3",
+  "probeSHA256": "ee7be918613f88a3a24cdb77d6712a2cfc163c9a14ec44bb81d6f7416ba9e4a9",
+  "scope": "Actual legacy guide/manual draft files decoded by the tagged draft runtime",
+  "cases": [
+    {
+      "case": "guide-beforeWrite",
+      "result": "passed"
+    },
+    {
+      "case": "guide-temporarySynced",
+      "result": "passed"
+    },
+    {
+      "case": "guide-beforeReplace",
+      "result": "passed"
+    },
+    {
+      "case": "guide-afterReplace",
+      "result": "passed"
+    },
+    {
+      "case": "turn-beforeWrite",
+      "result": "passed"
+    },
+    {
+      "case": "turn-temporarySynced",
+      "result": "passed"
+    },
+    {
+      "case": "turn-beforeReplace",
+      "result": "passed"
+    },
+    {
+      "case": "turn-afterReplace",
+      "result": "passed"
+    },
+    {
+      "case": "draft-beforeWrite",
+      "result": "passed"
+    },
+    {
+      "case": "draft-temporarySynced",
+      "result": "passed"
+    },
+    {
+      "case": "draft-beforeReplace",
+      "result": "passed"
+    },
+    {
+      "case": "draft-afterReplace",
+      "result": "passed"
+    },
+    {
+      "case": "manual-beforeWrite",
+      "result": "passed"
+    },
+    {
+      "case": "manual-temporarySynced",
+      "result": "passed"
+    },
+    {
+      "case": "manual-beforeReplace",
+      "result": "passed"
+    },
+    {
+      "case": "manual-afterReplace",
+      "result": "passed"
+    },
+    {
+      "case": "recovery-beforeWrite",
+      "result": "passed"
+    },
+    {
+      "case": "recovery-temporarySynced",
+      "result": "passed"
+    },
+    {
+      "case": "recovery-beforeReplace",
+      "result": "passed"
+    },
+    {
+      "case": "recovery-afterReplace",
+      "result": "passed"
+    },
+    {
+      "case": "delete-beforeDelete",
+      "result": "passed"
+    }
+  ]
+}

@@ -40,7 +40,7 @@ public actor SessionStore {
     let previous = try loadManualStart()
     if previous != revision {
       let guide = try load()
-      let draft = try loadDraft()
+      let draft = try loadDraftRecord()
       let latest = max(previous ?? 0, guide?.saveID.revision ?? 0, draft?.revision ?? 0)
       guard revision > latest else { throw SessionStoreError.staleWrite }
     }
@@ -65,10 +65,25 @@ public actor SessionStore {
     // No suspension point: these reads and the lease belong to one actor snapshot.
     let boundary = try loadManualStart()
     var guide = try load()
-    var draft = try loadDraft()
+    var record = try loadDraftRecord()
     if let boundary {
       if let existing = guide, existing.saveID.revision <= boundary { guide = nil }
-      if let existing = draft, existing.revision <= boundary { draft = nil }
+      if let existing = record, existing.revision <= boundary { record = nil }
+    }
+    var draft: ManualDraft?
+    var pendingScan: PendingScan?
+    switch record {
+    case .manual(let value): draft = value
+    case .scan(let scan):
+      if let guide, guide.saveID.revision == scan.draft.revision {
+        throw SessionStoreError.conflictingRecords
+      }
+      // A newer confirmed guide has accepted replacement of the older input draft.
+      if guide.map({ $0.saveID.revision < scan.draft.revision }) ?? true {
+        try validateScanBinding(scan, guide: guide)
+        pendingScan = scan
+      }
+    case nil: break
     }
     if let guide {
       if let draft, draft.revision == guide.progress.revision {
@@ -79,33 +94,69 @@ public actor SessionStore {
       let draftIsNewer = draft.map { $0.revision > guide.progress.revision } ?? false
       if !draftIsNewer {
         return try SessionRestoration(
-          session: Session(restoring: guide), palette: guide.palette, lease: lease)
+          session: Session(restoring: guide), palette: guide.palette, lease: lease,
+          pendingScan: pendingScan)
       }
     }
     if let draft {
       return SessionRestoration(
-        session: Session(restoringDraft: draft), palette: draft.palette, lease: lease)
+        session: Session(restoringDraft: draft), palette: draft.palette, lease: lease,
+        pendingScan: pendingScan)
     }
     if let boundary {
       return SessionRestoration(
-        session: Session(restoringManualStart: boundary), palette: nil, lease: lease)
+        session: Session(restoringManualStart: boundary), palette: nil, lease: lease,
+        pendingScan: pendingScan)
     }
-    return SessionRestoration(session: Session(), palette: nil, lease: lease)
+    return SessionRestoration(
+      session: Session(), palette: nil, lease: lease, pendingScan: pendingScan)
+  }
+  private func loadDraftRecord() throws -> DraftRecord? {
+    guard let bytes = try read(draftFile) else { return nil }
+    return try DraftArchive.decodeRecord(bytes)
   }
   public func loadDraft() throws -> ManualDraft? {
-    guard let bytes = try read(draftFile) else { return nil }
-    return try DraftArchive.decode(bytes)
+    guard case .manual(let draft) = try loadDraftRecord() else { return nil }
+    return draft
+  }
+  public func loadScanDraft() throws -> PendingScan? {
+    guard case .scan(let scan) = try loadDraftRecord() else { return nil }
+    return scan
+  }
+  private func validateScanBinding(_ scan: PendingScan, guide: RestoredGuide?) throws {
+    guard scan.retainedGuide == guide?.saveID else { throw SessionStoreError.conflictingRecords }
+    if scan.purpose == .verification, guide?.progress.isComplete != true {
+      throw SessionStoreError.conflictingRecords
+    }
+  }
+  private func checkDraftOrdering(_ candidate: DraftRecord) throws {
+    let existing: DraftRecord?
+    do { existing = try loadDraftRecord() } catch {
+      throw SessionStoreError.existingArchiveNeedsReview
+    }
+    if let existing {
+      guard candidate.revision > existing.revision || candidate == existing else {
+        throw SessionStoreError.staleWrite
+      }
+    }
+  }
+  public func saveScanDraft(_ scan: PendingScan, lease: StorageLease) throws {
+    guard lease == self.lease else { throw SessionStoreError.staleLease }
+    try checkManualStartBoundary(scan.draft.revision)
+    try checkDraftOrdering(.scan(scan))
+    var guide = try load()
+    if let boundary = try loadManualStart(), let existing = guide,
+      existing.saveID.revision <= boundary
+    {
+      guide = nil
+    }
+    try validateScanBinding(scan, guide: guide)
+    try replace(DraftArchive.encode(scan), file: draftFile, temporary: draftTemporary)
   }
   public func saveDraft(_ draft: ManualDraft, lease: StorageLease) throws {
     guard lease == self.lease else { throw SessionStoreError.staleLease }
     try checkManualStartBoundary(draft.revision)
-    let existing: ManualDraft?
-    do { existing = try loadDraft() } catch { throw SessionStoreError.existingArchiveNeedsReview }
-    if let existing {
-      guard draft.revision > existing.revision || draft == existing else {
-        throw SessionStoreError.staleWrite
-      }
-    }
+    try checkDraftOrdering(.manual(draft))
     let bytes = try DraftArchive.encode(draft)
     try replace(bytes, file: draftFile, temporary: draftTemporary)
   }
@@ -143,6 +194,11 @@ public actor SessionStore {
   {
     guard lease == self.lease else { throw SessionStoreError.staleLease }
     try checkManualStartBoundary(request.id.revision)
+    if case .scan(let scan) = try loadDraftRecord(), scan.draft.revision >= request.id.revision {
+      guard scan.draft.revision > request.id.revision, scan.retainedGuide == request.id else {
+        throw SessionStoreError.conflictingRecords
+      }
+    }
     let existing: RestoredGuide?
     do { existing = try load() } catch { throw SessionStoreError.existingArchiveNeedsReview }
     if let existing {

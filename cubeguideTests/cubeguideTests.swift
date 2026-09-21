@@ -7,6 +7,42 @@ import Testing
 
 @testable import cubeguide
 
+@MainActor
+@Test("R18: installed app preserves accepted scan observations separately from guide completion")
+func appScanStorage() async throws {
+  let directory = AppDependencies.guideDirectory.appendingPathComponent("scan-test-\(UUID())")
+  defer { try? FileManager.default.removeItem(at: directory) }
+  let dependencies = AppDependencies(guideDirectory: directory)
+  let sample = try ColorMeasurement(
+    median: LabColor(lightness: 50, a: 10, b: 20),
+    display: DisplaySRGB(red: 0.6, green: 0.3, blue: 0.1), spread: 1, sampleCount: 1600)
+  let metadata = try CaptureMetadata(
+    width: 1920, height: 1440, sourceOrientation: .up, sourceMirrored: false,
+    corners: [
+      ImagePoint(x: 0, y: 0), ImagePoint(x: 1, y: 0),
+      ImagePoint(x: 1, y: 1), ImagePoint(x: 0, y: 1),
+    ],
+    pose: .identity, samplingVersion: "app-storage-fixture-v1")
+  let face = try ScanFace(
+    slot: .front, measurements: Array(repeating: sample, count: 9), metadata: metadata)
+  let scan = try PendingScan(draft: ScanDraft().accepting(face), purpose: .newCube)
+  let store = dependencies.sessionStore
+  try await store.saveScanDraft(scan, lease: store.currentLease())
+  let reopened = AppDependencies(guideDirectory: directory)
+  #expect(try await reopened.restoreSession().pendingScan == scan)
+  let controller = reopened.makeSessionController(playback: CompositionPlayback())
+  await controller.load()
+  #expect(controller.pendingScan == scan && controller.session.completion == nil)
+  #expect(controller.send(.deleteLocalData(confirmed: true)) == .accepted)
+  // Wait for the actual app's asynchronous storage effect, with a bounded timeout.
+  let deadline = ContinuousClock.now + .seconds(5)
+  while controller.session.phase == .deleting, ContinuousClock.now < deadline {
+    try await Task.sleep(for: .milliseconds(10))
+  }
+  #expect(controller.session.phase == .home && controller.pendingScan == nil)
+  #expect(try await store.loadScanDraft() == nil)
+}
+
 struct AppCompositionTests {
   @MainActor
   @Test("R20: app links CubeCore and exposes all canonical faces")

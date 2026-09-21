@@ -36,6 +36,7 @@ public final class SessionController {
   public private(set) var loadStatus: SessionLoadStatus = .idle
   public private(set) var lastError: (any Error)?
   public private(set) var palette: CenterPalette?
+  public private(set) var pendingScan: PendingScan?
 
   @ObservationIgnored private let storage: any SessionStorage
   @ObservationIgnored private let solver: any SessionSolving
@@ -65,6 +66,7 @@ public final class SessionController {
       guard generation == expectedGeneration, loadStatus == .loading else { return }
       session = restored.session
       palette = restored.palette
+      pendingScan = restored.pendingScan
       lease = restored.lease
       loadStatus = .ready
     } catch {
@@ -78,9 +80,18 @@ public final class SessionController {
     if loadStatus != .ready {
       guard case .deleteLocalData = event else { return .rejected(.unavailableEvent) }
     }
+    if pendingScan != nil {
+      // The capture workflow owns this draft. Do not resume or replace its retained guide
+      // through the unrelated manual/guide reducer while scan input is outstanding.
+      switch event {
+      case .deleteLocalData, .retryDeletion, .deleted, .deletionFailed: break
+      default: return .rejected(.unavailableEvent)
+      }
+    }
     let transition = SessionReducer.reduce(session, event: event)
     guard transition.disposition == .accepted else { return transition.disposition }
     session = transition.session
+    if case .deleted = event { pendingScan = nil }
     if case .manualStarted = event { palette = nil }
     if let draft = session.draft { palette = draft.palette }
     if transition.commands.contains(where: {
