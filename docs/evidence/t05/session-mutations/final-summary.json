@@ -1,0 +1,155 @@
+[
+  {
+    "mutation": "accept-stale-solve",
+    "test": "checkedSolveResults",
+    "source": "Packages/CubeKit/Sources/CubeSession/Session.swift",
+    "sourceSHA256": "f0ebee304c8c15757688d7e4fb104dde19fb711f4d876171daa696745fed9522",
+    "killed": true,
+    "exitCode": 1,
+    "sourceRestored": true
+  },
+  {
+    "mutation": "accept-wrong-guide-save-id",
+    "test": "acknowledgedSaveBarrier",
+    "source": "Packages/CubeKit/Sources/CubeSession/Session.swift",
+    "sourceSHA256": "f0ebee304c8c15757688d7e4fb104dde19fb711f4d876171daa696745fed9522",
+    "killed": true,
+    "exitCode": 1,
+    "sourceRestored": true
+  },
+  {
+    "mutation": "advance-before-ack-save",
+    "test": "acknowledgedSaveBarrier",
+    "source": "Packages/CubeKit/Sources/CubeSession/Session.swift",
+    "sourceSHA256": "f0ebee304c8c15757688d7e4fb104dde19fb711f4d876171daa696745fed9522",
+    "killed": true,
+    "exitCode": 1,
+    "sourceRestored": true
+  },
+  {
+    "mutation": "double-apply-acknowledgement",
+    "test": "stableGuideProgress",
+    "source": "Packages/CubeKit/Sources/CubeSession/GuideProgress.swift",
+    "sourceSHA256": "565f67b98d627ca9fb23d37ef992a10ef9dab7a60e8a5bd515cab6243d6e90be",
+    "killed": true,
+    "exitCode": 1,
+    "sourceRestored": true
+  },
+  {
+    "mutation": "preview-advances-physical-state",
+    "test": "playbackCannotAdvance",
+    "source": "Packages/CubeKit/Sources/CubeSession/Session.swift",
+    "sourceSHA256": "f0ebee304c8c15757688d7e4fb104dde19fb711f4d876171daa696745fed9522",
+    "killed": true,
+    "exitCode": 1,
+    "sourceRestored": true
+  },
+  {
+    "mutation": "play-without-alignment",
+    "test": "durablePreparationBarrier",
+    "source": "Packages/CubeKit/Sources/CubeSession/Session.swift",
+    "sourceSHA256": "f0ebee304c8c15757688d7e4fb104dde19fb711f4d876171daa696745fed9522",
+    "killed": true,
+    "exitCode": 1,
+    "sourceRestored": true
+  },
+  {
+    "mutation": "trust-restored-alignment",
+    "test": "archiveSessionRestore",
+    "source": "Packages/CubeKit/Sources/CubeSession/Session.swift",
+    "sourceSHA256": "f0ebee304c8c15757688d7e4fb104dde19fb711f4d876171daa696745fed9522",
+    "killed": true,
+    "exitCode": 1,
+    "sourceRestored": true
+  },
+  {
+    "mutation": "accept-wrong-draft-save-id",
+    "test": "draftSaveBarrier",
+    "source": "Packages/CubeKit/Sources/CubeSession/Session.swift",
+    "sourceSHA256": "f0ebee304c8c15757688d7e4fb104dde19fb711f4d876171daa696745fed9522",
+    "killed": true,
+    "exitCode": 1,
+    "sourceRestored": true
+  },
+  {
+    "mutation": "lose-durable-recovery",
+    "test": "recoveryArchiveRoundTrip",
+    "source": "Packages/CubeKit/Sources/CubeSession/Session.swift",
+    "sourceSHA256": "f0ebee304c8c15757688d7e4fb104dde19fb711f4d876171daa696745fed9522",
+    "killed": true,
+    "exitCode": 1,
+    "sourceRestored": true
+  },
+  {
+    "mutation": "mislabel-entered-completion",
+    "test": "enteredColorsCompletion",
+    "source": "Packages/CubeKit/Sources/CubeSession/Session.swift",
+    "sourceSHA256": "f0ebee304c8c15757688d7e4fb104dde19fb711f4d876171daa696745fed9522",
+    "killed": true,
+    "exitCode": 1,
+    "sourceRestored": true
+  },
+  {
+    "mutation": "advance-scan-before-save",
+    "test": "scanWorkflowSixFaces",
+    "source": "Packages/CubeKit/Sources/CubeSession/ScanWorkflow.swift",
+    "sourceSHA256": "98fecc27c5b93ae2cd0036d0ddd0cb23eb8614d6cca6732474cb0ee8438e9af8",
+    "killed": true,
+    "exitCode": 1,
+    "sourceRestored": true
+  },
+  {
+    "mutation": "accept-stale-camera-frame",
+    "test": "scanWorkflowCaptureFailures",
+    "source": "Packages/CubeKit/Sources/CubeSession/ScanWorkflow.swift",
+    "sourceSHA256": "98fecc27c5b93ae2cd0036d0ddd0cb23eb8614d6cca6732474cb0ee8438e9af8",
+    "killed": true,
+    "exitCode": 1,
+    "sourceRestored": true
+  },
+  {
+    "mutation": "accept-old-camera-run-event",
+    "test": "scanCoordinatorCameraGenerations",
+    "source": "Packages/CubeKit/Sources/CubeSession/SessionController.swift",
+    "sourceSHA256": "533cf90d4eac0671b91d29729491454617fe1462e2ca0327897b0afe8329b6e0",
+    "killed": true,
+    "exitCode": 1,
+    "sourceRestored": true
+  },
+  {
+    "mutation": "retain-deleted-producer-lease",
+    "test": "storeDeletionLease",
+    "source": "Packages/CubeKit/Sources/CubeSession/SessionStore.swift",
+    "sourceSHA256": "922aae8aa0414424d99c1da07ab645d4ea74c3fd74c7b60bd1db6a4bf74459d3",
+    "killed": true,
+    "exitCode": 1,
+    "sourceRestored": true
+  },
+  {
+    "mutation": "lose-discard-revision-floor",
+    "test": "draftDiscardManual",
+    "source": "Packages/CubeKit/Sources/CubeSession/Session.swift",
+    "sourceSHA256": "f0ebee304c8c15757688d7e4fb104dde19fb711f4d876171daa696745fed9522",
+    "killed": true,
+    "exitCode": 1,
+    "sourceRestored": true
+  },
+  {
+    "mutation": "lose-manual-fallback-overrides",
+    "test": "manualFallbackModel",
+    "source": "Packages/CubeKit/Sources/CubeSession/ManualDraft.swift",
+    "sourceSHA256": "2957a0b01cddbb11bac97a9359bf190caa163eafae070ffa9652258cf5879329",
+    "killed": true,
+    "exitCode": 1,
+    "sourceRestored": true
+  },
+  {
+    "mutation": "trust-corrupt-archive-state",
+    "test": "archiveSemanticGuards",
+    "source": "Packages/CubeKit/Sources/CubeSession/GuideArchive.swift",
+    "sourceSHA256": "4cbb8d51e50ac2ccdb11d4341bcd11985989bd19063e2a1c80a8757fc28e1ff6",
+    "killed": true,
+    "exitCode": 1,
+    "sourceRestored": true
+  }
+]
