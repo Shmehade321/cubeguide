@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+        C00000000000000000000006 /* CubeSession in Frameworks */ = {isa = PBXBuildFile; productRef = C00000000000000000000007 /* CubeSession */; };
         C00000000000000000000001 /* CubeCore in Frameworks */ = {isa = PBXBuildFile; productRef = C00000000000000000000002 /* CubeCore */; };
         C00000000000000000000004 /* CubeSolver3 in Frameworks */ = {isa = PBXBuildFile; productRef = C00000000000000000000005 /* CubeSolver3 */; };
 /* End PBXBuildFile section */
@@ -15,6 +16,7 @@
         C00000000000000000000003 = {isa = XCLocalSwiftPackageReference; relativePath = Packages/CubeKit; };
 /* End XCLocalSwiftPackageReference section */
 /* Begin XCSwiftPackageProductDependency section */
+        C00000000000000000000007 = {isa = XCSwiftPackageProductDependency; productName = CubeSession; };
         C00000000000000000000002 = {isa = XCSwiftPackageProductDependency; productName = CubeCore; };
         C00000000000000000000005 = {isa = XCSwiftPackageProductDependency; productName = CubeSolver3; };
 /* End XCSwiftPackageProductDependency section */
@@ -70,6 +72,7 @@
 			files = (
                 C00000000000000000000001,
                 C00000000000000000000004,
+                C00000000000000000000006,
 			);
 		};
 		4F53CED930607CA100D417D4 /* Frameworks */ = {
@@ -134,7 +137,7 @@
 				4F53CED130607C9E00D417D4 /* cubeguide */,
 			);
 			name = cubeguide;
-            packageProductDependencies = (C00000000000000000000002,C00000000000000000000005,);
+            packageProductDependencies = (C00000000000000000000002,C00000000000000000000005,C00000000000000000000007,);
 			productName = cubeguide;
 			productReference = 4F53CECF30607C9E00D417D4 /* cubeguide.app */;
 			productType = "com.apple.product-type.application";

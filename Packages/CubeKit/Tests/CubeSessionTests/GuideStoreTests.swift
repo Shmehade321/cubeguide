@@ -217,3 +217,51 @@ func storeDeleteDuringWrite() async throws {
 private func waitForStoreBoundary(_ semaphore: DispatchSemaphore) -> Bool {
   semaphore.wait(timeout: .now() + 10) == .success
 }
+
+@Test(
+  "V11: inaccessible directories are storage errors, never an absent session or successful deletion"
+)
+func storePermissionFailure() async throws {
+  let directory = try storeDirectory()
+  defer {
+    try? FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: directory.path)
+    try? FileManager.default.removeItem(at: directory)
+  }
+  let store = GuideStore(directory: directory)
+  let request = try #require(try preparingSession().pendingSave)
+  let palette = try archivePalette()
+  try await store.save(request, palette: palette, lease: store.currentLease())
+  try FileManager.default.setAttributes([.posixPermissions: 0], ofItemAtPath: directory.path)
+  await #expect(throws: (any Error).self) { try await store.load() }
+  await #expect(throws: (any Error).self) {
+    try await store.save(request, palette: palette, lease: store.currentLease())
+  }
+  await #expect(throws: (any Error).self) { try await store.delete(lease: store.currentLease()) }
+  try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: directory.path)
+  #expect(try await store.load()?.progress == request.progress)
+}
+
+@Test("V15: protection failure aborts before payload data is written or replaces an archive")
+func storeProtectionFailure() async throws {
+  let request = try #require(try preparingSession().pendingSave)
+  let palette = try archivePalette()
+  for failAtTemporary in [false, true] {
+    let directory = try storeDirectory()
+    defer { try? FileManager.default.removeItem(at: directory) }
+    let store = GuideStore(
+      directory: directory, checkpoint: { _ in },
+      protection: { url in
+        if !failAtTemporary || url.lastPathComponent == "guide.pending" {
+          throw InjectedStoreFailure.stopped
+        }
+      })
+    await #expect(throws: InjectedStoreFailure.self) {
+      try await store.save(request, palette: palette, lease: store.currentLease())
+    }
+    #expect(try await store.load() == nil)
+    let pending = directory.appendingPathComponent("guide.pending")
+    if FileManager.default.fileExists(atPath: pending.path) {
+      #expect(try Data(contentsOf: pending).isEmpty)
+    }
+  }
+}

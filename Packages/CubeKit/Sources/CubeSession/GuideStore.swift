@@ -15,13 +15,25 @@ public actor GuideStore {
   private let directory: URL
   private var lease = StorageLease(value: UUID())
   private let checkpoint: @Sendable (StoreBoundary) throws -> Void
+  private let protection: @Sendable (URL) throws -> Void
   public init(directory: URL) {
     self.directory = directory
     self.checkpoint = { _ in }
+    self.protection = Self.applyProtection
   }
-  init(directory: URL, checkpoint: @escaping @Sendable (StoreBoundary) throws -> Void) {
+  init(
+    directory: URL, checkpoint: @escaping @Sendable (StoreBoundary) throws -> Void,
+    protection: @escaping @Sendable (URL) throws -> Void = GuideStore.applyProtection
+  ) {
     self.directory = directory
     self.checkpoint = checkpoint
+    self.protection = protection
+  }
+  private static func applyProtection(_ url: URL) throws {
+    #if os(iOS)
+      try FileManager.default.setAttributes(
+        [.protectionKey: FileProtectionType.complete], ofItemAtPath: url.path)
+    #endif
   }
   public func currentLease() -> StorageLease { lease }
   private var file: URL { directory.appendingPathComponent("guide.json") }
@@ -35,8 +47,12 @@ public actor GuideStore {
     }
   }
   public func load() throws -> RestoredGuide? {
-    guard FileManager.default.fileExists(atPath: file.path) else { return nil }
-    let handle = try FileHandle(forReadingFrom: file)
+    let descriptor = Darwin.open(file.path, O_RDONLY)
+    guard descriptor >= 0 else {
+      if errno == ENOENT { return nil }
+      throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno))
+    }
+    let handle = FileHandle(fileDescriptor: descriptor, closeOnDealloc: true)
     defer { try? handle.close() }
     let bytes = try handle.read(upToCount: GuideArchive.maximumBytes + 1) ?? Data()
     return try GuideArchive.decode(bytes)
@@ -63,6 +79,7 @@ public actor GuideStore {
     }
     let bytes = try GuideArchive.encode(request, palette: palette)
     try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+    try protection(directory)
     var folder = directory
     var values = URLResourceValues()
     values.isExcludedFromBackup = true
@@ -71,6 +88,7 @@ public actor GuideStore {
     // A fixed temporary name is safe under this actor's exclusive directory ownership.
     // It is never loaded as confirmed progress, including after a process interruption.
     try Data().write(to: temporary)
+    try protection(temporary)
     let handle = try FileHandle(forWritingTo: temporary)
     defer { try? handle.close() }
     try handle.write(contentsOf: bytes)
