@@ -12,7 +12,7 @@ import subprocess
 import time
 
 BOUNDARIES = ("beforeWrite", "temporarySynced", "beforeReplace", "afterReplace")
-CASES = [(kind, boundary) for kind in ("guide", "turn", "draft", "manual") for boundary in BOUNDARIES]
+CASES = [(kind, boundary) for kind in ("guide", "turn", "draft", "manual", "recovery") for boundary in BOUNDARIES]
 CASES.append(("delete", "beforeDelete"))
 
 
@@ -68,6 +68,8 @@ def validate_snapshots(before, after, kind):
         raise RuntimeError("Writer did not produce the fixed seed contract")
     if kind == "guide":
         expected = dict(seed, acknowledged=1, storedGuideAcknowledged=1)
+    elif kind == "recovery":
+        expected = dict(seed, phase="recovery", recoveryRequired=True)
     elif kind == "turn":
         expected = dict(seed, phase="expectedSolved", acknowledged=2, storedGuideAcknowledged=2)
     elif kind in ("draft", "manual"):

@@ -32,6 +32,7 @@ struct SessionStoreCrashProbe {
       let snapshot = Snapshot(
         phase: session.phase.rawValue, revision: session.revision,
         hasWork: session.hasWork, hasPlan: session.plan != nil, aligned: session.aligned,
+        recoveryRequired: session.recoveryRequired ? true : nil,
         acknowledged: session.guideProgress?.acknowledgedActions,
         draftRevision: session.draft?.revision,
         draftCells: session.draft?.cells.map { $0?.rawValue },
@@ -62,6 +63,17 @@ struct SessionStoreCrashProbe {
         guard let acknowledgement = session.pendingSave else { throw ProbeError.unexpectedState }
         try await interrupted.save(
           acknowledgement, palette: palette(), lease: interrupted.currentLease())
+      case "recovery":
+        var session = try preparingSession(afterAcknowledgements: 0)
+        guard let preparation = session.pendingSave else { throw ProbeError.unexpectedState }
+        session = SessionReducer.reduce(session, event: .persisted(preparation.id)).session
+        session = SessionReducer.reduce(session, event: .confirmAlignment).session
+        session = SessionReducer.reduce(session, event: .mismatch).session
+        guard let recovery = session.pendingSave, recovery.kind == .recovery else {
+          throw ProbeError.unexpectedState
+        }
+        try await interrupted.save(
+          recovery, palette: palette(), lease: interrupted.currentLease())
       case "draft":
         let draft = try ManualDraft(palette: palette(), revision: 3)
           .setting(face: .front, row: 0, column: 0, color: .red)
@@ -82,6 +94,7 @@ struct SessionStoreCrashProbe {
     let hasWork: Bool
     let hasPlan: Bool
     let aligned: Bool
+    let recoveryRequired: Bool?
     let acknowledged: Int?
     let draftRevision: UInt64?
     let draftCells: [String?]?
