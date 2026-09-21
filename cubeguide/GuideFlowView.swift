@@ -11,13 +11,14 @@ struct GuideFlowView: View {
   @State private var comparisonAfter = false
   @Environment(\.dynamicTypeSize) private var textSize
   private var controlsLayout: AnyLayout {
-    textSize.isAccessibilitySize ? AnyLayout(VStackLayout(spacing: 8)) : AnyLayout(HStackLayout(spacing: 8))
+    textSize.isAccessibilitySize
+      ? AnyLayout(VStackLayout(spacing: 8)) : AnyLayout(HStackLayout(spacing: 8))
   }
   @Environment(\.accessibilityDifferentiateWithoutColor) private var differentiate
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
   private var showingAfter: Bool {
-    comparisonAfter || controller.session.preview == .finished ||
-      (presentation.reduceMotion && presentation.staticPlayer?.showingAfter == true)
+    comparisonAfter || controller.session.preview == .finished
+      || (presentation.reduceMotion && presentation.staticPlayer?.showingAfter == true)
   }
 
   var body: some View {
@@ -36,14 +37,19 @@ struct GuideFlowView: View {
             Text(comparisonAfter ? "Expected after this action" : presentation.previewDescription)
           }
           if presentation.reduceMotion, let palette = controller.palette {
-            StaticGuideView(action: action, palette: palette, after: showingAfter,
-              showColorLabels: controller.preferences.colorLabelsEnabled(differentiateWithoutColor: differentiate))
+            StaticGuideView(
+              action: action, palette: palette, after: showingAfter,
+              showColorLabels: controller.preferences.colorLabelsEnabled(
+                differentiateWithoutColor: differentiate))
           } else if let scene = presentation.scene {
-            GuideSceneSurface(model: scene, showColorLabels:
-              controller.preferences.colorLabelsEnabled(differentiateWithoutColor: differentiate))
-              .frame(height: 220)
-              .accessibilityLabel("Cube demonstration")
-              .accessibilityIdentifier("guide.animatedCube")
+            GuideSceneSurface(
+              model: scene,
+              showColorLabels:
+                controller.preferences.colorLabelsEnabled(differentiateWithoutColor: differentiate)
+            )
+            .frame(height: 220)
+            .accessibilityLabel("Cube demonstration")
+            .accessibilityIdentifier("guide.animatedCube")
             if let palette = controller.palette {
               GuideDirectionDiagram(action: action, palette: palette, after: showingAfter)
             }
@@ -52,7 +58,9 @@ struct GuideFlowView: View {
           if [.preparingAction, .savingAcknowledgement].contains(controller.session.phase) {
             ProgressView("Saving your progress…")
           } else if [.resumeCheck, .storageError].contains(controller.session.phase) {
-            Text("Compare your physical cube before continuing. If a regrip was interrupted, return to the pictured holding position.")
+            Text(
+              "Compare your physical cube before continuing. If a regrip was interrupted, return to the pictured holding position."
+            )
             controlsLayout {
               Button("Show before") {
                 comparisonAfter = false
@@ -78,14 +86,23 @@ struct GuideFlowView: View {
             controlsLayout {
               Button(controller.session.preview == .paused ? "Continue preview" : "Play") {
                 controller.send(.play)
-              }.accessibilityIdentifier("guide.play").disabled(controller.session.preview == .playing)
+              }.accessibilityIdentifier("guide.play").disabled(
+                controller.session.preview == .playing)
               Button("Pause") { controller.send(.pause) }
-                .accessibilityIdentifier("guide.pause").disabled(controller.session.preview != .playing)
+                .accessibilityIdentifier("guide.pause").disabled(
+                  controller.session.preview != .playing)
               Button("Replay") { controller.send(.replay) }.accessibilityIdentifier("guide.replay")
             }
-            Button(acknowledgement(action)) { controller.send(.acknowledge(action.id)) }
-              .buttonStyle(.borderedProminent).accessibilityIdentifier("guide.acknowledge")
-              .disabled(controller.session.preview != .finished)
+            Button(acknowledgement(action)) {
+              let result = controller.send(.acknowledge(action.id))
+              if result == .accepted {
+                HapticFeedback.light(enabled: controller.preferences.haptics)
+              } else {
+                HapticFeedback.warning(enabled: controller.preferences.haptics)
+              }
+            }
+            .buttonStyle(.borderedProminent).accessibilityIdentifier("guide.acknowledge")
+            .disabled(controller.session.preview != .finished)
           }
         }
         if controller.session.phase == .guide {
@@ -111,7 +128,9 @@ struct GuideFlowView: View {
   private func anchors(_ action: GuideAction) -> String {
     guard let palette = controller.palette else { return "" }
     let pose = showingAfter ? action.toPose : action.fromPose
-    func color(_ face: Face) -> String { palette.colors[Int(pose.canonicalFace(at: face).rawValue)].title }
+    func color(_ face: Face) -> String {
+      palette.colors[Int(pose.canonicalFace(at: face).rawValue)].title
+    }
     return "Front: \(color(.front)) · Top: \(color(.up)) · Right: \(color(.right))"
   }
   private func acknowledgement(_ action: GuideAction) -> String {
@@ -119,23 +138,7 @@ struct GuideFlowView: View {
     return "I did this move"
   }
   private func caption(_ action: GuideAction) -> String {
-    switch action.operation {
-    case .turn(let move):
-      switch move.turns {
-      case .clockwise: "Turn the front face clockwise one quarter turn."
-      case .counterclockwise: "Turn the front face counterclockwise one quarter turn."
-      case .half: "Turn the front face halfway around."
-      }
-    case .regrip(let operation):
-      switch operation {
-      case .yawLeft: "Turn the whole cube to the left."
-      case .yawRight: "Turn the whole cube to the right."
-      case .topToward: "Bring the top face toward you."
-      case .bottomToward: "Bring the bottom face toward you."
-      case .rollClockwise: "Roll the whole cube clockwise."
-      case .rollCounterclockwise: "Roll the whole cube counterclockwise."
-      }
-    }
+    PhraseCatalog.phrase(for: action.operation).caption
   }
 }
 
@@ -147,7 +150,8 @@ struct GuideSceneSurface: UIViewRepresentable {
   func makeUIView(context: Context) -> ARView { CubeSceneView.makeView(model: model) }
   func updateUIView(_ view: ARView, context: Context) {
     model.setColorLabels(showColorLabels)
-    view.environment.background = .color(colorScheme == .dark ? UIColor(white: 0.04, alpha: 1) : UIColor(white: 0.97, alpha: 1))
+    view.environment.background = .color(
+      colorScheme == .dark ? UIColor(white: 0.04, alpha: 1) : UIColor(white: 0.97, alpha: 1))
   }
   static func dismantleUIView(_ view: ARView, coordinator: ()) {
     view.scene.anchors.removeAll()

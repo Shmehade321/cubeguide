@@ -20,10 +20,13 @@ final class GuidePresentation: GuidePlayback {
   @ObservationIgnored private let frames: any PreviewFrameSource
   @ObservationIgnored private let now: () -> Duration
   @ObservationIgnored private let scheduler: any PreviewDeadlineScheduler
+  @ObservationIgnored private let narration: any InstructionAudio
   @ObservationIgnored private var player: GuideScenePlayback?
   @ObservationIgnored private var palette: CenterPalette?
   @ObservationIgnored private var preparedAction: GuideAction?
   @ObservationIgnored private var differentiateWithoutColor = false
+  @ObservationIgnored private var narrationGeneration: UInt64 = 0
+  @ObservationIgnored private var animationStartedForAction: ActionID?
 
   private var effectivePreferences: AppPreferences {
     var preferences = controller?.preferences ?? AppPreferences()
@@ -32,11 +35,15 @@ final class GuidePresentation: GuidePlayback {
     return preferences
   }
 
-  init(frames: any PreviewFrameSource, now: @escaping () -> Duration,
-    scheduler: any PreviewDeadlineScheduler = PreviewDeadline()) {
+  init(
+    frames: any PreviewFrameSource, now: @escaping () -> Duration,
+    scheduler: any PreviewDeadlineScheduler = PreviewDeadline(),
+    narration: any InstructionAudio = AudioCoordinator()
+  ) {
     self.frames = frames
     self.now = now
     self.scheduler = scheduler
+    self.narration = narration
   }
 
   func setReduceMotion(_ enabled: Bool) {
@@ -50,6 +57,7 @@ final class GuidePresentation: GuidePlayback {
     player = nil
     staticPlayer = nil
     preparedAction = nil
+    animationStartedForAction = nil
     prepare()
   }
 
@@ -68,15 +76,18 @@ final class GuidePresentation: GuidePlayback {
     staticPlayer = nil
     palette = nil
     preparedAction = nil
+    animationStartedForAction = nil
   }
 
   @discardableResult func prepare() -> Bool {
     guard let controller, let palette = controller.palette,
-      let action = controller.session.guideProgress?.pending else { return false }
+      let action = controller.session.guideProgress?.pending
+    else { return false }
     if reduceMotion {
       if preparedAction != action { staticPlayer?.stop() }
       if staticPlayer == nil {
-        staticPlayer = StaticGuidePlayback(scheduler: scheduler, now: now,
+        staticPlayer = StaticGuidePlayback(
+          scheduler: scheduler, now: now,
           preferences: { [weak self] in self?.effectivePreferences ?? AppPreferences() })
       }
       self.palette = palette
@@ -92,33 +103,59 @@ final class GuidePresentation: GuidePlayback {
       let scene = CubeSceneModel(draft: ManualDraft(palette: palette))
       self.scene = scene
       self.palette = palette
-      player = GuideScenePlayback(scene: scene, palette: palette,
+      player = GuideScenePlayback(
+        scene: scene, palette: palette,
         preferences: { [weak self] in self?.effectivePreferences ?? AppPreferences() },
         frames: frames, now: now)
     }
     guard let scene else { return false }
-    scene.beginPreview(action, palette: palette, showColorLabels: effectivePreferences.showColorLabels)
+    scene.beginPreview(
+      action, palette: palette, showColorLabels: effectivePreferences.showColorLabels)
     scene.cancelPreview()
     preparedAction = action
     return true
   }
 
-  func play(_ action: GuideAction, id: PlaybackID, restart: Bool,
-    finished: @escaping @MainActor @Sendable (PlaybackID) -> Void) {
-    guard controller?.session.guideProgress?.pending == action, id.action == action.id, prepare() else {
+  func play(
+    _ action: GuideAction, id: PlaybackID, restart: Bool,
+    finished: @escaping @MainActor @Sendable (PlaybackID) -> Void
+  ) {
+    guard controller?.session.guideProgress?.pending == action, id.action == action.id, prepare()
+    else {
       stop()
       controller?.send(.background)
       return
     }
-    if reduceMotion { staticPlayer?.play(action, id: id, restart: restart, finished: finished) }
-    else { player?.play(action, id: id, restart: restart, finished: finished) }
+    narrationGeneration &+= 1
+    let generation = narrationGeneration
+    let startAnimation: @MainActor @Sendable () -> Void = { [weak self] in
+      guard let self, self.narrationGeneration == generation,
+        self.controller?.session.guideProgress?.pending == action
+      else { return }
+      self.animationStartedForAction = action.id
+      if self.reduceMotion {
+        self.staticPlayer?.play(action, id: id, restart: restart, finished: finished)
+      } else {
+        self.player?.play(action, id: id, restart: restart, finished: finished)
+      }
+    }
+    if !restart, animationStartedForAction == action.id {
+      startAnimation()
+    } else {
+      narration.play(
+        PhraseCatalog.phrase(for: action.operation),
+        enabled: effectivePreferences.narration,
+        finished: startAnimation)
+    }
   }
   func showComparison(after: Bool) {
     guard let controller, [.resumeCheck, .storageError].contains(controller.session.phase),
       let action = controller.session.pendingAction, let palette = controller.palette,
-      prepare(), let scene else { return }
+      prepare(), let scene
+    else { return }
     player?.stop()
-    scene.beginPreview(action, palette: palette, showColorLabels: effectivePreferences.showColorLabels)
+    scene.beginPreview(
+      action, palette: palette, showColorLabels: effectivePreferences.showColorLabels)
     if after { scene.samplePreview(progress: 1) } else { scene.cancelPreview() }
   }
 
@@ -128,10 +165,14 @@ final class GuidePresentation: GuidePlayback {
   }
 
   func pause() {
+    narrationGeneration &+= 1
+    narration.pause()
     player?.pause()
     staticPlayer?.pause()
   }
   func stop() {
+    narrationGeneration &+= 1
+    narration.stop()
     player?.stop()
     staticPlayer?.stop()
   }

@@ -228,7 +228,7 @@ struct ContentView: View {
           completionArtwork
           Text("Your entered colors are solved").font(.title.bold())
           Text("This checks the colors you entered. Compare them with your physical cube.")
-          Button("Done") { controller.send(.confirmCompletion) }
+          Button("Done", action: confirmCompletion)
             .buttonStyle(.borderedProminent).accessibilityIdentifier("completion.save")
           Button("Edit colors") { controller.send(.edit) }.accessibilityIdentifier(
             "validation.edit")
@@ -283,6 +283,9 @@ struct ContentView: View {
           )
           Button("Enter colors again") { replacingAfterRecovery = true }
             .buttonStyle(.borderedProminent).accessibilityIdentifier("recovery.manual")
+          Button("Scan cube again") {
+            Task { await controller.startScan(purpose: .recovery) }
+          }.accessibilityIdentifier("recovery.scan")
           Button("Keep guide and compare again") { controller.send(.cancel) }
             .accessibilityIdentifier("recovery.keep")
         }.padding()
@@ -310,8 +313,11 @@ struct ContentView: View {
           Text(
             "Look at all six physical faces. This is the expected result of the moves you acknowledged; the camera has not checked your cube."
           )
-          Button("Yes, my cube is solved") { controller.send(.confirmCompletion) }
+          Button("Yes, my cube is solved", action: confirmCompletion)
             .buttonStyle(.borderedProminent).accessibilityIdentifier("completion.confirmPhysical")
+          Button("Check with camera") {
+            Task { await controller.startScan(purpose: .verification) }
+          }.accessibilityIdentifier("completion.scan")
           Button("Still different") { controller.send(.mismatch) }
             .accessibilityIdentifier("completion.mismatch")
         }.padding()
@@ -323,11 +329,13 @@ struct ContentView: View {
       ScrollView {
         VStack(spacing: 20) {
           completionArtwork
-          Text(
-            controller.session.completion == .enteredColorsSolved
-              ? "Your entered colors are solved" : "You confirmed your cube is solved"
-          )
-          .font(.title.bold())
+          Text(completionTitle)
+            .font(.title.bold())
+          if controller.session.completion != .scanVerified {
+            Button("Check with camera") {
+              Task { await controller.startScan(purpose: .verification) }
+            }.accessibilityIdentifier("completion.scan")
+          }
           Button("Home") { controller.send(.cancel) }.accessibilityIdentifier("completion.home")
         }.padding()
       }
@@ -359,6 +367,24 @@ struct ContentView: View {
   private func openHelp() {
     controller.pauseForAuxiliaryNavigation()
     showingHelp = true
+  }
+
+  private var completionTitle: String {
+    switch controller.session.completion {
+    case .enteredColorsSolved: "Your entered colors are solved"
+    case .userConfirmed: "You confirmed your cube is solved"
+    case .scanVerified: "Camera verified all six faces"
+    case nil: "Your cube is solved"
+    }
+  }
+
+  private func confirmCompletion() {
+    let result = controller.send(.confirmCompletion)
+    if result == .accepted {
+      HapticFeedback.success(enabled: controller.preferences.haptics)
+    } else {
+      HapticFeedback.warning(enabled: controller.preferences.haptics)
+    }
   }
 
   private var relatedCells: Set<Int> {

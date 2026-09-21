@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "phrases": [
+    {"id":"N01","file":"N01.m4a","caption":"Turn the front face clockwise one quarter turn."},
+    {"id":"N02","file":"N02.m4a","caption":"Turn the front face counterclockwise one quarter turn."},
+    {"id":"N03","file":"N03.m4a","caption":"Turn the front face halfway around."},
+    {"id":"N04","file":"N04.m4a","caption":"Turn the whole cube to the left."},
+    {"id":"N05","file":"N05.m4a","caption":"Turn the whole cube to the right."},
+    {"id":"N06","file":"N06.m4a","caption":"Bring the top face toward you."},
+    {"id":"N07","file":"N07.m4a","caption":"Bring the bottom face toward you."},
+    {"id":"N08","file":"N08.m4a","caption":"Roll the whole cube clockwise."},
+    {"id":"N09","file":"N09.m4a","caption":"Roll the whole cube counterclockwise."},
+    {"id":"N10","file":"N10.m4a","caption":"White."},
+    {"id":"N11","file":"N11.m4a","caption":"Yellow."},
+    {"id":"N12","file":"N12.m4a","caption":"Red."},
+    {"id":"N13","file":"N13.m4a","caption":"Orange."},
+    {"id":"N14","file":"N14.m4a","caption":"Blue."},
+    {"id":"N15","file":"N15.m4a","caption":"Green."},
+    {"id":"N16","file":"N16.m4a","caption":"Front."},
+    {"id":"N17","file":"N17.m4a","caption":"Top."},
+    {"id":"N18","file":"N18.m4a","caption":"Right."},
+    {"id":"N19","file":"N19.m4a","caption":"Rotate the whole cube. Do not turn a layer while scanning."},
+    {"id":"N20","file":"N20.m4a","caption":"Fit the face inside the grid, then take a picture."},
+    {"id":"N21","file":"N21.m4a","caption":"Check every color. Tap a square to change it."},
+    {"id":"N22","file":"N22.m4a","caption":"The colors need another check. Review the highlighted squares."},
+    {"id":"N23","file":"N23.m4a","caption":"Would you like help solving this cube?"},
+    {"id":"N24","file":"N24.m4a","caption":"Match how you are holding the cube to the picture."},
+    {"id":"N25","file":"N25.m4a","caption":"Tap when you have finished this move."},
+    {"id":"N26","file":"N26.m4a","caption":"If your cube looks different, pause and scan it again."},
+    {"id":"N27","file":"N27.m4a","caption":"The guide is finished. Check that your cube is solved."},
+    {"id":"N28","file":"N28.m4a","caption":"All six scanned faces are solved."},
+    {"id":"N29","file":"N29.m4a","caption":"Solving is taking longer. You can try again."},
+    {"id":"N30","file":"N30.m4a","caption":"Your entered colors are solved."}
+  ],
+  "effects": [
+    {"id":"E01","file":"E01.m4a","maximumMilliseconds":150},
+    {"id":"E02","file":"E02.m4a","maximumMilliseconds":250},
+    {"id":"E03","file":"E03.m4a","maximumMilliseconds":800}
+  ]
+}

@@ -34,7 +34,12 @@ struct ScanFlowView: View {
             .overlay { RoundedRectangle(cornerRadius: 16).stroke(.white, lineWidth: 2).padding(42) }
             .accessibilityHidden(true)
           Button("Capture face", systemImage: "camera.circle.fill") {
-            controller.sendScan(.capture)
+            let result = controller.sendScan(.capture)
+            if result == .accepted {
+              HapticFeedback.light(enabled: controller.preferences.haptics)
+            } else if case .rejected = result {
+              HapticFeedback.warning(enabled: controller.preferences.haptics)
+            }
           }
           .buttonStyle(.borderedProminent).controlSize(.large)
           .disabled(!controller.isCameraReady)
@@ -87,7 +92,10 @@ struct ScanFlowView: View {
             )
             .foregroundStyle(remaining == 0 ? .green : .secondary)
             Button("Accept reviewed scan") {
-              controller.acceptReviewedScan(classification, confirmed: true)
+              let result = controller.acceptReviewedScan(classification, confirmed: true)
+              if case .rejected = result {
+                HapticFeedback.warning(enabled: controller.preferences.haptics)
+              }
             }
             .buttonStyle(.borderedProminent)
             .disabled(remaining != 0)
