@@ -329,6 +329,16 @@ public final class SessionController {
     }
   }
 
+  public func pauseForAuxiliaryNavigation() {
+    if isStartingScan {
+      _ = send(.background)
+    } else if scanWorkflow != nil {
+      _ = sendScan(.interrupt(.auxiliaryNavigation))
+    } else if session.preview == .playing {
+      _ = send(.pause)
+    }
+  }
+
   @discardableResult public func send(_ event: SessionEvent) -> EventDisposition {
     if playback == nil {
       switch event {

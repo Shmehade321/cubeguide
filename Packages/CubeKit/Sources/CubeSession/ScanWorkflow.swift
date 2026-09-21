@@ -7,7 +7,7 @@ public enum ScanPhase: String, CaseIterable, Sendable {
 }
 public enum ScanPauseReason: String, Sendable {
   case relaunch, background, permissionDenied, cameraUnavailable, thermal, orientationChanged
-  case captureFailed, invalidObservation
+  case captureFailed, invalidObservation, auxiliaryNavigation
 }
 public enum ScanRejection: Equatable, Sendable {
   case unavailableEvent, confirmationRequired, revisionExhausted, invalidObservation

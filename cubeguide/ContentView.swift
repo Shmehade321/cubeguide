@@ -9,6 +9,7 @@ struct ContentView: View {
   @State private var replacing = false
   @State private var deleting = false
   @State private var reviewingInput = false
+  @State private var showingHelp = false
   @Environment(\.scenePhase) private var scenePhase
 
   init() {
@@ -41,6 +42,10 @@ struct ContentView: View {
       .navigationBarTitleDisplayMode(controller.session.phase == .home ? .large : .inline)
       .toolbar {
         if controller.loadStatus == .ready, controller.session.phase != .home {
+          ToolbarItem(placement: .topBarTrailing) {
+            Button("Help", systemImage: "questionmark.circle", action: openHelp)
+              .accessibilityIdentifier("navigation.help")
+          }
           ToolbarItem(placement: .topBarLeading) {
             Button("Home", action: goHome)
               .accessibilityIdentifier("editor.home")
@@ -72,6 +77,7 @@ struct ContentView: View {
         Text("This removes your saved colors and guide from this device.")
       }
     }
+    .sheet(isPresented: $showingHelp) { HelpView() }
     .task { await controller.load() }
     .onChange(of: scenePhase) { _, phase in
       if phase != .active { controller.send(.background) }
@@ -100,6 +106,8 @@ struct ContentView: View {
           Button("Delete saved cube", role: .destructive) { deleting = true }
             .accessibilityIdentifier("home.delete")
         }
+        Button("Help", systemImage: "questionmark.circle", action: openHelp)
+          .accessibilityIdentifier("home.help")
         Spacer()
       }.padding()
     case .editing, .savingDraft:
@@ -218,6 +226,11 @@ struct ContentView: View {
     }
   }
 
+  private func openHelp() {
+    controller.pauseForAuxiliaryNavigation()
+    showingHelp = true
+  }
+
   private var relatedCells: Set<Int> {
     guard let draft = controller.session.draft,
       let faces = try? draft.canonicalFacelets()
@@ -242,6 +255,7 @@ struct ContentView: View {
           "The operation couldn't be confirmed. Try again, or delete the saved cube to start fresh."
         ))
       Button("Try again", action: retry).buttonStyle(.borderedProminent)
+      Button("Help", action: openHelp).accessibilityIdentifier("failure.help")
       Button("Delete saved cube", role: .destructive) { deleting = true }
     }.padding()
   }

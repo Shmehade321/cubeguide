@@ -65,3 +65,21 @@ UI behavioral RED: `Artifacts/t06-review-ui-red.log` executed the complete solve
 The unchanged solver passed 10,000 PR states, 46,741 shallow states, eight named cases and pinned-reference comparisons. All non-document source hashes match the pre-test snapshot. Portable evidence is in `t06/review-markers/`; full local artifacts remain in `Artifacts/t06-review-pr/`. This is simulator rendering/accessibility-value evidence, not a physical VoiceOver, Dynamic Type or usability qualification.
 
 Next: dedicated calculation cancellation/failure UI qualification and the remaining Help/settings/practice flow, followed by 3D/guide integration. T06 remains running; no physical/media/distribution gate is waived and no public shipment is claimed.
+
+## Increment 4 — offline Help and auxiliary navigation
+
+Home and the workflow toolbar now open bundled Help topics for manual entry/review, showing six faces, face versus whole-cube turns, supported cubes, offline privacy, included components and actual bundle version/build. The Help content is local SwiftUI text with no web view or network request. The included-components text describes the current production boundary; the final archive/license/media audit remains T12 work.
+
+Opening Help uses a dedicated controller operation. Manual work and active solving remain intact; a playing preview pauses without acknowledgement or automatic restart. Capture is paused with accepted data retained, unaccepted frames discarded and old callbacks rejected. Opening Help during a scan startup read cancels that start; during an accepted scan save it allows the write to settle but prevents a subsequent camera start. Closing Help does not automatically resume capture or playback.
+
+Behavioral RED: three controller tests failed with ten assertions against an empty operation; the Home Help UI test failed at the missing control. All 168 session tests now pass, including five auxiliary-navigation tests with delayed real solver output, gated storage, late valid capture output and preview replay continuity. Adapter fixtures prove coordination, not physical camera/audio behavior. UI and full regression results are recorded below. Dedicated calculation cancellation/failure UI qualification and settings/practice remain open.
+
+The focused UI run executed two tests with zero failures: every bundled Help topic was opened from Home, and manual entry retained the stored Blue sticker after visiting Help. The final regression additionally checks that About exposes actual bundle version/build values and retains a privacy-page screenshot. No disconnected physical-device run or full accessibility qualification is claimed.
+
+## Increment 4 regression
+
+The same active regression process was resumed rather than restarted. `SIMULATOR_UDID=67DB7428-A25B-4167-8FC2-24F47A392E81 ARTIFACT_DIR=Artifacts/t06-help-pr Scripts/test-pr.sh` exited 0. All 246 package tests, 45 Python tests, 33 host process-kill cases and eleven simulator tests (six app integration, five UI) passed, with no failures/skips. The UI suite executed for 665 seconds. It covers all seven Help topics, return to unchanged manual work, and actual bundle version/build display. The privacy screenshot was visually inspected: heading, content, Back and Done are readable and not clipped at the tested size.
+
+The built simulator bundle reports version 1.0/build 1. Its recorded 31-file inventory contains no named min2phase/NumPy/reference-tool files; this supports the current dependency boundary, not a completed archive/license audit. The unchanged solver passed 10,000 PR states, 46,741 shallow states, eight named cases and pinned-reference comparisons. All non-document source hashes match the pre-test snapshot. Portable reports, logs, bundle inventory and screenshot are in `t06/help/`; full local artifacts remain under `Artifacts/t06-help-pr/`.
+
+Next: persisted settings and complete local-data deletion, practice isolation, dedicated calculation cancellation/failure UI qualification, and 3D/guide integration. Narration/effects/haptics defaults and speed choices are specified, but their settings UI/storage are not yet implemented. T06 remains running; physical offline/accessibility/media and final distribution qualification remain open. No public shipment is claimed.

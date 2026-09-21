@@ -55,6 +55,11 @@ final class FoundationUITests: XCTestCase {
     expectation(for: changed, evaluatedWith: sticker)
     waitForExpectations(timeout: 5)
     XCTAssertTrue(app.staticTexts["47 stickers left"].exists)
+    tapReady(app.buttons["navigation.help"])
+    tapReady(app.buttons["help.topic.manual"])
+    XCTAssertTrue(app.staticTexts["Match your physical cube"].waitForExistence(timeout: 5))
+    tapReady(app.buttons["help.done"])
+    XCTAssertTrue(sticker.label.contains("Blue"))
     app.buttons["rotate.U"].tap()
     let rotated = app.buttons["cell.U.0.2"]
     expectation(for: changed, evaluatedWith: rotated)
@@ -254,6 +259,44 @@ final class FoundationUITests: XCTestCase {
     XCTAssertTrue(app.buttons["home.delete"].waitForExistence(timeout: 5))
     tapReady(app.buttons["home.delete"])
     tapReady(app.buttons["delete.confirm"])
+  }
+
+  @MainActor
+  func testOfflineHelpFromHome() {
+    let app = XCUIApplication()
+    app.launch()
+    if app.buttons["editor.home"].waitForExistence(timeout: 2) {
+      tapReady(app.buttons["editor.home"])
+    }
+    tapReady(app.buttons["home.help"])
+    for (topic, heading) in [
+      ("privacy", "Your cube stays on this iPhone"),
+      ("capture", "Keep the sticker arrangement unchanged"),
+      ("supported", "Standard six-color 3×3 cubes"),
+      ("turns", "Face turns and whole-cube turns"), ("licenses", "Included components"),
+      ("about", "About CubeGuide"),
+    ] {
+      tapReady(app.buttons["help.topic.\(topic)"])
+      XCTAssertTrue(app.staticTexts[heading].waitForExistence(timeout: 5))
+      if topic == "about" {
+        let version = app.staticTexts.matching(
+          NSPredicate(format: "label BEGINSWITH %@", "Version ")
+        ).firstMatch
+        XCTAssertTrue(version.exists)
+        XCTAssertTrue(version.label.contains("Build"))
+        XCTAssertFalse(version.label.contains("Unavailable"))
+      }
+      if topic == "privacy" {
+        let screenshot = XCTAttachment(screenshot: app.screenshot())
+        screenshot.name = "Bundled offline privacy help"
+        screenshot.lifetime = .keepAlways
+        add(screenshot)
+      }
+      tapReady(app.buttons["help.done"])
+      tapReady(app.buttons["home.help"])
+    }
+    tapReady(app.buttons["help.done"])
+    XCTAssertTrue(app.buttons["home.enterColors"].waitForExistence(timeout: 5))
   }
 
   @MainActor
