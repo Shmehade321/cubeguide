@@ -15,6 +15,7 @@ struct ContentView: View {
   @State private var reviewingInput = false
   @State private var showingHelp = false
   @State private var showingSettings = false
+  @State private var showingScanIntroduction = false
   @Environment(\.accessibilityDifferentiateWithoutColor) private var differentiate
   @Environment(\.scenePhase) private var scenePhase
 
@@ -43,6 +44,23 @@ struct ContentView: View {
           ProgressView("Saving manual entry…")
         } else if controller.manualFallbackStatus == .failed {
           failure("Couldn't save manual entry") { controller.retryManualFallback() }
+        } else if showingScanIntroduction {
+          ScanIntroductionView(
+            start: {
+              showingScanIntroduction = false
+              Task {
+                await controller.startScan(
+                  purpose: .newCube,
+                  replacing: controller.session.hasWork
+                )
+              }
+            },
+            enterManually: {
+              showingScanIntroduction = false
+              reviewingInput = false
+              controller.send(.startManual(replacing: controller.session.hasWork))
+            }
+          )
         } else if let scan = controller.pendingScan {
           CenterAssignmentView(initial: scan.draft.confirmedCenters) { palette in
             controller.switchScanToManual(confirmedCenters: palette, confirmed: true)
@@ -52,17 +70,21 @@ struct ContentView: View {
         }
       }
       .navigationTitle(
-        isPractice ? "Practice" : controller.session.phase == .home
-          ? "CubeGuide" : (controller.session.plan == nil ? "Enter colors" : "Your cube")
+        isPractice
+          ? "Practice"
+          : controller.session.phase == .home
+            ? "CubeGuide" : (controller.session.plan == nil ? "Enter colors" : "Your cube")
       )
       .navigationBarTitleDisplayMode(controller.session.phase == .home ? .large : .inline)
       .toolbar {
         if controller.loadStatus == .ready, controller.session.phase != .home {
           ToolbarItemGroup(placement: .topBarTrailing) {
-            if !isPractice { Button("Settings", systemImage: "gearshape") {
-              controller.pauseForAuxiliaryNavigation()
-              showingSettings = true
-            }.accessibilityIdentifier("navigation.settings") }
+            if !isPractice {
+              Button("Settings", systemImage: "gearshape") {
+                controller.pauseForAuxiliaryNavigation()
+                showingSettings = true
+              }.accessibilityIdentifier("navigation.settings")
+            }
             Button("Help", systemImage: "questionmark.circle", action: openHelp)
               .accessibilityIdentifier("navigation.help")
           }
@@ -120,43 +142,50 @@ struct ContentView: View {
           }
         }.padding()
       } else {
-      VStack(alignment: .leading, spacing: 24) {
-        Text("Start with your cube").font(.largeTitle.bold())
-        Text("Enter the colors on all six faces. Your confirmed entries are saved on this iPhone.")
-        Button("Enter colors", systemImage: "square.grid.3x3") {
-          if controller.session.hasWork {
-            replacing = true
-          } else {
-            reviewingInput = false
-            controller.send(.startManual(replacing: false))
+        VStack(alignment: .leading, spacing: 24) {
+          Text("Start with your cube").font(.largeTitle.bold())
+          Text(
+            "Enter the colors on all six faces. Your confirmed entries are saved on this iPhone.")
+          Button("Enter colors", systemImage: "square.grid.3x3") {
+            if controller.session.hasWork {
+              replacing = true
+            } else {
+              reviewingInput = false
+              controller.send(.startManual(replacing: false))
+            }
           }
-        }
-        .buttonStyle(.borderedProminent).controlSize(.large)
-        .accessibilityIdentifier("home.enterColors")
-        if controller.session.hasWork {
-          Button("Resume saved cube", systemImage: "arrow.clockwise") { controller.send(.resume) }
-            .buttonStyle(.bordered).controlSize(.large).accessibilityIdentifier("home.resume")
-          Button("Delete local data", role: .destructive) { deleting = true }
-            .accessibilityIdentifier("home.delete")
-        }
-        Button("Practice with an example", systemImage: "cube") {
-          controller.pauseForAuxiliaryNavigation()
-          showingPractice = true
-        }.accessibilityIdentifier("home.practice")
-        Button("Settings", systemImage: "gearshape") {
-          controller.pauseForAuxiliaryNavigation()
-          showingSettings = true
-        }.accessibilityIdentifier("home.settings")
-        Button("Help", systemImage: "questionmark.circle", action: openHelp)
-          .accessibilityIdentifier("home.help")
-        Spacer()
-      }.padding()
+          .buttonStyle(.borderedProminent).controlSize(.large)
+          .accessibilityIdentifier("home.enterColors")
+          Button("Scan cube", systemImage: "camera.viewfinder") {
+            showingScanIntroduction = true
+          }
+          .buttonStyle(.bordered).controlSize(.large)
+          .accessibilityIdentifier("home.scan")
+          if controller.session.hasWork {
+            Button("Resume saved cube", systemImage: "arrow.clockwise") { controller.send(.resume) }
+              .buttonStyle(.bordered).controlSize(.large).accessibilityIdentifier("home.resume")
+            Button("Delete local data", role: .destructive) { deleting = true }
+              .accessibilityIdentifier("home.delete")
+          }
+          Button("Practice with an example", systemImage: "cube") {
+            controller.pauseForAuxiliaryNavigation()
+            showingPractice = true
+          }.accessibilityIdentifier("home.practice")
+          Button("Settings", systemImage: "gearshape") {
+            controller.pauseForAuxiliaryNavigation()
+            showingSettings = true
+          }.accessibilityIdentifier("home.settings")
+          Button("Help", systemImage: "questionmark.circle", action: openHelp)
+            .accessibilityIdentifier("home.help")
+          Spacer()
+        }.padding()
       }
     case .editing, .savingDraft:
       if let draft = controller.session.draft {
         ManualEditorView(
           draft: draft,
-          showColorLabels: controller.preferences.colorLabelsEnabled(differentiateWithoutColor: differentiate),
+          showColorLabels: controller.preferences.colorLabelsEnabled(
+            differentiateWithoutColor: differentiate),
           saving: controller.session.phase == .savingDraft,
           reviewCells: reviewingInput ? relatedCells : [],
           validate: { controller.send(.validateDraft) }
@@ -195,7 +224,8 @@ struct ContentView: View {
           Text("This checks the colors you entered. Compare them with your physical cube.")
           Button("Done") { controller.send(.confirmCompletion) }
             .buttonStyle(.borderedProminent).accessibilityIdentifier("completion.save")
-          Button("Edit colors") { controller.send(.edit) }.accessibilityIdentifier("validation.edit")
+          Button("Edit colors") { controller.send(.edit) }.accessibilityIdentifier(
+            "validation.edit")
         }.padding()
       }
     case .offer:
@@ -242,7 +272,9 @@ struct ContentView: View {
       ScrollView {
         VStack(spacing: 20) {
           Text("Let's check your cube").font(.title.bold())
-          Text("Your saved guide is paused. Enter every face again if your cube no longer matches it. Starting over replaces the saved guide only after you confirm.")
+          Text(
+            "Your saved guide is paused. Enter every face again if your cube no longer matches it. Starting over replaces the saved guide only after you confirm."
+          )
           Button("Enter colors again") { replacingAfterRecovery = true }
             .buttonStyle(.borderedProminent).accessibilityIdentifier("recovery.manual")
           Button("Keep guide and compare again") { controller.send(.cancel) }
@@ -250,13 +282,16 @@ struct ContentView: View {
         }.padding()
       }
       .alert("Replace your saved guide?", isPresented: $replacingAfterRecovery) {
-        Button("Keep current", role: .cancel) {}.accessibilityIdentifier("recovery.cancelReplacement")
+        Button("Keep current", role: .cancel) {}.accessibilityIdentifier(
+          "recovery.cancelReplacement")
         Button("Replace and enter colors", role: .destructive) {
           reviewingInput = false
           controller.send(.startManual(replacing: true))
         }.accessibilityIdentifier("recovery.confirmReplacement")
       } message: {
-        Text("You will choose all six centers and enter your cube again. The previous instructions will no longer be active.")
+        Text(
+          "You will choose all six centers and enter your cube again. The previous instructions will no longer be active."
+        )
       }
     case .savingRecovery: ProgressView("Pausing your saved guide…")
     case .recoveryStorageError:
@@ -266,7 +301,9 @@ struct ContentView: View {
         VStack(spacing: 20) {
           completionArtwork
           Text("The guide is finished. Check that your cube is solved.").font(.title.bold())
-          Text("Look at all six physical faces. This is the expected result of the moves you acknowledged; the camera has not checked your cube.")
+          Text(
+            "Look at all six physical faces. This is the expected result of the moves you acknowledged; the camera has not checked your cube."
+          )
           Button("Yes, my cube is solved") { controller.send(.confirmCompletion) }
             .buttonStyle(.borderedProminent).accessibilityIdentifier("completion.confirmPhysical")
           Button("Still different") { controller.send(.mismatch) }
@@ -306,10 +343,14 @@ struct ContentView: View {
   @ViewBuilder
   private var completionArtwork: some View {
     if let palette = controller.palette,
-      let state = controller.session.guideProgress?.state ?? controller.session.confirmedCube?.facelets {
-      CompletionArtwork(state: state, palette: palette,
+      let state = controller.session.guideProgress?.state
+        ?? controller.session.confirmedCube?.facelets
+    {
+      CompletionArtwork(
+        state: state, palette: palette,
         pose: controller.session.guideProgress?.pose ?? .identity,
-        showColorLabels: controller.preferences.colorLabelsEnabled(differentiateWithoutColor: differentiate))
+        showColorLabels: controller.preferences.colorLabelsEnabled(
+          differentiateWithoutColor: differentiate))
     }
   }
 
