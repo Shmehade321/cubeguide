@@ -33,7 +33,7 @@ No renderer fix or iOS 18 qualification is claimed. Overlay recovery was committ
 | T06 Manual flow | running: Home/editor, validation/solver result UI, offline Help, persisted Settings, isolated practice and calculation-state UI coverage | task-06.md |
 | T07 Graphics | running: static/animated preview and overlays locally qualified on explicit iOS 26.5; A07 completion artwork locally qualified with final full PR and largest-text normal/Reduce Motion checks passed; minimum-OS, remaining artwork, broader accessibility and media qualification open | task-07.md |
 | T08 Guidance/audio | notRun | — |
-| T09 Camera | notRun | — |
+| T09 Camera | running: deterministic orientation/mirror normalization, projective sampling, D65 Lab conversion and six-center classification implemented; production capture/UI, quality signals, calibrated policy, real corpus and live-device trials open | task-09.md |
 | T10 Accessibility/physical | notRun | — |
 | T11 Qualification | notRun | — |
 | T12 Distribution | notRun | — |
