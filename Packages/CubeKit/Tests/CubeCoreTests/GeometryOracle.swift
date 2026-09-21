@@ -17,10 +17,20 @@ func geometricPoses() throws {
     let normals = [Vector(0,1,0),Vector(1,0,0),Vector(0,0,1),Vector(0,-1,0),Vector(-1,0,0),Vector(0,0,-1)]
     let rights = [Vector(1,0,0),Vector(0,0,-1),Vector(1,0,0),Vector(1,0,0),Vector(0,0,1),Vector(-1,0,0)]
     let ups = [Vector(0,0,-1),Vector(0,1,0),Vector(0,1,0),Vector(0,0,1),Vector(0,1,0),Vector(0,1,0)]
-    let stickers = (0..<54).map { i in
-        Sticker(position: normals[i/9] + rights[i/9] * (i%3-1) + ups[i/9] * (1-i%9/3), normal: normals[i/9])
+    let stickers: [Sticker] = (0..<54).map { index -> Sticker in
+        let face = index / 9
+        let column = index % 3 - 1
+        let row = 1 - index % 9 / 3
+        let horizontal = rights[face] * column
+        let vertical = ups[face] * row
+        return Sticker(
+            position: normals[face] + horizontal + vertical,
+            normal: normals[face])
     }
-    let indices = Dictionary(uniqueKeysWithValues: stickers.enumerated().map { ($0.element,$0.offset) })
+    let indexedStickers: [(Sticker, Int)] = stickers.enumerated().map { entry in
+        (entry.element, entry.offset)
+    }
+    let indices: [Sticker: Int] = Dictionary(uniqueKeysWithValues: indexedStickers)
     #expect(indices.count == 54)
     for pose in CubeOrientation.all {
         let x = normals[Int(pose.viewFace(for:.right).rawValue)]
