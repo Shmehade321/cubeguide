@@ -6,6 +6,8 @@ import SwiftUI
 
 struct ContentView: View {
   @State private var controller: SessionController
+  private let isPractice: Bool
+  @State private var showingPractice = false
   @State private var replacing = false
   @State private var deleting = false
   @State private var reviewingInput = false
@@ -16,6 +18,11 @@ struct ContentView: View {
 
   init() {
     _controller = State(initialValue: AppDependencies().makeSessionController())
+    isPractice = false
+  }
+  init(controller: SessionController, isPractice: Bool) {
+    _controller = State(initialValue: controller)
+    self.isPractice = isPractice
   }
 
   var body: some View {
@@ -38,17 +45,17 @@ struct ContentView: View {
         }
       }
       .navigationTitle(
-        controller.session.phase == .home
+        isPractice ? "Practice" : controller.session.phase == .home
           ? "CubeGuide" : (controller.session.plan == nil ? "Enter colors" : "Your cube")
       )
       .navigationBarTitleDisplayMode(controller.session.phase == .home ? .large : .inline)
       .toolbar {
         if controller.loadStatus == .ready, controller.session.phase != .home {
           ToolbarItemGroup(placement: .topBarTrailing) {
-            Button("Settings", systemImage: "gearshape") {
+            if !isPractice { Button("Settings", systemImage: "gearshape") {
               controller.pauseForAuxiliaryNavigation()
               showingSettings = true
-            }.accessibilityIdentifier("navigation.settings")
+            }.accessibilityIdentifier("navigation.settings") }
             Button("Help", systemImage: "questionmark.circle", action: openHelp)
               .accessibilityIdentifier("navigation.help")
           }
@@ -83,6 +90,9 @@ struct ContentView: View {
         Text("This removes your saved colors and guide and resets all preferences on this device.")
       }
     }
+    .fullScreenCover(isPresented: $showingPractice) {
+      PracticeView(preferences: controller.preferences)
+    }
     .sheet(isPresented: $showingHelp) { HelpView() }
     .sheet(isPresented: $showingSettings) { SettingsView(controller: controller) }
     .task { await controller.load() }
@@ -94,6 +104,15 @@ struct ContentView: View {
   @ViewBuilder private var sessionContent: some View {
     switch controller.session.phase {
     case .home:
+      if isPractice {
+        VStack(spacing: 20) {
+          Text("Your example stays here until you exit practice.")
+          if controller.session.hasWork {
+            Button("Resume example") { controller.send(.resume) }
+              .accessibilityIdentifier("practice.resume")
+          }
+        }.padding()
+      } else {
       VStack(alignment: .leading, spacing: 24) {
         Text("Start with your cube").font(.largeTitle.bold())
         Text("Enter the colors on all six faces. Your confirmed entries are saved on this iPhone.")
@@ -113,6 +132,10 @@ struct ContentView: View {
           Button("Delete local data", role: .destructive) { deleting = true }
             .accessibilityIdentifier("home.delete")
         }
+        Button("Practice with an example", systemImage: "cube") {
+          controller.pauseForAuxiliaryNavigation()
+          showingPractice = true
+        }.accessibilityIdentifier("home.practice")
         Button("Settings", systemImage: "gearshape") {
           controller.pauseForAuxiliaryNavigation()
           showingSettings = true
@@ -121,6 +144,7 @@ struct ContentView: View {
           .accessibilityIdentifier("home.help")
         Spacer()
       }.padding()
+      }
     case .editing, .savingDraft:
       if let draft = controller.session.draft {
         ManualEditorView(
@@ -269,7 +293,7 @@ struct ContentView: View {
         ))
       Button("Try again", action: retry).buttonStyle(.borderedProminent)
       Button("Help", action: openHelp).accessibilityIdentifier("failure.help")
-      Button("Delete local data", role: .destructive) { deleting = true }
+      if !isPractice { Button("Delete local data", role: .destructive) { deleting = true } }
     }.padding()
   }
 }

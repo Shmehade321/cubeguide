@@ -12,10 +12,17 @@ package enum StoreBoundary: String, CaseIterable, Sendable {
 }
 /// One instance owns guide and draft files in its directory; callers retain its lease for each asynchronous producer.
 public actor SessionStore {
-  private let directory: URL
+  private let directory: URL?
+  private var memory: [String: Data] = [:]
   private var lease = StorageLease(value: UUID())
   private let checkpoint: @Sendable (StoreBoundary) throws -> Void
   private let protection: @Sendable (URL) throws -> Void
+  /// Ephemeral storage: archives remain in memory and disappear with this instance.
+  public init() {
+    directory = nil
+    checkpoint = { _ in }
+    protection = { _ in }
+  }
   public init(directory: URL) {
     self.directory = directory
     self.checkpoint = { _ in }
@@ -214,16 +221,17 @@ public actor SessionStore {
     try replace(CheckedArchive.encode(preferences), file: preferencesFile,
       temporary: preferencesTemporary)
   }
-  private var preferencesFile: URL { directory.appendingPathComponent("preferences.json") }
-  private var preferencesTemporary: URL { directory.appendingPathComponent("preferences.pending") }
+  private var preferencesFile: String { "preferences.json" }
+  private var preferencesTemporary: String { "preferences.pending" }
   public func currentLease() -> StorageLease { lease }
-  private var manualStartFile: URL { directory.appendingPathComponent("manual-start.json") }
-  private var manualStartTemporary: URL { directory.appendingPathComponent("manual-start.pending") }
-  private var file: URL { directory.appendingPathComponent("guide.json") }
-  private var temporary: URL { directory.appendingPathComponent("guide.pending") }
-  private var draftFile: URL { directory.appendingPathComponent("draft.json") }
-  private var draftTemporary: URL { directory.appendingPathComponent("draft.pending") }
+  private var manualStartFile: String { "manual-start.json" }
+  private var manualStartTemporary: String { "manual-start.pending" }
+  private var file: String { "guide.json" }
+  private var temporary: String { "guide.pending" }
+  private var draftFile: String { "draft.json" }
+  private var draftTemporary: String { "draft.pending" }
   private func syncDirectory() throws {
+    guard let directory else { return }
     let descriptor = Darwin.open(directory.path, O_RDONLY)
     guard descriptor >= 0 else { throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno)) }
     defer { Darwin.close(descriptor) }
@@ -235,7 +243,9 @@ public actor SessionStore {
     guard let bytes = try read(file) else { return nil }
     return try GuideArchive.decode(bytes)
   }
-  private func read(_ file: URL) throws -> Data? {
+  private func read(_ name: String) throws -> Data? {
+    guard let directory else { return memory[name] }
+    let file = directory.appendingPathComponent(name)
     let descriptor = Darwin.open(file.path, O_RDONLY)
     guard descriptor >= 0 else {
       if errno == ENOENT { return nil }
@@ -283,7 +293,10 @@ public actor SessionStore {
     let bytes = try GuideArchive.encode(request, palette: palette)
     try replace(bytes, file: file, temporary: temporary)
   }
-  private func replace(_ bytes: Data, file: URL, temporary: URL) throws {
+  private func replace(_ bytes: Data, file name: String, temporary temporaryName: String) throws {
+    guard let directory else { memory[name] = bytes; return }
+    let file = directory.appendingPathComponent(name)
+    let temporary = directory.appendingPathComponent(temporaryName)
     try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
     try protection(directory)
     var folder = directory
@@ -312,10 +325,12 @@ public actor SessionStore {
     guard lease == self.lease else { throw SessionStoreError.staleLease }
     self.lease = StorageLease(value: UUID())
     try checkpoint(.beforeDelete)
-    for ownedFile in [
+    guard let directory else { memory.removeAll(); return self.lease }
+    for name in [
       file, temporary, draftFile, draftTemporary, manualStartFile, manualStartTemporary,
       preferencesFile, preferencesTemporary,
     ] {
+      let ownedFile = directory.appendingPathComponent(name)
       if FileManager.default.fileExists(atPath: ownedFile.path) {
         try FileManager.default.removeItem(at: ownedFile)
       }

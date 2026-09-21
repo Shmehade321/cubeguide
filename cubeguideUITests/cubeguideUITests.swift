@@ -2,6 +2,34 @@ import XCTest
 
 final class FoundationUITests: XCTestCase {
   @MainActor
+  func testPracticeExampleAndExit() {
+    let app = XCUIApplication()
+    app.launch()
+    if app.buttons["editor.home"].waitForExistence(timeout: 2) { tapReady(app.buttons["editor.home"]) }
+    let practice = app.buttons["home.practice"]
+    XCTAssertTrue(practice.waitForExistence(timeout: 5))
+    guard practice.exists else { return }
+    tapReady(practice)
+    XCTAssertTrue(app.staticTexts["practice.banner"].waitForExistence(timeout: 5))
+    XCTAssertTrue(app.staticTexts["0 stickers left"].exists)
+    let screenshot = XCTAttachment(screenshot: app.screenshot())
+    screenshot.name = "Labeled practice example"
+    screenshot.lifetime = .keepAlways
+    add(screenshot)
+    tapReady(app.buttons["editor.validate"])
+    XCTAssertTrue(app.buttons["solve.consent"].waitForExistence(timeout: 5))
+    XCTAssertTrue(app.staticTexts["practice.banner"].exists)
+    tapReady(app.buttons["solve.consent"])
+    XCTAssertTrue(app.staticTexts["solve.verified"].waitForExistence(timeout: 15))
+    XCTAssertTrue(app.staticTexts["practice.banner"].exists)
+    tapReady(app.buttons["practice.exit"])
+    XCTAssertTrue(practice.waitForExistence(timeout: 5))
+    tapReady(practice)
+    XCTAssertTrue(app.staticTexts["0 stickers left"].waitForExistence(timeout: 5))
+    tapReady(app.buttons["practice.exit"])
+  }
+
+  @MainActor
   func testSettingsPersistAndDelete() {
     let app = XCUIApplication()
     app.launch()
@@ -129,6 +157,17 @@ final class FoundationUITests: XCTestCase {
     add(screenshot)
     app.buttons["editor.home"].tap()
     XCTAssertTrue(app.buttons["home.resume"].waitForExistence(timeout: 5))
+    tapReady(app.buttons["home.practice"])
+    XCTAssertTrue(app.staticTexts["practice.banner"].waitForExistence(timeout: 5))
+    tapReady(app.buttons["cell.U.0.0"])
+    tapReady(app.buttons["sticker.clear"])
+    XCTAssertTrue(app.staticTexts["1 stickers left"].waitForExistence(timeout: 5))
+    tapReady(app.buttons["practice.exit"])
+    tapReady(app.buttons["home.resume"])
+    XCTAssertTrue(sticker.waitForExistence(timeout: 5))
+    XCTAssertTrue(sticker.label.contains("Blue"))
+    XCTAssertTrue(app.staticTexts["47 stickers left"].exists)
+    app.buttons["editor.home"].tap()
     app.terminate()
     app.launch()
     XCTAssertTrue(sticker.waitForExistence(timeout: 5))
