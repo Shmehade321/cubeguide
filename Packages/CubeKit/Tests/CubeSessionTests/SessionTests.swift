@@ -246,8 +246,14 @@ func preGuideTransitionMatrix() throws {
   let expectedSolved = try finishedGuide()
   // Columns: start, edit, validate, yes, no, cancel, background, resume, longer, result.
   // A = accepted; R = rejected; I = ignored. Extend with each new workflow phase.
+  let draftSaving = try draftSavingSession()
+  let draftError = apply(
+    draftSaving, .draftPersistFailed(try #require(draftSaving.pendingDraftSave).id)
+  ).session
   let rows: [(Session, SessionPhase, String)] = [
     (Session(), .home, "ARRRRRIRRI"),
+    (draftSaving, .savingDraft, "RRRRRAIRRI"),
+    (draftError, .draftStorageError, "RRRRRRIRRI"),
     (editing, .editing, "RAARRAIRRI"),
     (invalid, .invalid, "RARRRAIRRI"),
     (solved, .alreadySolved, "RARRRAIRRI"),

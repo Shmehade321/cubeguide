@@ -248,8 +248,13 @@ func persistenceEventMatrix() throws {
   let prepFailed = apply(preparing, .persistFailed(try #require(preparing.pendingSave).id)).session
   // Columns: save success, save failure, align, play, pause, replay, playback end,
   // acknowledgement, matches before, matches after, uncertain. A/R/I as in the workflow matrix.
+  let draftSaving = try draftSavingSession()
+  let draftError = apply(
+    draftSaving, .draftPersistFailed(try #require(draftSaving.pendingDraftSave).id)
+  ).session
   let rows: [(Session, String)] = [
     (Session(), "IIRRRRIIRRR"), (editing, "IIRRRRIIRRR"),
+    (draftSaving, "IIRRRRIIRRR"), (draftError, "IIRRRRIIRRR"),
     (apply(editing, .validate(try Facelets(bad))).session, "IIRRRRIIRRR"),
     (apply(editing, .validate(.solved)).session, "IIRRRRIIRRR"),
     (try offeredSession(), "IIRRRRIIRRR"), (solving, "IIRRRRIIRRR"),

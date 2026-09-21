@@ -3,10 +3,12 @@ import CubeSolver3
 
 public enum SessionPhase: String, CaseIterable, Sendable {
   case home, editing, invalid, alreadySolved, offer, solving, solveError, preparingAction,
-    resumeCheck, guide, savingAcknowledgement, storageError, expectedSolved, recovery
+    resumeCheck, guide, savingAcknowledgement, storageError, expectedSolved, recovery, savingDraft,
+    draftStorageError
 }
 public enum SessionRejection: Equatable, Sendable {
   case unavailableEvent, replacementRequired, revisionExhausted
+  case draft(DraftError)
 }
 public enum EventDisposition: Equatable, Sendable {
   case accepted, ignored
@@ -15,6 +17,10 @@ public enum EventDisposition: Equatable, Sendable {
 public enum SessionEvent: Sendable {
   case startManual(replacing: Bool)
   case edit
+  case editDraft(DraftEdit)
+  case validateDraft, retryDraftSave
+  case draftPersisted(SaveID)
+  case draftPersistFailed(SaveID)
   case validate(Facelets)
   case consent(Bool)
   case cancel, background, resume, retryLonger
@@ -30,6 +36,7 @@ public enum SessionCommand: Sendable {
   case solve(LegalCube, revision: UInt64, budget: SolveBudget)
   case cancelSolve(revision: UInt64)
   case saveGuide(GuideSaveRequest)
+  case saveDraft(DraftSaveRequest)
   case playPreview(GuideAction, PlaybackID, restart: Bool)
   case stopPreview, pausePreview
 }
@@ -37,6 +44,10 @@ public struct Session: Equatable, Sendable {
   public fileprivate(set) var phase: SessionPhase = .home
   public fileprivate(set) var revision: UInt64
   public fileprivate(set) var hasWork = false
+  public fileprivate(set) var draft: ManualDraft?
+  public fileprivate(set) var durableDraft: ManualDraft?
+  public fileprivate(set) var pendingDraftSave: DraftSaveRequest?
+  fileprivate var exitAfterDraftSave = false
   public fileprivate(set) var confirmedCube: LegalCube?
   public fileprivate(set) var validationIssues: ValidationIssues?
   public var plan: VerifiedPlan? { guideProgress?.plan }
@@ -54,6 +65,13 @@ public struct Session: Equatable, Sendable {
   fileprivate var interruptedSave = false
   fileprivate var failedSaveKind: GuideSaveKind?
   public init(revision: UInt64 = 0) { self.revision = revision }
+  public init(restoringDraft draft: ManualDraft) {
+    self.init(revision: draft.revision)
+    self.draft = draft
+    durableDraft = draft
+    hasWork = true
+    phase = .editing
+  }
   public init(restoring archive: RestoredGuide) throws {
     self.init(revision: archive.progress.revision)
     guideProgress = archive.progress
@@ -102,7 +120,68 @@ public enum SessionReducer {
       commands.append(.saveGuide(request))
       return true
     }
+    func beginDraftSave() {
+      guard let draft = next.draft else { return }
+      let (sequence, overflow) = next.saveSequence.addingReportingOverflow(1)
+      guard !overflow else {
+        next.phase = .draftStorageError
+        return
+      }
+      next.saveSequence = sequence
+      let request = DraftSaveRequest(
+        id: SaveID(revision: next.revision, sequence: sequence), draft: draft)
+      next.pendingDraftSave = request
+      next.phase = .savingDraft
+      commands.append(.saveDraft(request))
+    }
     switch event {
+    case .editDraft(let edit):
+      guard session.phase == .editing else { return rejected() }
+      guard advanceRevision() else { return rejected(.revisionExhausted) }
+      do {
+        let candidate: ManualDraft
+        switch edit {
+        case .centers(let palette):
+          candidate =
+            try session.draft?.assigningCenters(palette)
+            ?? ManualDraft(palette: palette, revision: next.revision)
+        case .sticker(let face, let row, let column, let color):
+          guard let draft = session.draft else { return rejected() }
+          candidate = try draft.setting(face: face, row: row, column: column, color: color)
+        case .rotate(let face, let turns):
+          guard let draft = session.draft else { return rejected() }
+          candidate = try draft.rotating(face, by: turns)
+        }
+        next.draft = candidate.rebased(to: next.revision)
+        next.confirmedCube = nil
+        next.validationIssues = nil
+        next.solveFailure = nil
+        next.usedExtendedAttempt = false
+        beginDraftSave()
+      } catch let error as DraftError { return rejected(.draft(error)) } catch {
+        return rejected(.draft(.invalidShape))
+      }
+    case .validateDraft:
+      guard session.phase == .editing, let draft = session.draft,
+        session.durableDraft == draft
+      else { return rejected() }
+      do { return reduce(session, event: .validate(try draft.canonicalFacelets())) } catch let error
+        as DraftError
+      { return rejected(.draft(error)) } catch { return rejected(.draft(.invalidShape)) }
+    case .draftPersisted(let id):
+      guard let request = session.pendingDraftSave, request.id == id else { return ignored() }
+      next.durableDraft = request.draft
+      next.pendingDraftSave = nil
+      next.phase = session.exitAfterDraftSave ? .home : .editing
+      next.exitAfterDraftSave = false
+    case .draftPersistFailed(let id):
+      guard session.pendingDraftSave?.id == id else { return ignored() }
+      next.pendingDraftSave = nil
+      next.phase = .draftStorageError
+      next.exitAfterDraftSave = false
+    case .retryDraftSave:
+      guard session.phase == .draftStorageError, session.draft != nil else { return rejected() }
+      beginDraftSave()
     case .persisted(let id):
       guard let save = session.pendingSave, save.id == id else { return ignored() }
       next.pendingSave = nil
@@ -210,7 +289,10 @@ public enum SessionReducer {
       next.phase = .editing
       next.hasWork = true
     case .cancel, .background:
-      if [.preparingAction, .guide, .savingAcknowledgement].contains(session.phase) {
+      if session.phase == .savingDraft {
+        if case .background = event { return ignored() }
+        next.exitAfterDraftSave = true
+      } else if [.preparingAction, .guide, .savingAcknowledgement].contains(session.phase) {
         next.aligned = false
         next.preview = .idle
         next.playbackID = nil
@@ -240,6 +322,11 @@ public enum SessionReducer {
       }
     case .validate(let faces):
       guard session.phase == .editing else { return rejected() }
+      if let draft = session.draft {
+        guard session.durableDraft == draft, (try? draft.canonicalFacelets()) == faces else {
+          return rejected()
+        }
+      }
       let (revision, overflow) = session.revision.addingReportingOverflow(1)
       guard !overflow else { return rejected(.revisionExhausted) }
       next.revision = revision

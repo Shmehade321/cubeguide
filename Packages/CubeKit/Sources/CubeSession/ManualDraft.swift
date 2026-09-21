@@ -24,6 +24,9 @@ public struct ManualDraft: Equatable, Sendable, Codable {
     self.cells = cells
     self.revision = revision
   }
+  func rebased(to revision: UInt64) -> ManualDraft {
+    ManualDraft(palette: palette, cells: cells, revision: revision)
+  }
   private func nextRevision() throws -> UInt64 {
     let (next, overflow) = revision.addingReportingOverflow(1)
     guard !overflow else { throw DraftError.revisionExhausted }
