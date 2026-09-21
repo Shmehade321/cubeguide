@@ -11,6 +11,9 @@ struct AppDependencies {
   static var guideDirectory: URL {
     URL.applicationSupportDirectory.appendingPathComponent("CubeGuide/Guide", isDirectory: true)
   }
+  func makeSessionController(playback: any GuidePlayback) -> SessionController {
+    SessionController(storage: sessionStore, solver: solver, playback: playback)
+  }
   func restoreSession() async throws -> SessionRestoration {
     try await sessionStore.restore()
   }

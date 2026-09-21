@@ -79,3 +79,44 @@ func protectedGuideStorage() async throws {
   #expect(try await store.loadDraft() == nil)
   #expect(try await dependencies.restoreSession().session.phase == .home)
 }
+
+@MainActor
+private final class CompositionPlayback: GuidePlayback {
+  var stopCount = 0
+  func play(
+    _ action: GuideAction, id: PlaybackID, restart: Bool,
+    finished: @escaping @MainActor @Sendable (PlaybackID) -> Void
+  ) {
+    Issue.record("This storage-only integration must not start playback")
+  }
+  func pause() { Issue.record("This storage-only integration must not pause playback") }
+  func stop() { stopCount += 1 }
+}
+
+@MainActor
+@Test("R05/R18: app composition executes draft-save and delete commands through the coordinator")
+func appSessionCoordinator() async throws {
+  let directory = AppDependencies.guideDirectory.appendingPathComponent("coordinator-\(UUID())")
+  defer { try? FileManager.default.removeItem(at: directory) }
+  let dependencies = AppDependencies(guideDirectory: directory)
+  let playback = CompositionPlayback()
+  let controller = dependencies.makeSessionController(playback: playback)
+  await controller.load()
+  #expect(controller.send(.startManual(replacing: false)) == .accepted)
+  let palette = try CenterPalette([.green, .white, .orange, .blue, .yellow, .red])
+  #expect(controller.send(.editDraft(.centers(palette))) == .accepted)
+  let saveDeadline = ContinuousClock.now.advanced(by: .seconds(10))
+  while controller.session.phase == .savingDraft && ContinuousClock.now < saveDeadline {
+    try await Task.sleep(for: .milliseconds(5))
+  }
+  #expect(controller.session.phase == .editing)
+  #expect(try await dependencies.sessionStore.loadDraft() == controller.session.draft)
+  #expect(controller.send(.deleteLocalData(confirmed: true)) == .accepted)
+  let deleteDeadline = ContinuousClock.now.advanced(by: .seconds(10))
+  while controller.session.phase == .deleting && ContinuousClock.now < deleteDeadline {
+    try await Task.sleep(for: .milliseconds(5))
+  }
+  #expect(controller.session.phase == .home && !controller.session.hasWork)
+  #expect(try await dependencies.sessionStore.loadDraft() == nil)
+  #expect(playback.stopCount == 1)
+}
