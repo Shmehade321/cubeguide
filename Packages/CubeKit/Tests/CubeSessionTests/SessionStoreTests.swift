@@ -14,12 +14,12 @@ func storeDirectory() throws -> URL {
 func storeRoundTrip() async throws {
   let directory = try storeDirectory()
   defer { try? FileManager.default.removeItem(at: directory) }
-  let store = GuideStore(directory: directory)
+  let store = SessionStore(directory: directory)
   #expect(try await store.load() == nil)
   let request = try #require(try preparingSession().pendingSave)
   let palette = try archivePalette()
   try await store.save(request, palette: palette, lease: store.currentLease())
-  let reopened = GuideStore(directory: directory)
+  let reopened = SessionStore(directory: directory)
   let loaded = try #require(try await reopened.load())
   #expect(loaded.progress == request.progress)
   #expect(loaded.palette == palette)
@@ -32,7 +32,7 @@ func storeRoundTrip() async throws {
 func storeDeletionLease() async throws {
   let directory = try storeDirectory()
   defer { try? FileManager.default.removeItem(at: directory) }
-  let store = GuideStore(directory: directory)
+  let store = SessionStore(directory: directory)
   let oldLease = await store.currentLease()
   let request = try #require(try preparingSession().pendingSave)
   let palette = try archivePalette()
@@ -42,10 +42,10 @@ func storeDeletionLease() async throws {
   #expect(try await store.load() == nil)
   #expect(
     !FileManager.default.fileExists(atPath: directory.appendingPathComponent("guide.json").path))
-  await #expect(throws: GuideStoreError.staleLease) {
+  await #expect(throws: SessionStoreError.staleLease) {
     try await store.save(request, palette: palette, lease: oldLease)
   }
-  await #expect(throws: GuideStoreError.staleLease) { try await store.delete(lease: oldLease) }
+  await #expect(throws: SessionStoreError.staleLease) { try await store.delete(lease: oldLease) }
   #expect(try await store.load() == nil)
   try await store.save(request, palette: palette, lease: newLease)
   #expect(try await store.load()?.progress == request.progress)
@@ -64,9 +64,9 @@ func storePreservesUnreadableArchive() async throws {
     defer { try? FileManager.default.removeItem(at: directory) }
     let file = directory.appendingPathComponent("guide.json")
     try original.write(to: file)
-    let store = GuideStore(directory: directory)
+    let store = SessionStore(directory: directory)
     await #expect(throws: (any Error).self) { try await store.load() }
-    await #expect(throws: GuideStoreError.existingArchiveNeedsReview) {
+    await #expect(throws: SessionStoreError.existingArchiveNeedsReview) {
       try await store.save(request, palette: palette, lease: store.currentLease())
     }
     #expect(try Data(contentsOf: file) == original)
@@ -88,15 +88,15 @@ func storeWriteBoundaries() async throws {
   for boundary in StoreBoundary.allCases where boundary != .beforeDelete {
     let directory = try storeDirectory()
     defer { try? FileManager.default.removeItem(at: directory) }
-    let store = GuideStore(directory: directory)
+    let store = SessionStore(directory: directory)
     try await store.save(original, palette: palette, lease: store.currentLease())
-    let failing = GuideStore(directory: directory) { stage in
+    let failing = SessionStore(directory: directory) { stage in
       if stage == boundary { throw InjectedStoreFailure.stopped }
     }
     await #expect(throws: InjectedStoreFailure.self) {
       try await failing.save(next, palette: palette, lease: failing.currentLease())
     }
-    let reopened = GuideStore(directory: directory)
+    let reopened = SessionStore(directory: directory)
     let recovered = try #require(try await reopened.load())
     #expect(recovered.progress == (boundary == .afterReplace ? next.progress : original.progress))
     // A failed callback is ambiguous only at/after replacement; either archive is fully verified.
@@ -109,7 +109,7 @@ func storeWriteBoundaries() async throws {
 func storeDeleteFailure() async throws {
   let directory = try storeDirectory()
   defer { try? FileManager.default.removeItem(at: directory) }
-  let store = GuideStore(directory: directory) { boundary in
+  let store = SessionStore(directory: directory) { boundary in
     if boundary == .beforeDelete { throw InjectedStoreFailure.stopped }
   }
   let request = try #require(try preparingSession().pendingSave)
@@ -118,7 +118,7 @@ func storeDeleteFailure() async throws {
   try await store.save(request, palette: palette, lease: lease)
   await #expect(throws: InjectedStoreFailure.self) { try await store.delete(lease: lease) }
   #expect(try await store.load()?.progress == request.progress)
-  await #expect(throws: GuideStoreError.staleLease) {
+  await #expect(throws: SessionStoreError.staleLease) {
     try await store.save(request, palette: palette, lease: lease)
   }
 }
@@ -129,7 +129,7 @@ func storeAbandonedTemporaryAndIOFailure() async throws {
   defer { try? FileManager.default.removeItem(at: directory) }
   let pending = directory.appendingPathComponent("guide.pending")
   try Data("partial interrupted write".utf8).write(to: pending)
-  let store = GuideStore(directory: directory)
+  let store = SessionStore(directory: directory)
   #expect(try await store.load() == nil)
   let request = try #require(try preparingSession().pendingSave)
   let palette = try archivePalette()
@@ -149,7 +149,7 @@ func storeAbandonedTemporaryAndIOFailure() async throws {
 func storeRejectsReorderedWrites() async throws {
   let directory = try storeDirectory()
   defer { try? FileManager.default.removeItem(at: directory) }
-  let store = GuideStore(directory: directory)
+  let store = SessionStore(directory: directory)
   let original = try #require(try preparingSession().pendingSave)
   let guide = try durableGuide()
   let action = try #require(guide.pendingAction)
@@ -173,7 +173,7 @@ func storeRejectsReorderedWrites() async throws {
 func storeBackupExclusion() async throws {
   let directory = try storeDirectory()
   defer { try? FileManager.default.removeItem(at: directory) }
-  let store = GuideStore(directory: directory)
+  let store = SessionStore(directory: directory)
   let request = try #require(try preparingSession().pendingSave)
   try await store.save(request, palette: archivePalette(), lease: store.currentLease())
   let values = try directory.resourceValues(forKeys: [.isExcludedFromBackupKey])
@@ -186,7 +186,7 @@ func storeDeleteDuringWrite() async throws {
   defer { try? FileManager.default.removeItem(at: directory) }
   let entered = DispatchSemaphore(value: 0)
   let release = DispatchSemaphore(value: 0)
-  let store = GuideStore(directory: directory) { boundary in
+  let store = SessionStore(directory: directory) { boundary in
     if boundary == .beforeReplace {
       entered.signal()
       release.wait()
@@ -208,10 +208,10 @@ func storeDeleteDuringWrite() async throws {
   try await write.value
   _ = try await deletion.value
   #expect(try await store.load() == nil)
-  await #expect(throws: GuideStoreError.staleLease) {
+  await #expect(throws: SessionStoreError.staleLease) {
     try await store.save(request, palette: palette, lease: lease)
   }
-  #expect(try await GuideStore(directory: directory).load() == nil)
+  #expect(try await SessionStore(directory: directory).load() == nil)
 }
 
 private func waitForStoreBoundary(_ semaphore: DispatchSemaphore) -> Bool {
@@ -227,7 +227,7 @@ func storePermissionFailure() async throws {
     try? FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: directory.path)
     try? FileManager.default.removeItem(at: directory)
   }
-  let store = GuideStore(directory: directory)
+  let store = SessionStore(directory: directory)
   let request = try #require(try preparingSession().pendingSave)
   let palette = try archivePalette()
   try await store.save(request, palette: palette, lease: store.currentLease())
@@ -248,7 +248,7 @@ func storeProtectionFailure() async throws {
   for failAtTemporary in [false, true] {
     let directory = try storeDirectory()
     defer { try? FileManager.default.removeItem(at: directory) }
-    let store = GuideStore(
+    let store = SessionStore(
       directory: directory, checkpoint: { _ in },
       protection: { url in
         if !failAtTemporary || url.lastPathComponent == "guide.pending" {

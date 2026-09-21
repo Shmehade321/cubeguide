@@ -1,7 +1,7 @@
 import Darwin
 import Foundation
 
-public enum GuideStoreError: Error, Equatable {
+public enum SessionStoreError: Error, Equatable {
   case staleLease, staleWrite, existingArchiveNeedsReview
 }
 public struct StorageLease: Equatable, Sendable {
@@ -10,8 +10,8 @@ public struct StorageLease: Equatable, Sendable {
 enum StoreBoundary: CaseIterable, Sendable {
   case beforeWrite, temporarySynced, beforeReplace, afterReplace, beforeDelete
 }
-/// One instance owns the guide directory; callers retain its lease for each asynchronous producer.
-public actor GuideStore {
+/// One instance owns guide and draft files in its directory; callers retain its lease for each asynchronous producer.
+public actor SessionStore {
   private let directory: URL
   private var lease = StorageLease(value: UUID())
   private let checkpoint: @Sendable (StoreBoundary) throws -> Void
@@ -23,7 +23,7 @@ public actor GuideStore {
   }
   init(
     directory: URL, checkpoint: @escaping @Sendable (StoreBoundary) throws -> Void,
-    protection: @escaping @Sendable (URL) throws -> Void = GuideStore.applyProtection
+    protection: @escaping @Sendable (URL) throws -> Void = SessionStore.applyProtection
   ) {
     self.directory = directory
     self.checkpoint = checkpoint
@@ -35,9 +35,27 @@ public actor GuideStore {
         [.protectionKey: FileProtectionType.complete], ofItemAtPath: url.path)
     #endif
   }
+  public func loadDraft() throws -> ManualDraft? {
+    guard let bytes = try read(draftFile) else { return nil }
+    return try DraftArchive.decode(bytes)
+  }
+  public func saveDraft(_ draft: ManualDraft, lease: StorageLease) throws {
+    guard lease == self.lease else { throw SessionStoreError.staleLease }
+    let existing: ManualDraft?
+    do { existing = try loadDraft() } catch { throw SessionStoreError.existingArchiveNeedsReview }
+    if let existing {
+      guard draft.revision > existing.revision || draft == existing else {
+        throw SessionStoreError.staleWrite
+      }
+    }
+    let bytes = try DraftArchive.encode(draft)
+    try replace(bytes, file: draftFile, temporary: draftTemporary)
+  }
   public func currentLease() -> StorageLease { lease }
   private var file: URL { directory.appendingPathComponent("guide.json") }
   private var temporary: URL { directory.appendingPathComponent("guide.pending") }
+  private var draftFile: URL { directory.appendingPathComponent("draft.json") }
+  private var draftTemporary: URL { directory.appendingPathComponent("draft.pending") }
   private func syncDirectory() throws {
     let descriptor = Darwin.open(directory.path, O_RDONLY)
     guard descriptor >= 0 else { throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno)) }
@@ -47,6 +65,10 @@ public actor GuideStore {
     }
   }
   public func load() throws -> RestoredGuide? {
+    guard let bytes = try read(file) else { return nil }
+    return try GuideArchive.decode(bytes)
+  }
+  private func read(_ file: URL) throws -> Data? {
     let descriptor = Darwin.open(file.path, O_RDONLY)
     guard descriptor >= 0 else {
       if errno == ENOENT { return nil }
@@ -55,29 +77,32 @@ public actor GuideStore {
     let handle = FileHandle(fileDescriptor: descriptor, closeOnDealloc: true)
     defer { try? handle.close() }
     let bytes = try handle.read(upToCount: GuideArchive.maximumBytes + 1) ?? Data()
-    return try GuideArchive.decode(bytes)
+    return bytes
   }
   public func save(_ request: GuideSaveRequest, palette: CenterPalette, lease: StorageLease) throws
   {
-    guard lease == self.lease else { throw GuideStoreError.staleLease }
+    guard lease == self.lease else { throw SessionStoreError.staleLease }
     let existing: RestoredGuide?
-    do { existing = try load() } catch { throw GuideStoreError.existingArchiveNeedsReview }
+    do { existing = try load() } catch { throw SessionStoreError.existingArchiveNeedsReview }
     if let existing {
       guard request.id.revision >= existing.saveID.revision else {
-        throw GuideStoreError.staleWrite
+        throw SessionStoreError.staleWrite
       }
       if request.id.revision == existing.saveID.revision {
         guard request.id.sequence >= existing.saveID.sequence else {
-          throw GuideStoreError.staleWrite
+          throw SessionStoreError.staleWrite
         }
         if request.id.sequence == existing.saveID.sequence {
           guard request.progress == existing.progress, palette == existing.palette,
             request.pendingPrepared == existing.pendingPrepared
-          else { throw GuideStoreError.staleWrite }
+          else { throw SessionStoreError.staleWrite }
         }
       }
     }
     let bytes = try GuideArchive.encode(request, palette: palette)
+    try replace(bytes, file: file, temporary: temporary)
+  }
+  private func replace(_ bytes: Data, file: URL, temporary: URL) throws {
     try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
     try protection(directory)
     var folder = directory
@@ -103,14 +128,13 @@ public actor GuideStore {
     try checkpoint(.afterReplace)
   }
   public func delete(lease: StorageLease) throws -> StorageLease {
-    guard lease == self.lease else { throw GuideStoreError.staleLease }
+    guard lease == self.lease else { throw SessionStoreError.staleLease }
     self.lease = StorageLease(value: UUID())
     try checkpoint(.beforeDelete)
-    if FileManager.default.fileExists(atPath: file.path) {
-      try FileManager.default.removeItem(at: file)
-    }
-    if FileManager.default.fileExists(atPath: temporary.path) {
-      try FileManager.default.removeItem(at: temporary)
+    for ownedFile in [file, temporary, draftFile, draftTemporary] {
+      if FileManager.default.fileExists(atPath: ownedFile.path) {
+        try FileManager.default.removeItem(at: ownedFile)
+      }
     }
     if FileManager.default.fileExists(atPath: directory.path) { try syncDirectory() }
     return self.lease

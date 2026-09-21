@@ -49,7 +49,11 @@ func protectedGuideStorage() async throws {
   session = SessionReducer.reduce(session, event: .solveResult(result)).session
   let request = try #require(session.pendingSave)
   let palette = try CenterPalette([.green, .white, .orange, .blue, .yellow, .red])
-  let store = dependencies.guideStore
+  let store = dependencies.sessionStore
+  let partial = try ManualDraft(palette: palette, revision: 10)
+    .setting(face: .front, row: 0, column: 2, color: .blue)
+  try await store.saveDraft(partial, lease: store.currentLease())
+  #expect(try await store.loadDraft() == partial)
   try await store.save(request, palette: palette, lease: store.currentLease())
   // Simulator does not expose the protection attribute on this runtime.
   // Physical qualification must run these assertions and locked-device I/O checks.
@@ -69,4 +73,5 @@ func protectedGuideStorage() async throws {
   #expect(resumed.phase == .resumeCheck && !resumed.aligned)
   _ = try await store.delete(lease: store.currentLease())
   #expect(try await store.load() == nil)
+  #expect(try await store.loadDraft() == nil)
 }

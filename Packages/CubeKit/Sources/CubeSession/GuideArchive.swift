@@ -1,4 +1,3 @@
-import CryptoKit
 import CubeCore
 import Foundation
 
@@ -12,12 +11,7 @@ public struct RestoredGuide: Equatable, Sendable {
   public let pendingPrepared: Bool
 }
 public enum GuideArchive {
-  public static let maximumBytes = 256 * 1024
-  private struct Envelope: Codable {
-    let schema: Int
-    let payload: Data
-    let checksum: String
-  }
+  public static let maximumBytes = CheckedArchive.maximumBytes
   private struct Payload: Codable {
     let original: Facelets
     let moves: String
@@ -31,9 +25,6 @@ public enum GuideArchive {
     let state: Facelets
     let pendingAction: ActionID?
     let pendingPrepared: Bool
-  }
-  private static func hash(_ data: Data) -> String {
-    SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
   }
   public static func encode(_ request: GuideSaveRequest, palette: CenterPalette) throws -> Data {
     let progress = request.progress
@@ -51,24 +42,10 @@ public enum GuideArchive {
       saveID: request.id, acknowledgedActions: progress.acknowledgedActions,
       moveIndex: progress.moveIndex, pose: progress.pose, state: progress.state,
       pendingAction: progress.pending?.id, pendingPrepared: request.pendingPrepared)
-    let encoder = JSONEncoder()
-    encoder.outputFormatting = [.sortedKeys]
-    let bytes = try encoder.encode(payload)
-    let result = try encoder.encode(Envelope(schema: 1, payload: bytes, checksum: hash(bytes)))
-    guard result.count <= maximumBytes else { throw ArchiveError.sizeLimit }
-    return result
+    return try CheckedArchive.encode(payload)
   }
   public static func decode(_ data: Data) throws -> RestoredGuide {
-    guard data.count <= maximumBytes else { throw ArchiveError.sizeLimit }
-    let decoder = JSONDecoder()
-    // Inspect the version before interpreting any version-specific payload fields.
-    struct Version: Decodable { let schema: Int }
-    guard try decoder.decode(Version.self, from: data).schema == 1 else {
-      throw ArchiveError.unsupportedVersion
-    }
-    let envelope = try decoder.decode(Envelope.self, from: data)
-    guard envelope.checksum == hash(envelope.payload) else { throw ArchiveError.corrupt }
-    let payload = try decoder.decode(Payload.self, from: envelope.payload)
+    let payload = try CheckedArchive.decode(Payload.self, from: data)
     guard !payload.resourceVersion.isEmpty, payload.resourceVersion.utf8.count <= 256,
       payload.saveID.sequence > 0
     else { throw ArchiveError.invalidProgress }

@@ -7,11 +7,11 @@ import Foundation
 struct AppDependencies {
   let solver = SolverService()
   let canonicalFaces: [Face] = Face.allCases
-  let guideStore: GuideStore
+  let sessionStore: SessionStore
   static var guideDirectory: URL {
     URL.applicationSupportDirectory.appendingPathComponent("CubeGuide/Guide", isDirectory: true)
   }
   init(guideDirectory: URL = Self.guideDirectory) {
-    guideStore = GuideStore(directory: guideDirectory)
+    sessionStore = SessionStore(directory: guideDirectory)
   }
 }
