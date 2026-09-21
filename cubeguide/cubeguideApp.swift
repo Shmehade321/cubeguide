@@ -11,7 +11,15 @@ import SwiftUI
 struct cubeguideApp: App {
     var body: some Scene {
         WindowGroup {
+            #if DEBUG && targetEnvironment(simulator)
+            if let scenario = CalculationTestScenario.requested {
+                CalculationTestHost(scenario: scenario)
+            } else {
+                ContentView()
+            }
+            #else
             ContentView()
+            #endif
         }
     }
 }

@@ -1,0 +1,19 @@
+{
+  "configuration": "Release",
+  "platform": "iOS Simulator",
+  "binary": "Artifacts/t06-calculation-release-derived/Build/Products/Release-iphonesimulator/cubeguide.app/cubeguide",
+  "binarySHA256": "9dccf8e8f72afbbf765ec643c266d953cc1833bac628585c87193222ed4fd6a1",
+  "absentMarkers": [
+    "CUBEGUIDE_CALCULATION_UI_TEST",
+    "CalculationTestHost",
+    "CalculationTestSolver",
+    "CalculationTestScenario",
+    "CalculationTestMonitor",
+    "UI test: injected calculation boundary",
+    "Verified result held"
+  ],
+  "result": "passed",
+  "scope": "Binary inspection and local simulator only; not archive or distribution qualification.",
+  "runtimeCheck": "Installed Release app, launched with CUBEGUIDE_CALCULATION_UI_TEST=timeout; visually inspected normal Home with no harness or seeded input.",
+  "screenshot": "release-ignored.png"
+}
