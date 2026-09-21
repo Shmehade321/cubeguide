@@ -102,8 +102,12 @@ func draftEventMatrix() throws {
   var invalidFaces = Facelets.solved.faces
   invalidFaces[0] = .right
   // Columns: centers, sticker, rotation, validation, retry, save success, save failure.
+  let deleting = try deletingSession()
+  let deletionError = apply(deleting, .deletionFailed(try #require(deleting.pendingDeletion)))
+    .session
   let rows: [(Session, String)] = [
     (Session(), "RRRRRII"), (editing, "ARRRRII"),
+    (deleting, "RRRRRII"), (deletionError, "RRRRRII"),
     (saving, "RRRRRAA"), (failed, "RRRRAII"),
     (ready, "AAARRII"), (complete, "AAAARII"),
     (apply(editing, .validate(try Facelets(invalidFaces))).session, "RRRRRII"),

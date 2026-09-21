@@ -252,8 +252,12 @@ func persistenceEventMatrix() throws {
   let draftError = apply(
     draftSaving, .draftPersistFailed(try #require(draftSaving.pendingDraftSave).id)
   ).session
+  let deleting = try deletingSession()
+  let deletionError = apply(deleting, .deletionFailed(try #require(deleting.pendingDeletion)))
+    .session
   let rows: [(Session, String)] = [
     (Session(), "IIRRRRIIRRR"), (editing, "IIRRRRIIRRR"),
+    (deleting, "IIRRRRIIRRR"), (deletionError, "IIRRRRIIRRR"),
     (draftSaving, "IIRRRRIIRRR"), (draftError, "IIRRRRIIRRR"),
     (apply(editing, .validate(try Facelets(bad))).session, "IIRRRRIIRRR"),
     (apply(editing, .validate(.solved)).session, "IIRRRRIIRRR"),

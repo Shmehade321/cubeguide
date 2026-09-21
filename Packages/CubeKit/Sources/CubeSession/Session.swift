@@ -4,10 +4,10 @@ import CubeSolver3
 public enum SessionPhase: String, CaseIterable, Sendable {
   case home, editing, invalid, alreadySolved, offer, solving, solveError, preparingAction,
     resumeCheck, guide, savingAcknowledgement, storageError, expectedSolved, recovery, savingDraft,
-    draftStorageError
+    draftStorageError, deleting, deletionError
 }
 public enum SessionRejection: Equatable, Sendable {
-  case unavailableEvent, replacementRequired, revisionExhausted
+  case unavailableEvent, replacementRequired, revisionExhausted, confirmationRequired
   case draft(DraftError)
 }
 public enum EventDisposition: Equatable, Sendable {
@@ -15,6 +15,10 @@ public enum EventDisposition: Equatable, Sendable {
   case rejected(SessionRejection)
 }
 public enum SessionEvent: Sendable {
+  case deleteLocalData(confirmed: Bool)
+  case retryDeletion
+  case deleted(DeletionID)
+  case deletionFailed(DeletionID)
   case startManual(replacing: Bool)
   case edit
   case editDraft(DraftEdit)
@@ -33,6 +37,7 @@ public enum SessionEvent: Sendable {
   case compare(PhysicalComparison)
 }
 public enum SessionCommand: Sendable {
+  case deleteLocalData(DeletionID)
   case solve(LegalCube, revision: UInt64, budget: SolveBudget)
   case cancelSolve(revision: UInt64)
   case saveGuide(GuideSaveRequest)
@@ -44,6 +49,7 @@ public struct Session: Equatable, Sendable {
   public fileprivate(set) var phase: SessionPhase = .home
   public fileprivate(set) var revision: UInt64
   public fileprivate(set) var hasWork = false
+  public fileprivate(set) var pendingDeletion: DeletionID?
   public fileprivate(set) var draft: ManualDraft?
   public fileprivate(set) var durableDraft: ManualDraft?
   public fileprivate(set) var pendingDraftSave: DraftSaveRequest?
@@ -134,7 +140,35 @@ public enum SessionReducer {
       next.phase = .savingDraft
       commands.append(.saveDraft(request))
     }
+    func beginDeletion() {
+      // Even at the final revision, deletion remains possible without wrapping counters.
+      _ = advanceRevision()
+      let id = DeletionID()
+      next.pendingDeletion = id
+      next.pendingSave = nil
+      next.pendingDraftSave = nil
+      next.exitAfterDraftSave = false
+      next.preview = .idle
+      next.playbackID = nil
+      next.aligned = false
+      next.phase = .deleting
+      commands = [.cancelSolve(revision: session.revision), .stopPreview, .deleteLocalData(id)]
+    }
     switch event {
+    case .deleteLocalData(let confirmed):
+      guard confirmed else { return rejected(.confirmationRequired) }
+      if session.phase == .deleting { return ignored() }
+      beginDeletion()
+    case .retryDeletion:
+      guard session.phase == .deletionError else { return rejected() }
+      beginDeletion()
+    case .deleted(let id):
+      guard session.phase == .deleting, session.pendingDeletion == id else { return ignored() }
+      next = Session(revision: session.revision)
+    case .deletionFailed(let id):
+      guard session.phase == .deleting, session.pendingDeletion == id else { return ignored() }
+      next.pendingDeletion = nil
+      next.phase = .deletionError
     case .editDraft(let edit):
       guard session.phase == .editing else { return rejected() }
       guard advanceRevision() else { return rejected(.revisionExhausted) }
@@ -289,6 +323,7 @@ public enum SessionReducer {
       next.phase = .editing
       next.hasWork = true
     case .cancel, .background:
+      if session.phase == .deleting { return ignored() }
       if session.phase == .savingDraft {
         if case .background = event { return ignored() }
         next.exitAfterDraftSave = true

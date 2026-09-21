@@ -250,8 +250,12 @@ func preGuideTransitionMatrix() throws {
   let draftError = apply(
     draftSaving, .draftPersistFailed(try #require(draftSaving.pendingDraftSave).id)
   ).session
+  let deleting = try deletingSession()
+  let deletionError = apply(deleting, .deletionFailed(try #require(deleting.pendingDeletion)))
+    .session
   let rows: [(Session, SessionPhase, String)] = [
     (Session(), .home, "ARRRRRIRRI"),
+    (deleting, .deleting, "RRRRRIIRRI"), (deletionError, .deletionError, "RRRRRRIRRI"),
     (draftSaving, .savingDraft, "RRRRRAIRRI"),
     (draftError, .draftStorageError, "RRRRRRIRRI"),
     (editing, .editing, "RAARRAIRRI"),
