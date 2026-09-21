@@ -5,7 +5,7 @@ public enum SessionPhase: String, CaseIterable, Sendable {
   case home, editing, invalid, alreadySolved, offer, solving, solveError, preparingAction,
     resumeCheck, guide, savingAcknowledgement, storageError, expectedSolved, recovery, savingDraft,
     draftStorageError, deleting, deletionError, startingManual, manualStartError, savingCompletion,
-    completionStorageError, completed
+    completionStorageError, completed, savingRecovery, recoveryStorageError
 }
 public enum SessionRejection: Equatable, Sendable {
   case unavailableEvent, replacementRequired, revisionExhausted, confirmationRequired
@@ -25,6 +25,7 @@ public enum SessionEvent: Sendable {
   case manualStartFailed(SaveID)
   case retryManualStart
   case confirmCompletion, retryCompletionSave
+  case mismatch, retryRecoverySave
   case edit
   case editDraft(DraftEdit)
   case validateDraft, retryDraftSave
@@ -55,11 +56,13 @@ public struct Session: Equatable, Sendable {
   public fileprivate(set) var phase: SessionPhase = .home
   public fileprivate(set) var revision: UInt64
   public fileprivate(set) var hasWork = false
+  public fileprivate(set) var recoveryRequired = false
   public fileprivate(set) var completion: CompletionKind?
   public fileprivate(set) var pendingManualStart: SaveID?
   fileprivate var exitAfterManualStart = false
   fileprivate var completionCandidate: GuideProgress?
   fileprivate var exitAfterCompletionSave = false
+  fileprivate var exitAfterRecoverySave = false
   public fileprivate(set) var pendingDeletion: DeletionID?
   public fileprivate(set) var draft: ManualDraft?
   public fileprivate(set) var durableDraft: ManualDraft?
@@ -102,9 +105,14 @@ public struct Session: Equatable, Sendable {
     preparationDurable = archive.pendingPrepared
     saveSequence = archive.saveID.sequence
     completion = archive.completion
-    phase =
-      archive.completion != nil
-      ? .completed : archive.progress.isComplete ? .expectedSolved : .resumeCheck
+    recoveryRequired = archive.recoveryRequired
+    if recoveryRequired {
+      phase = .recovery
+    } else if completion != nil {
+      phase = .completed
+    } else {
+      phase = archive.progress.isComplete ? .expectedSolved : .resumeCheck
+    }
   }
 }
 public struct SessionTransition: Sendable {
@@ -132,18 +140,18 @@ public enum SessionReducer {
       guard let progress else { return false }
       let (sequence, overflow) = next.saveSequence.addingReportingOverflow(1)
       guard !overflow else {
-        next.phase = kind.completion != nil ? .completionStorageError : .storageError
+        next.phase = kind.failurePhase
         next.failedSaveKind = kind
         return false
       }
       next.saveSequence = sequence
       let request = GuideSaveRequest(
         id: SaveID(revision: session.revision, sequence: sequence),
-        kind: kind, progress: progress, pendingPrepared: kind == .preparation)
+        kind: kind, progress: progress,
+        pendingPrepared: kind == .preparation
+          || (kind == .recovery && session.preparationDurable && !progress.isComplete))
       next.pendingSave = request
-      next.phase =
-        kind.completion != nil
-        ? .savingCompletion : kind == .preparation ? .preparingAction : .savingAcknowledgement
+      next.phase = kind.savingPhase
       commands.append(.saveGuide(request))
       return true
     }
@@ -160,6 +168,15 @@ public enum SessionReducer {
       next.pendingDraftSave = request
       next.phase = .savingDraft
       commands.append(.saveDraft(request))
+    }
+    func beginRecovery() {
+      next.recoveryRequired = true
+      next.completion = nil
+      next.aligned = false
+      next.preview = .idle
+      next.playbackID = nil
+      commands = [.stopPreview]
+      _ = beginSave(.recovery, progress: session.guideProgress)
     }
     func beginManualStart() -> Bool {
       let (sequence, overflow) = next.saveSequence.addingReportingOverflow(1)
@@ -181,6 +198,7 @@ public enum SessionReducer {
       next.pendingManualStart = nil
       next.completionCandidate = nil
       next.exitAfterCompletionSave = false
+      next.exitAfterRecoverySave = false
       next.exitAfterManualStart = false
       next.exitAfterDraftSave = false
       next.preview = .idle
@@ -190,6 +208,17 @@ public enum SessionReducer {
       commands = [.cancelSolve(revision: session.revision), .stopPreview, .deleteLocalData(id)]
     }
     switch event {
+    case .mismatch:
+      if session.phase == .savingRecovery || session.phase == .recovery { return ignored() }
+      guard [.guide, .expectedSolved, .completed].contains(session.phase),
+        session.guideProgress != nil, session.pendingSave == nil
+      else { return rejected() }
+      beginRecovery()
+    case .retryRecoverySave:
+      guard session.phase == .recoveryStorageError, session.guideProgress != nil else {
+        return rejected()
+      }
+      beginRecovery()
     case .confirmCompletion:
       if session.phase == .savingCompletion || session.phase == .completed { return ignored() }
       let progress: GuideProgress
@@ -299,10 +328,16 @@ public enum SessionReducer {
       next.pendingSave = nil
       next.guideProgress = save.progress
       next.preparationDurable = save.pendingPrepared
+      next.recoveryRequired = save.kind == .recovery
       next.failedSaveKind = nil
       next.preview = .idle
       next.playbackID = nil
-      if let completion = save.kind.completion {
+      if save.kind == .recovery {
+        next.phase =
+          session.exitAfterRecoverySave
+          ? (save.progress.isComplete ? .expectedSolved : .resumeCheck) : .recovery
+        next.exitAfterRecoverySave = false
+      } else if let completion = save.kind.completion {
         next.completion = completion
         next.completionCandidate = nil
         next.phase = session.exitAfterCompletionSave ? .home : .completed
@@ -365,8 +400,9 @@ public enum SessionReducer {
       next.pendingSave = nil
       next.failedSaveKind = request.kind
       next.interruptedSave = false
-      next.phase = request.kind.completion != nil ? .completionStorageError : .storageError
+      next.phase = request.kind.failurePhase
       next.exitAfterCompletionSave = false
+      next.exitAfterRecoverySave = false
       next.aligned = false
       next.preview = .idle
       next.playbackID = nil
@@ -380,12 +416,11 @@ public enum SessionReducer {
       commands = [.stopPreview]
       switch choice {
       case .uncertain:
-        next.phase = .recovery
-        next.aligned = false
+        beginRecovery()
       case .before:
         next.aligned = true
         next.failedSaveKind = nil
-        if session.preparationDurable {
+        if session.preparationDurable && !session.recoveryRequired {
           next.phase = .guide
         } else {
           _ = beginSave(.preparation, progress: progress)
@@ -399,7 +434,7 @@ public enum SessionReducer {
         _ = beginSave(.acknowledgement, progress: candidate)
       }
     case .startManual(let replacing):
-      guard session.phase == .home else { return rejected() }
+      guard session.phase == .home || session.phase == .recovery else { return rejected() }
       guard !session.hasWork || replacing else { return rejected(.replacementRequired) }
       let (revision, overflow) = session.revision.addingReportingOverflow(1)
       guard !overflow else { return rejected(.revisionExhausted) }
@@ -413,7 +448,10 @@ public enum SessionReducer {
       guard beginManualStart() else { return rejected(.revisionExhausted) }
     case .cancel, .background:
       if session.phase == .deleting { return ignored() }
-      if session.phase == .savingCompletion {
+      if session.phase == .savingRecovery {
+        if case .background = event { return ignored() }
+        next.exitAfterRecoverySave = true
+      } else if session.phase == .savingCompletion {
         if case .background = event { return ignored() }
         next.exitAfterCompletionSave = true
       } else if session.phase == .startingManual {
@@ -555,5 +593,23 @@ public enum SessionReducer {
       }
     }
     return SessionTransition(session: next, disposition: .accepted, commands: commands)
+  }
+}
+
+extension GuideSaveKind {
+  fileprivate var savingPhase: SessionPhase {
+    switch self {
+    case .preparation: .preparingAction
+    case .acknowledgement: .savingAcknowledgement
+    case .completion: .savingCompletion
+    case .recovery: .savingRecovery
+    }
+  }
+  fileprivate var failurePhase: SessionPhase {
+    switch self {
+    case .completion: .completionStorageError
+    case .recovery: .recoveryStorageError
+    default: .storageError
+    }
   }
 }

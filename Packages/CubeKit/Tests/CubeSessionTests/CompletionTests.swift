@@ -156,13 +156,14 @@ func completionTransitionMatrix() throws {
     .session
   let rows: [(Session, String)] = [
     (Session(), "RR"), (editing, "RR"),
+    (try savingRecoverySession(), "RR"), (try recoveryErrorSession(), "RR"),
     (apply(editing, .validate(try Facelets(invalid))).session, "RR"),
     (apply(editing, .validate(.solved)).session, "AR"),
     (try offeredSession(), "RR"), (solving, "RR"),
     (apply(solving, response(solving, outcome: .timedOut)).session, "RR"),
     (preparing, "RR"), (apply(preparing, .background).session, "RR"),
     (guide, "RR"), (saving, "RR"), (failure, "RR"),
-    (try finishedGuide(), "AR"), (apply(failure, .compare(.uncertain)).session, "RR"),
+    (try finishedGuide(), "AR"), (try recoverySession(from: failure), "RR"),
     (draftSaving, "RR"), (draftError, "RR"), (deleting, "RR"), (deletionError, "RR"),
     (try startingManualSession(), "RR"), (try manualStartErrorSession(), "RR"),
     (try savingCompletionSession(), "IR"), (try completionErrorSession(), "RA"),

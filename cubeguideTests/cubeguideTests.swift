@@ -130,7 +130,7 @@ func appSessionCoordinator() async throws {
 }
 
 @MainActor
-@Test("R05/R10: installed app persists entered-color completion without a camera claim")
+@Test("R05/R10: installed app persists entered-color completion and mismatch recovery")
 func appEnteredCompletion() async throws {
   let directory = AppDependencies.guideDirectory.appendingPathComponent("completion-\(UUID())")
   defer { try? FileManager.default.removeItem(at: directory) }
@@ -162,4 +162,12 @@ func appEnteredCompletion() async throws {
   await relaunched.load()
   #expect(
     relaunched.session.phase == .completed && relaunched.session.completion == .enteredColorsSolved)
+  #expect(relaunched.send(.mismatch) == .accepted)
+  let recoveryDeadline = ContinuousClock.now.advanced(by: .seconds(10))
+  while relaunched.session.phase == .savingRecovery && ContinuousClock.now < recoveryDeadline {
+    try await Task.sleep(for: .milliseconds(5))
+  }
+  #expect(relaunched.session.phase == .recovery && relaunched.session.completion == nil)
+  let restoredRecovery = try await dependencies.restoreSession().session
+  #expect(restoredRecovery.phase == .recovery && restoredRecovery.recoveryRequired)
 }

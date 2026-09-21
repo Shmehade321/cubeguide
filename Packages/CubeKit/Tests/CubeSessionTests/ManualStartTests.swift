@@ -135,6 +135,7 @@ func manualStartTransitionMatrix() throws {
     .session
   let rows: [(Session, String)] = [
     (Session(), "IIR"), (editing, "IIR"),
+    (try savingRecoverySession(), "IIR"), (try recoveryErrorSession(), "IIR"),
     (try savingCompletionSession(), "IIR"), (try completionErrorSession(), "IIR"),
     (try completedSession(), "IIR"),
     (apply(editing, .validate(try Facelets(invalid))).session, "IIR"),
@@ -143,7 +144,7 @@ func manualStartTransitionMatrix() throws {
     (apply(solving, response(solving, outcome: .timedOut)).session, "IIR"),
     (preparing, "IIR"), (apply(preparing, .background).session, "IIR"),
     (guide, "IIR"), (saving, "IIR"), (failure, "IIR"),
-    (try finishedGuide(), "IIR"), (apply(failure, .compare(.uncertain)).session, "IIR"),
+    (try finishedGuide(), "IIR"), (try recoverySession(from: failure), "IIR"),
     (draftSaving, "IIR"), (draftError, "IIR"), (deleting, "IIR"), (deletionError, "IIR"),
     (try startingManualSession(), "AAR"), (try manualStartErrorSession(), "IIA"),
   ]

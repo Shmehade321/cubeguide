@@ -246,7 +246,7 @@ func preGuideTransitionMatrix() throws {
   let guide = try durableGuide()
   let saving = apply(guide, .acknowledge(try #require(guide.pendingAction).id)).session
   let storageError = apply(saving, .persistFailed(try #require(saving.pendingSave).id)).session
-  let recovery = apply(storageError, .compare(.uncertain)).session
+  let recovery = try recoverySession(from: storageError)
   let expectedSolved = try finishedGuide()
   // Columns: start, edit, validate, yes, no, cancel, background, resume, longer, result.
   // A = accepted; R = rejected; I = ignored. Extend with each new workflow phase.
@@ -259,6 +259,8 @@ func preGuideTransitionMatrix() throws {
     .session
   let rows: [(Session, SessionPhase, String)] = [
     (Session(), .home, "ARRRRRIRRI"),
+    (try savingRecoverySession(), .savingRecovery, "RRRRRAIRRI"),
+    (try recoveryErrorSession(), .recoveryStorageError, "RRRRRRIRRI"),
     (try savingCompletionSession(), .savingCompletion, "RRRRRAIRRI"),
     (try completionErrorSession(), .completionStorageError, "RRRRRRIRRI"),
     (try completedSession(), .completed, "RRRRRAIRRI"),
@@ -278,7 +280,7 @@ func preGuideTransitionMatrix() throws {
     (guide, .guide, "RRRRRAARRI"),
     (saving, .savingAcknowledgement, "RRRRRAARRI"),
     (storageError, .storageError, "RRRRRAIRRI"),
-    (recovery, .recovery, "RRRRRAIRRI"),
+    (recovery, .recovery, "CRRRRAIRRI"),
     (expectedSolved, .expectedSolved, "RRRRRRIRRI"),
   ]
   #expect(Set(rows.map { $0.1 }) == Set(SessionPhase.allCases))
@@ -299,7 +301,9 @@ func preGuideTransitionMatrix() throws {
         #expect(transition.session == state)
         #expect(transition.commands.isEmpty)
       default:
-        #expect(transition.disposition == .rejected(.unavailableEvent))
+        #expect(
+          transition.disposition
+            == .rejected(code == "C" ? .replacementRequired : .unavailableEvent))
         #expect(transition.session == state)
         #expect(transition.commands.isEmpty)
       }

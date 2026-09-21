@@ -107,6 +107,7 @@ func draftEventMatrix() throws {
     .session
   let rows: [(Session, String)] = [
     (Session(), "RRRRRII"), (editing, "ARRRRII"),
+    (try savingRecoverySession(), "RRRRRII"), (try recoveryErrorSession(), "RRRRRII"),
     (try savingCompletionSession(), "RRRRRII"), (try completionErrorSession(), "RRRRRII"),
     (try completedSession(), "RRRRRII"),
     (try startingManualSession(), "RRRRRII"), (try manualStartErrorSession(), "RRRRRII"),
@@ -119,7 +120,7 @@ func draftEventMatrix() throws {
     (apply(solving, response(solving, outcome: .timedOut)).session, "RRRRRII"),
     (preparing, "RRRRRII"), (apply(preparing, .background).session, "RRRRRII"),
     (guide, "RRRRRII"), (acknowledging, "RRRRRII"), (storageError, "RRRRRII"),
-    (apply(storageError, .compare(.uncertain)).session, "RRRRRII"),
+    (try recoverySession(from: storageError), "RRRRRII"),
     (try finishedGuide(), "RRRRRII"),
   ]
   #expect(Set(rows.map { $0.0.phase }) == Set(SessionPhase.allCases))

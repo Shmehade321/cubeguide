@@ -101,6 +101,7 @@ func deletionEventMatrix() throws {
   // Columns: unconfirmed delete, confirmed delete, retry, success, failure.
   let rows: [(Session, String)] = [
     (Session(), "RARII"), (editing, "RARII"),
+    (try savingRecoverySession(), "RARII"), (try recoveryErrorSession(), "RARII"),
     (try savingCompletionSession(), "RARII"), (try completionErrorSession(), "RARII"),
     (try completedSession(), "RARII"),
     (try startingManualSession(), "RARII"), (try manualStartErrorSession(), "RARII"),
@@ -110,7 +111,7 @@ func deletionEventMatrix() throws {
     (apply(solving, response(solving, outcome: .timedOut)).session, "RARII"),
     (preparing, "RARII"), (apply(preparing, .background).session, "RARII"),
     (guide, "RARII"), (saving, "RARII"), (storageError, "RARII"),
-    (try finishedGuide(), "RARII"), (apply(storageError, .compare(.uncertain)).session, "RARII"),
+    (try finishedGuide(), "RARII"), (try recoverySession(from: storageError), "RARII"),
     (draftSaving, "RARII"), (draftError, "RARII"),
     (deleting, "RIRAA"), (deletionError, "RAAII"),
   ]

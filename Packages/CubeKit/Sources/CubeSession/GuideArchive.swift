@@ -10,6 +10,7 @@ public struct RestoredGuide: Equatable, Sendable {
   public let saveID: SaveID
   public let pendingPrepared: Bool
   public let completion: CompletionKind?
+  public let recoveryRequired: Bool
 }
 public enum GuideArchive {
   public static let maximumBytes = CheckedArchive.maximumBytes
@@ -27,6 +28,7 @@ public enum GuideArchive {
     let pendingAction: ActionID?
     let pendingPrepared: Bool
     let completion: CompletionKind?
+    let recoveryRequired: Bool?
   }
   private static func validCompletion(_ completion: CompletionKind?, progress: GuideProgress)
     -> Bool
@@ -42,7 +44,7 @@ public enum GuideArchive {
   public static func encode(_ request: GuideSaveRequest, palette: CenterPalette) throws -> Data {
     let progress = request.progress
     guard request.id.revision == progress.revision, request.id.sequence > 0,
-      request.pendingPrepared == (request.kind == .preparation),
+      request.kind == .recovery || request.pendingPrepared == (request.kind == .preparation),
       !request.pendingPrepared || !progress.isComplete,
       validCompletion(request.kind.completion, progress: progress),
       !progress.plan.resourceVersion.isEmpty,
@@ -56,7 +58,7 @@ public enum GuideArchive {
       saveID: request.id, acknowledgedActions: progress.acknowledgedActions,
       moveIndex: progress.moveIndex, pose: progress.pose, state: progress.state,
       pendingAction: progress.pending?.id, pendingPrepared: request.pendingPrepared,
-      completion: request.kind.completion)
+      completion: request.kind.completion, recoveryRequired: request.kind == .recovery ? true : nil)
     return try CheckedArchive.encode(payload)
   }
   public static func decode(_ data: Data) throws -> RestoredGuide {
@@ -76,11 +78,12 @@ public enum GuideArchive {
       payload.moveIndex == progress.moveIndex, payload.pose == progress.pose,
       payload.state == progress.state, payload.pendingAction == progress.pending?.id,
       !payload.pendingPrepared || !progress.isComplete,
-      validCompletion(payload.completion, progress: progress)
+      validCompletion(payload.completion, progress: progress),
+      payload.recoveryRequired != true || payload.completion == nil
     else { throw ArchiveError.invalidProgress }
     return RestoredGuide(
       progress: progress, palette: payload.palette,
       saveID: payload.saveID, pendingPrepared: payload.pendingPrepared,
-      completion: payload.completion)
+      completion: payload.completion, recoveryRequired: payload.recoveryRequired ?? false)
   }
 }

@@ -9,7 +9,7 @@ public struct SaveID: Equatable, Hashable, Sendable, Codable {
   }
 }
 public enum GuideSaveKind: Equatable, Sendable {
-  case preparation, acknowledgement
+  case preparation, acknowledgement, recovery
   case completion(CompletionKind)
   public var completion: CompletionKind? {
     if case .completion(let kind) = self { return kind }

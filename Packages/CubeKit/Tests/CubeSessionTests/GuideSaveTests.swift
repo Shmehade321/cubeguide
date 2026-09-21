@@ -136,7 +136,7 @@ func failedAcknowledgementRecovery() throws {
   #expect(before.phase == .guide)
   #expect(before.guideProgress?.acknowledgedActions == 0)
   #expect(before.aligned)
-  let uncertain = apply(failed, .compare(.uncertain)).session
+  let uncertain = try recoverySession(from: failed)
   #expect(uncertain.phase == .recovery)
   #expect(uncertain.guideProgress == guide.guideProgress)
   let kept = apply(uncertain, .cancel).session
@@ -257,6 +257,7 @@ func persistenceEventMatrix() throws {
     .session
   let rows: [(Session, String)] = [
     (Session(), "IIRRRRIIRRR"), (editing, "IIRRRRIIRRR"),
+    (try savingRecoverySession(), "AARRRRIIRRR"), (try recoveryErrorSession(), "IIRRRRIRRRR"),
     (try savingCompletionSession(), "AARRRRIIRRR"), (try completionErrorSession(), "IIRRRRIIRRR"),
     (try completedSession(), "IIRRRRIIRRR"),
     (try startingManualSession(), "IIRRRRIIRRR"), (try manualStartErrorSession(), "IIRRRRIIRRR"),
@@ -271,7 +272,7 @@ func persistenceEventMatrix() throws {
     (ready, "IIARRRIRRRR"), (guide, "IIIARAIARRR"),
     (playing, "IIRIAAARRRR"), (paused, "IIRARAIRRRR"), (finished, "IIRARAIARRR"),
     (saving, "AARRRRIIRRR"), (failed, "IIRRRRIRAAA"), (prepFailed, "IIRRRRIRARA"),
-    (apply(failed, .compare(.uncertain)).session, "IIRRRRIRRRR"),
+    (try recoverySession(from: failed), "IIRRRRIRRRR"),
     (try finishedGuide(), "IIRRRRIIRRR"),
   ]
   #expect(Set(rows.map { $0.0.phase }) == Set(SessionPhase.allCases))
