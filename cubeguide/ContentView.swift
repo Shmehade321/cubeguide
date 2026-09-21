@@ -381,9 +381,13 @@ struct ContentView: View {
   private func confirmCompletion() {
     let result = controller.send(.confirmCompletion)
     if result == .accepted {
-      HapticFeedback.success(enabled: controller.preferences.haptics)
+      HapticFeedback.success(
+        enabled: controller.preferences.haptics,
+        effectsEnabled: controller.preferences.effects)
     } else {
-      HapticFeedback.warning(enabled: controller.preferences.haptics)
+      HapticFeedback.warning(
+        enabled: controller.preferences.haptics,
+        effectsEnabled: controller.preferences.effects)
     }
   }
 

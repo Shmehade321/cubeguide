@@ -10,4 +10,6 @@ Light haptics are connected to accepted captures and guide acknowledgements, war
 
 Focused tests verify all nine action-to-phrase identities, exact catalog uniqueness, manifest/caption equality, narration-before-animation ordering, pause invalidation and explicit replay. All app unit tests and generic iOS compilation pass.
 
-The N01–N30 human recordings and their editable licensed masters are not present. E01–E03 audio files are also not present. Codec, loudness, peak, duration, listening, Silent-switch, Bluetooth/headphone and physical-direction qualification therefore remain blocking T08 work and this task is not complete.
+E01–E03 are now reproducibly generated original non-speech tones with editable mono 44.1 kHz PCM masters and bundled AAC outputs. Their durations are 120 ms, 200 ms and 720 ms, within the specified maxima; unit tests open each bundled file and verify format and duration. Enabled effects play the acceptance, correction and completion cues through the ambient mixed audio session.
+
+The N01–N30 human recordings and their editable licensed masters are not present. Human listening, loudness/true-peak review, Silent-switch, Bluetooth/headphone and physical-direction qualification therefore remain blocking T08 work and this task is not complete.

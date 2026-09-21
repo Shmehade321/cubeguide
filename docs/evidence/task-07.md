@@ -2,6 +2,12 @@
 
 Base: 387d670, after calculation UI qualification 2b5ab90. Implementation sequence: ../t07-rendering-plan.md. Canonical scope remains Documentation/cube-app-implementation-plan.md T07, R07/R08/R12/R16 and V02/V10/V14. No graphics adapter, rendered asset or physical qualification is claimed by the mathematical work below.
 
+## Current increment — editable icon source and offline Help diagrams
+
+A01 now has a repository-owned editable SVG master and three opaque 1024px Xcode icon appearances generated from it. The rendered icon was inspected at full size: its centered three-face 3×3 mark, borders and grid remain distinct against the navy background. Signed archive and installed-device small-size inspection remain open.
+
+A04 now uses three original SwiftUI illustrations in offline Help: the six-face capture sequence, face-turn versus whole-cube-turn comparison, and a six-diagram orientation guide. The orientation guide enumerates `Face.allCases` and derives every named top neighbor from `Face.topNeighbor`, so Help cannot silently diverge from manual-entry orientation. A focused model test and the real Help UI test cover all three illustration identifiers. Physical novice comprehension remains open.
+
 ## Increment 1 — exact scene geometry (in progress)
 
 Added pure CubeCore types CubePosition, CubeStickerPlacement, CubeGeometry and CubeRotation. Canonical geometry has exactly 26 noncentral integer cubie coordinates and 54 ordered URFDLB sticker placements, including outward normal and upward edge. Public positions originate from the geometry; no unchecked external decoder or floating-point state is introduced. Pose application maps exact basis axes through CubeOrientation. Layer membership is the outward-axis dot product equal to one. CubeRotation maps typed turns/regrips to exact proper rotations and exposes the shortest signed animation quarter-turn angle. It never updates puzzle state or physical progress. RealityKit remains outside CubeCore.

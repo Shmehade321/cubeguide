@@ -96,9 +96,13 @@ struct GuideFlowView: View {
             Button(acknowledgement(action)) {
               let result = controller.send(.acknowledge(action.id))
               if result == .accepted {
-                HapticFeedback.light(enabled: controller.preferences.haptics)
+                HapticFeedback.light(
+                  enabled: controller.preferences.haptics,
+                  effectsEnabled: controller.preferences.effects)
               } else {
-                HapticFeedback.warning(enabled: controller.preferences.haptics)
+                HapticFeedback.warning(
+                  enabled: controller.preferences.haptics,
+                  effectsEnabled: controller.preferences.effects)
               }
             }
             .buttonStyle(.borderedProminent).accessibilityIdentifier("guide.acknowledge")

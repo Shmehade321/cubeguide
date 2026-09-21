@@ -6,15 +6,19 @@ final class FoundationUITests: XCTestCase {
     continueAfterFailure = false
     let app = XCUIApplication()
     app.launch()
-    if app.buttons["editor.home"].waitForExistence(timeout: 2) { tapReady(app.buttons["editor.home"]) }
+    if app.buttons["editor.home"].waitForExistence(timeout: 2) {
+      tapReady(app.buttons["editor.home"])
+    }
     if app.buttons["home.delete"].exists {
       tapReady(app.buttons["home.delete"])
       // iOS 26 exposes the alert action and its nested button with the same ID.
       tapReady(app.alerts.buttons.matching(identifier: "delete.confirm").firstMatch)
     }
     tapReady(app.buttons["home.enterColors"])
-    for (face, color) in [("U", "Green"), ("R", "White"), ("F", "Orange"),
-      ("D", "Blue"), ("L", "Yellow"), ("B", "Red")] {
+    for (face, color) in [
+      ("U", "Green"), ("R", "White"), ("F", "Orange"),
+      ("D", "Blue"), ("L", "Yellow"), ("B", "Red"),
+    ] {
       tapReady(app.buttons["center.\(face)"])
       tapReady(app.buttons[color])
     }
@@ -24,7 +28,8 @@ final class FoundationUITests: XCTestCase {
     for cycle in 1...20 {
       XCTContext.runActivity(named: "Preview teardown and Home cycle \(cycle)") { _ in
         tapReady(app.buttons["editor.preview3D"])
-        XCTAssertTrue(app.staticTexts["7 entered stickers · 47 unknown"].waitForExistence(timeout: 5))
+        XCTAssertTrue(
+          app.staticTexts["7 entered stickers · 47 unknown"].waitForExistence(timeout: 5))
         tapReady(app.buttons["preview.done"])
         XCTAssertTrue(app.buttons["cell.U.0.0"].label.contains("Blue"))
         tapReady(app.buttons["editor.home"])
@@ -41,7 +46,9 @@ final class FoundationUITests: XCTestCase {
   func testPracticeExampleAndExit() {
     let app = XCUIApplication()
     app.launch()
-    if app.buttons["editor.home"].waitForExistence(timeout: 2) { tapReady(app.buttons["editor.home"]) }
+    if app.buttons["editor.home"].waitForExistence(timeout: 2) {
+      tapReady(app.buttons["editor.home"])
+    }
     let practice = app.buttons["home.practice"]
     XCTAssertTrue(practice.waitForExistence(timeout: 5))
     guard practice.exists else { return }
@@ -69,7 +76,9 @@ final class FoundationUITests: XCTestCase {
   func testSettingsPersistAndDelete() {
     let app = XCUIApplication()
     app.launch()
-    if app.buttons["editor.home"].waitForExistence(timeout: 2) { tapReady(app.buttons["editor.home"]) }
+    if app.buttons["editor.home"].waitForExistence(timeout: 2) {
+      tapReady(app.buttons["editor.home"])
+    }
     let settings = app.buttons["home.settings"]
     XCTAssertTrue(settings.waitForExistence(timeout: 5))
     guard settings.exists else { return }
@@ -83,10 +92,14 @@ final class FoundationUITests: XCTestCase {
     let saved = NSPredicate(format: "value == %@ AND enabled == true", "0")
     expectation(for: saved, evaluatedWith: narration)
     waitForExpectations(timeout: 5)
-    for (identifier, expected) in [("settings.effects", "1"), ("settings.haptics", "0"), ("settings.labels", "0")] {
+    for (identifier, expected) in [
+      ("settings.effects", "1"), ("settings.haptics", "0"), ("settings.labels", "0"),
+    ] {
       let control = app.switches[identifier]
       control.coordinate(withNormalizedOffset: CGVector(dx: 0.92, dy: 0.5)).tap()
-      expectation(for: NSPredicate(format: "value == %@ AND enabled == true", expected), evaluatedWith: control)
+      expectation(
+        for: NSPredicate(format: "value == %@ AND enabled == true", expected),
+        evaluatedWith: control)
       waitForExpectations(timeout: 5)
     }
     tapReady(app.buttons["settings.speed"])
@@ -272,7 +285,8 @@ final class FoundationUITests: XCTestCase {
           expectation(for: ready, evaluatedWith: cell)
           waitForExpectations(timeout: 5)
           cell.tap()
-          let choice = app.sheets.buttons.matching(identifier: "sticker.\(color.lowercased())").firstMatch
+          let choice = app.sheets.buttons.matching(identifier: "sticker.\(color.lowercased())")
+            .firstMatch
           expectation(for: ready, evaluatedWith: choice)
           waitForExpectations(timeout: 5)
           choice.tap()
@@ -373,7 +387,8 @@ final class FoundationUITests: XCTestCase {
           expectation(for: ready, evaluatedWith: cell)
           waitForExpectations(timeout: 5)
           cell.tap()
-          let choice = app.sheets.buttons.matching(identifier: "sticker.\(color.lowercased())").firstMatch
+          let choice = app.sheets.buttons.matching(identifier: "sticker.\(color.lowercased())")
+            .firstMatch
           expectation(for: ready, evaluatedWith: choice)
           waitForExpectations(timeout: 5)
           choice.tap()
@@ -415,6 +430,7 @@ final class FoundationUITests: XCTestCase {
     }
     tapReady(app.buttons["home.help"])
     for (topic, heading) in [
+      ("manual", "Match your physical cube"),
       ("privacy", "Your cube stays on this iPhone"),
       ("capture", "Keep the sticker arrangement unchanged"),
       ("supported", "Standard six-color 3×3 cubes"),
@@ -436,6 +452,15 @@ final class FoundationUITests: XCTestCase {
         screenshot.name = "Bundled offline privacy help"
         screenshot.lifetime = .keepAlways
         add(screenshot)
+      }
+      if topic == "capture" {
+        XCTAssertTrue(app.otherElements["help.captureSequence"].exists)
+      }
+      if topic == "manual" {
+        XCTAssertTrue(app.otherElements["help.orientationGuide"].exists)
+      }
+      if topic == "turns" {
+        XCTAssertTrue(app.otherElements["help.turnVsRegrip"].exists)
       }
       tapReady(app.buttons["help.done"])
       tapReady(app.buttons["home.help"])

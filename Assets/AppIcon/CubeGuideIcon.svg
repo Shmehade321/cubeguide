@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#102A4D"/>
+      <stop offset="1" stop-color="#061326"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="28" stdDeviation="28" flood-color="#000000" flood-opacity="0.34"/>
+    </filter>
+    <clipPath id="top"><polygon points="512,142 824,322 512,502 200,322"/></clipPath>
+    <clipPath id="left"><polygon points="200,322 512,502 512,862 200,682"/></clipPath>
+    <clipPath id="right"><polygon points="512,502 824,322 824,682 512,862"/></clipPath>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#background)"/>
+  <g filter="url(#shadow)" stroke="#08111F" stroke-width="18" stroke-linejoin="round">
+    <polygon points="512,142 824,322 512,502 200,322" fill="#F8D62B"/>
+    <polygon points="200,322 512,502 512,862 200,682" fill="#D83832"/>
+    <polygon points="512,502 824,322 824,682 512,862" fill="#246AC2"/>
+  </g>
+  <g fill="none" stroke="#F8FAFC" stroke-opacity="0.88" stroke-width="10">
+    <g clip-path="url(#top)">
+      <path d="M304 262 L616 442 M408 202 L720 382 M408 442 L720 262 M304 382 L616 202"/>
+    </g>
+    <g clip-path="url(#left)">
+      <path d="M304 382 L304 742 M408 442 L408 802 M200 442 L512 622 M200 562 L512 742"/>
+    </g>
+    <g clip-path="url(#right)">
+      <path d="M616 442 L616 802 M720 382 L720 742 M512 622 L824 442 M512 742 L824 562"/>
+    </g>
+  </g>
+  <g fill="none" stroke="#F8FAFC" stroke-opacity="0.96" stroke-width="14" stroke-linejoin="round">
+    <polygon points="512,142 824,322 512,502 200,322"/>
+    <polygon points="200,322 512,502 512,862 200,682"/>
+    <polygon points="512,502 824,322 824,682 512,862"/>
+  </g>
+</svg>

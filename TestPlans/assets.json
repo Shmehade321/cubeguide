@@ -4,7 +4,7 @@
     {
       "id": "A01",
       "path": "cubeguide/Assets.xcassets/AppIcon.appiconset/AppIcon.png",
-      "source": "docs/graphics-provenance.md"
+      "source": "Assets/AppIcon/CubeGuideIcon.svg"
     },
     {
       "id": "A02",
@@ -14,6 +14,11 @@
     {
       "id": "A03",
       "path": "cubeguide/GuideDirectionDiagram.swift",
+      "source": "docs/graphics-provenance.md"
+    },
+    {
+      "id": "A04",
+      "path": "cubeguide/HelpIllustrations.swift",
       "source": "docs/graphics-provenance.md"
     },
     {
@@ -30,6 +35,21 @@
       "id": "A07",
       "path": "cubeguide/CompletionArtwork.swift",
       "source": "docs/graphics-provenance.md"
+    },
+    {
+      "id": "E01",
+      "path": "cubeguide/E01.m4a",
+      "source": "Scripts/generate-audio-effects.py"
+    },
+    {
+      "id": "E02",
+      "path": "cubeguide/E02.m4a",
+      "source": "Scripts/generate-audio-effects.py"
+    },
+    {
+      "id": "E03",
+      "path": "cubeguide/E03.m4a",
+      "source": "Scripts/generate-audio-effects.py"
     }
   ]
 }

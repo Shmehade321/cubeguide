@@ -82,6 +82,12 @@ struct HelpView: View {
           ScrollView {
             VStack(alignment: .leading, spacing: 20) {
               Text(topic.heading).font(.title.bold()).accessibilityAddTraits(.isHeader)
+              switch topic {
+              case .manual: FaceOrientationIllustration()
+              case .capture: CaptureSequenceIllustration()
+              case .turns: TurnVersusRegripIllustration()
+              default: EmptyView()
+              }
               ForEach(Array(topic.paragraphs.enumerated()), id: \.offset) { _, paragraph in
                 Text(paragraph)
               }

@@ -1,3 +1,4 @@
+import AVFAudio
 import CubeCore
 import Foundation
 import Testing
@@ -79,6 +80,21 @@ func bundledPhraseManifest() throws {
   #expect(manifest.phrases.map(\.caption) == PhraseCatalog.all.map { Optional($0.caption) })
   #expect(manifest.phrases.allSatisfy { $0.file == "\($0.id).m4a" })
   #expect(manifest.effects.map(\.id) == ["E01", "E02", "E03"])
+}
+
+@MainActor
+@Test("R17: bundled effects are decodable mono 44.1 kHz assets within their duration limits")
+func bundledEffectsAreProductionReady() throws {
+  let limits = ["E01": 0.150, "E02": 0.250, "E03": 0.800]
+  for (identifier, maximumDuration) in limits {
+    let url = try #require(Bundle.main.url(forResource: identifier, withExtension: "m4a"))
+    let file = try AVAudioFile(forReading: url)
+    #expect(file.processingFormat.channelCount == 1)
+    #expect(file.processingFormat.sampleRate == 44_100)
+    let duration = Double(file.length) / file.processingFormat.sampleRate
+    #expect(duration > 0)
+    #expect(duration <= maximumDuration)
+  }
 }
 
 @MainActor

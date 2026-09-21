@@ -36,9 +36,13 @@ struct ScanFlowView: View {
           Button("Capture face", systemImage: "camera.circle.fill") {
             let result = controller.sendScan(.capture)
             if result == .accepted {
-              HapticFeedback.light(enabled: controller.preferences.haptics)
+              HapticFeedback.light(
+                enabled: controller.preferences.haptics,
+                effectsEnabled: controller.preferences.effects)
             } else if case .rejected = result {
-              HapticFeedback.warning(enabled: controller.preferences.haptics)
+              HapticFeedback.warning(
+                enabled: controller.preferences.haptics,
+                effectsEnabled: controller.preferences.effects)
             }
           }
           .buttonStyle(.borderedProminent).controlSize(.large)
@@ -94,7 +98,9 @@ struct ScanFlowView: View {
             Button("Accept reviewed scan") {
               let result = controller.acceptReviewedScan(classification, confirmed: true)
               if case .rejected = result {
-                HapticFeedback.warning(enabled: controller.preferences.haptics)
+                HapticFeedback.warning(
+                  enabled: controller.preferences.haptics,
+                  effectsEnabled: controller.preferences.effects)
               }
             }
             .buttonStyle(.borderedProminent)

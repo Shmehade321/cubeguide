@@ -149,16 +149,48 @@ final class AudioCoordinator: NSObject, InstructionAudio, AVAudioPlayerDelegate 
 
 @MainActor
 enum HapticFeedback {
-  static func light(enabled: Bool) {
+  static func light(enabled: Bool, effectsEnabled: Bool = false) {
+    EffectAudio.shared.play("E01", enabled: effectsEnabled)
     guard enabled else { return }
     UIImpactFeedbackGenerator(style: .light).impactOccurred()
   }
-  static func warning(enabled: Bool) {
+  static func warning(enabled: Bool, effectsEnabled: Bool = false) {
+    EffectAudio.shared.play("E02", enabled: effectsEnabled)
     guard enabled else { return }
     UINotificationFeedbackGenerator().notificationOccurred(.warning)
   }
-  static func success(enabled: Bool) {
+  static func success(enabled: Bool, effectsEnabled: Bool = false) {
+    EffectAudio.shared.play("E03", enabled: effectsEnabled)
     guard enabled else { return }
     UINotificationFeedbackGenerator().notificationOccurred(.success)
+  }
+}
+
+@MainActor
+private final class EffectAudio: NSObject, AVAudioPlayerDelegate {
+  static let shared = EffectAudio()
+  private var player: AVAudioPlayer?
+
+  func play(_ identifier: String, enabled: Bool) {
+    player?.stop()
+    player = nil
+    guard enabled, let url = Bundle.main.url(forResource: identifier, withExtension: "m4a")
+    else { return }
+    do {
+      let session = AVAudioSession.sharedInstance()
+      try session.setCategory(.ambient, mode: .default, options: [.mixWithOthers])
+      try session.setActive(true)
+      let player = try AVAudioPlayer(contentsOf: url)
+      player.delegate = self
+      player.prepareToPlay()
+      self.player = player
+      _ = player.play()
+    } catch {
+      player = nil
+    }
+  }
+
+  nonisolated func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
+    Task { @MainActor in self.player = nil }
   }
 }
