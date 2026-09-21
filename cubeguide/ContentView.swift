@@ -8,6 +8,7 @@ struct ContentView: View {
   @State private var controller: SessionController
   @State private var replacing = false
   @State private var deleting = false
+  @State private var reviewingInput = false
   @Environment(\.scenePhase) private var scenePhase
 
   init() {
@@ -52,6 +53,7 @@ struct ContentView: View {
       .alert("Replace your saved cube?", isPresented: $replacing) {
         Button("Keep current", role: .cancel) {}.accessibilityIdentifier("replacement.keep")
         Button("Replace current", role: .destructive) {
+          reviewingInput = false
           controller.send(.startManual(replacing: true))
         }
         .accessibilityIdentifier("replacement.confirm")
@@ -86,6 +88,7 @@ struct ContentView: View {
           if controller.session.hasWork {
             replacing = true
           } else {
+            reviewingInput = false
             controller.send(.startManual(replacing: false))
           }
         }
@@ -103,6 +106,7 @@ struct ContentView: View {
       if let draft = controller.session.draft {
         ManualEditorView(
           draft: draft, saving: controller.session.phase == .savingDraft,
+          reviewCells: reviewingInput ? relatedCells : [],
           validate: { controller.send(.validateDraft) }
         ) {
           controller.send(.editDraft($0))
@@ -120,8 +124,16 @@ struct ContentView: View {
         }
         Text(
           "Compare your entries with the physical cube. No colors have been changed automatically.")
-        Button("Edit colors") { controller.send(.edit) }
-          .buttonStyle(.borderedProminent).accessibilityIdentifier("validation.edit")
+        Text(
+          relatedCells.isEmpty
+            ? "This check cannot identify a specific faulty sticker. Review all entered faces."
+            : "Choose Edit colors to see related stickers marked. A mark does not mean that sticker is wrong; compare all faces for missing or extra colors."
+        )
+        Button("Edit colors") {
+          reviewingInput = true
+          controller.send(.edit)
+        }
+        .buttonStyle(.borderedProminent).accessibilityIdentifier("validation.edit")
       }.padding()
     case .alreadySolved:
       VStack(spacing: 20) {
@@ -204,6 +216,13 @@ struct ContentView: View {
         "Saved guide", systemImage: "cube",
         description: Text("Your saved cube is retained. Guidance is currently unavailable."))
     }
+  }
+
+  private var relatedCells: Set<Int> {
+    guard let draft = controller.session.draft,
+      let faces = try? draft.canonicalFacelets()
+    else { return [] }
+    return Set(CubeValidation.reviewCells(in: faces))
   }
 
   private func goHome() {

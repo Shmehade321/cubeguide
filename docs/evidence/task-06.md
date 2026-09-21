@@ -49,3 +49,19 @@ Current screen coverage is partial: S01 has manual start/resume/replace/delete; 
 All non-document source hashes match the pre-test snapshot. Portable logs/reports, source hashes and the visually inspected verified-result screenshot are in `t06/validation/`; full local artifacts and result bundles remain under `Artifacts/t06-validation-pr/`. The displayed result correctly says two moves for the literal R fixture and does not present unavailable animation as working guidance.
 
 Next: identifiable validation-error highlighting and dedicated calculation failure/cancellation UI qualification, then Help/settings/practice and 3D/guide integration. T06 and T05 remain running; physical/media/distribution gates remain notRun. No public shipment is claimed.
+
+## Increment 3 — identifiable validation review
+
+The core now derives canonical review-cell indices from the current first validation diagnostic. Counts identify the observed matching color, centers identify the inconsistent center, impossible pieces identify their actual cells, and duplicate pieces identify both observed occurrences rather than expected home locations. Global orientation/parity errors return no guessed faulty piece. The original validator and its diagnostic ordering remain unchanged.
+
+Behavioral RED: four new core tests executed; three failed with 13 assertions against an empty implementation. The fourth confirms that valid states and nonlocalizable errors do not invent a location. All 31 core tests passed after implementation. UI marker wiring and its regression are pending.
+
+UI behavioral RED: `Artifacts/t06-review-ui-red.log` executed the complete solved-input test and failed only at the missing “Review this sticker” value. The implementation now uses a symbol, stronger outline and accessibility value for related cells, with explanatory text that a mark does not identify a definitely wrong sticker. Marker positions are recomputed from the current draft during correction; incomplete/valid input has no markers. New-cube entry resets the transient review mode. The core duplicate tests also cover cyclic corner rotation and reversed edge observations; all 31 core tests still pass. Full regression and screenshot inspection are recorded below.
+
+## Increment 3 regression
+
+`SIMULATOR_UDID=67DB7428-A25B-4167-8FC2-24F47A392E81 ARTIFACT_DIR=Artifacts/t06-review-pr Scripts/test-pr.sh` exited 0. All 241 package tests, 45 Python tests, 33 host process-kill cases and ten simulator tests (six app integration, four UI) passed, with zero failures/skips. The new UI assertions confirm the related-sticker value, avoid guessing the missing-color position, and confirm marker removal after correction. The screenshot was visually inspected: symbols and stronger outlines are visible on the eight observed Green stickers without covering their color letters; the erroneous Blue sticker is not falsely identified as the known culprit by a count-only diagnostic. The explanatory legend remains visible.
+
+The unchanged solver passed 10,000 PR states, 46,741 shallow states, eight named cases and pinned-reference comparisons. All non-document source hashes match the pre-test snapshot. Portable evidence is in `t06/review-markers/`; full local artifacts remain in `Artifacts/t06-review-pr/`. This is simulator rendering/accessibility-value evidence, not a physical VoiceOver, Dynamic Type or usability qualification.
+
+Next: dedicated calculation cancellation/failure UI qualification and the remaining Help/settings/practice flow, followed by 3D/guide integration. T06 remains running; no physical/media/distribution gate is waived and no public shipment is claimed.

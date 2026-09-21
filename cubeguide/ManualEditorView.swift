@@ -64,6 +64,7 @@ struct CenterAssignmentView: View {
 struct ManualEditorView: View {
   let draft: ManualDraft
   let saving: Bool
+  let reviewCells: Set<Int>
   let validate: () -> Void
   let edit: (DraftEdit) -> Void
   @State private var focusedFace: Face?
@@ -84,6 +85,13 @@ struct ManualEditorView: View {
           "Tap an empty square to enter its color. Keep the top edge of each face aligned with the named neighbor. Swipe the net sideways to reach every face."
         )
         Text("\(draft.missingCount) stickers left").font(.headline)
+        if !reviewCells.isEmpty {
+          Label(
+            "Marked stickers relate to the current check. They are not necessarily wrong; compare all faces for missing or extra colors.",
+            systemImage: "exclamationmark.circle.fill"
+          )
+          .font(.footnote).accessibilityIdentifier("editor.reviewLegend")
+        }
         if saving { ProgressView("Saving…").accessibilityIdentifier("editor.saving") }
         if let focusedFace {
           faceView(focusedFace)
@@ -174,6 +182,7 @@ struct ManualEditorView: View {
             ForEach(0..<3) { column in
               let color = draft.cells[Int(face.rawValue) * 9 + row * 3 + column]
               let center = row == 1 && column == 1
+              let review = reviewCells.contains(Int(face.rawValue) * 9 + row * 3 + column)
               Button {
                 if center {
                   changingCenters = true
@@ -191,13 +200,23 @@ struct ManualEditorView: View {
                     in: RoundedRectangle(cornerRadius: 6)
                   )
                   .overlay(
-                    RoundedRectangle(cornerRadius: 6).stroke(.primary.opacity(0.6), lineWidth: 1))
+                    RoundedRectangle(cornerRadius: 6).stroke(
+                      .primary.opacity(0.6), lineWidth: review ? 3 : 1)
+                  )
+                  .overlay(alignment: .topTrailing) {
+                    if review {
+                      Image(systemName: "exclamationmark.circle.fill")
+                        .font(.caption).foregroundStyle(.white, .black)
+                        .accessibilityHidden(true)
+                    }
+                  }
               }
               .buttonStyle(.plain).disabled(saving)
               .accessibilityLabel(
                 "\(face.title), row \(row + 1), column \(column + 1), \(color?.title ?? "Empty")\(center ? ", center" : "")"
               )
               .accessibilityIdentifier("cell.\(face.code).\(row).\(column)")
+              .accessibilityValue(review ? "Review this sticker" : "")
             }
           }
         }

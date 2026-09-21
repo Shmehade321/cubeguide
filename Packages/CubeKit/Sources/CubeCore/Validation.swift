@@ -70,6 +70,31 @@ public enum CubeValidation {
         return .success(LegalCube(facelets: state))
     }
 
+    /// Canonical sticker indices related to the current diagnostic, not a guessed repair.
+    public static func reviewCells(in state: Facelets) -> [Int] {
+        guard case .failure(let issues) = validate(state), let issue = issues.items.first else { return [] }
+        let faces = state.faces
+        switch issue {
+        case .colorCount(let face, _): return faces.indices.filter { faces[$0] == face }
+        case .center(let face, _): return [Int(face.rawValue) * 9 + 4]
+        case .cornerIdentity(let position): return cornerCells[position].sorted()
+        case .edgeIdentity(let position): return edgeCells[position].sorted()
+        case .duplicateCorner(let piece):
+            return cornerCells.filter { cells in
+                let observed = cells.map { faces[$0] }
+                return (0..<3).contains { shift in
+                    (0..<3).allSatisfy { corners[piece][$0] == observed[($0 + shift) % 3] }
+                }
+            }.flatMap { $0 }.sorted()
+        case .duplicateEdge(let piece):
+            return edgeCells.filter { cells in
+                let observed = cells.map { faces[$0] }
+                return observed == edges[piece] || Array(observed.reversed()) == edges[piece]
+            }.flatMap { $0 }.sorted()
+        case .cornerOrientation, .edgeOrientation, .permutationParity: return []
+        }
+    }
+
     private static func parity(_ permutation: [Int]) -> Int {
         var inversions = 0
         for i in permutation.indices {

@@ -154,11 +154,18 @@ final class FoundationUITests: XCTestCase {
     XCTAssertTrue(app.staticTexts["Check your entered colors"].waitForExistence(timeout: 5))
     XCTAssertTrue(app.staticTexts["Green appears 8 times; it needs 9 stickers."].exists)
     tapReady(app.buttons["validation.edit"])
+    XCTAssertEqual(app.buttons["cell.U.0.1"].value as? String, "Review this sticker")
+    XCTAssertNotEqual(app.buttons["cell.U.0.0"].value as? String, "Review this sticker")
+    let review = XCTAttachment(screenshot: app.screenshot())
+    review.name = "Related stickers for count correction"
+    review.lifetime = .keepAlways
+    add(review)
     tapReady(app.buttons["editor.faceMenu"])
     tapReady(app.buttons["focus.U"])
     tapReady(app.buttons["cell.U.0.0"])
     tapReady(app.buttons["sticker.green"])
     tapReady(app.buttons["face.done"])
+    XCTAssertNotEqual(app.buttons["cell.U.0.1"].value as? String, "Review this sticker")
     validate.tap()
     XCTAssertTrue(app.staticTexts["Your entered colors are solved"].waitForExistence(timeout: 5))
     XCTAssertFalse(app.buttons["solve.consent"].exists)
