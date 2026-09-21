@@ -59,6 +59,7 @@ public struct ClassifiedSticker: Equatable, Sendable, Codable {
 public struct ScanClassification: Equatable, Sendable {
   public let stickers: [ClassifiedSticker]
   public let palette: CenterPalette
+  public let revision: UInt64
   public let policyVersion: String
   public var needsReview: Bool { stickers.contains(where: \.needsReview) }
 
@@ -131,7 +132,7 @@ extension ScanDraft {
       }
     }
     return ScanClassification(
-      stickers: stickers, palette: palette, policyVersion: policy.version)
+      stickers: stickers, palette: palette, revision: revision, policyVersion: policy.version)
   }
 }
 

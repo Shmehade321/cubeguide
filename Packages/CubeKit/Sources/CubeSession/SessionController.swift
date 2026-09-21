@@ -85,7 +85,8 @@ public final class SessionController {
   @discardableResult public func switchScanToManual(
     confirmedCenters: CenterPalette, confirmed: Bool
   ) -> EventDisposition {
-    guard loadStatus == .ready, preferencesStatus != .saving, discardStatus == .idle, !isStartingScan,
+    guard loadStatus == .ready, preferencesStatus != .saving, discardStatus == .idle,
+      !isStartingScan,
       session.phase != .deleting, session.phase != .deletionError,
       let workflow = scanWorkflow
     else { return .rejected(.unavailableEvent) }
@@ -153,7 +154,8 @@ public final class SessionController {
   public private(set) var discardStatus: DraftDiscardStatus = .idle
   @ObservationIgnored private var discardRevision: UInt64?
   @discardableResult public func discardDraft(confirmed: Bool) -> EventDisposition {
-    guard loadStatus == .ready, preferencesStatus != .saving, manualFallbackStatus == .idle, !isStartingScan,
+    guard loadStatus == .ready, preferencesStatus != .saving, manualFallbackStatus == .idle,
+      !isStartingScan,
       session.phase != .deleting,
       session.phase != .deletionError
     else { return .rejected(.unavailableEvent) }
@@ -228,8 +230,63 @@ public final class SessionController {
   public private(set) var palette: CenterPalette?
   public private(set) var pendingScan: PendingScan?
   public private(set) var scanWorkflow: ScanWorkflow?
+  public private(set) var scanValidationIssues: ValidationIssues?
   public private(set) var isStartingScan = false
   public private(set) var isCameraReady = false
+
+  @discardableResult public func acceptReviewedScan(
+    _ classification: ScanClassification, confirmed: Bool
+  ) -> EventDisposition {
+    guard loadStatus == .ready, discardStatus == .idle, manualFallbackStatus == .idle,
+      !isStartingScan, let workflow = scanWorkflow, workflow.phase == .editing,
+      let input = workflow.durable, workflow.pendingSave == nil,
+      classification.revision == input.draft.revision,
+      classification.palette == input.draft.confirmedCenters
+    else { return .rejected(.unavailableEvent) }
+    guard confirmed else { return .rejected(.confirmationRequired) }
+    guard !classification.needsReview else { return .rejected(.scanNeedsReview) }
+    let faces: Facelets
+    do {
+      faces = try classification.canonicalFacelets()
+    } catch {
+      return .rejected(.scanNeedsReview)
+    }
+    let cube: LegalCube
+    switch CubeValidation.validate(faces) {
+    case .failure(let issues):
+      scanValidationIssues = issues
+      return .rejected(.invalidScan)
+    case .success(let value): cube = value
+    }
+    let (revision, overflow) = max(session.latestInputRevision, input.draft.revision)
+      .addingReportingOverflow(1)
+    guard !overflow else { return .rejected(.revisionExhausted) }
+
+    let purpose = input.purpose
+    generation = UUID()
+    solveTask?.cancel()
+    playback?.stop()
+    stopCamera(discard: true)
+    scanWorkflow = nil
+    pendingScan = nil
+    scanValidationIssues = nil
+    palette = classification.palette
+
+    if purpose == .verification, faces == .solved, session.guideProgress?.isComplete == true {
+      do {
+        session = try Session(rebasingCompleted: session, to: revision)
+      } catch {
+        return .rejected(.unavailableEvent)
+      }
+      return send(.confirmScanVerified)
+    }
+
+    session = Session(reviewingScanRevision: revision - 1)
+    let validated = send(.validate(cube.facelets))
+    guard validated == .accepted else { return validated }
+    if session.phase == .alreadySolved { return send(.confirmScanVerified) }
+    return .accepted
+  }
 
   @ObservationIgnored private let storage: any SessionStorage
   @ObservationIgnored private let solver: any SessionSolving
@@ -257,7 +314,8 @@ public final class SessionController {
   @discardableResult public func startScan(purpose: ScanPurpose, replacing: Bool = false) async
     -> EventDisposition
   {
-    guard loadStatus == .ready, preferencesStatus != .saving, discardStatus == .idle, manualFallbackStatus == .idle,
+    guard loadStatus == .ready, preferencesStatus != .saving, discardStatus == .idle,
+      manualFallbackStatus == .idle,
       scanWorkflow == nil, !isStartingScan,
       session.pendingSave == nil, session.pendingDraftSave == nil,
       session.pendingManualStart == nil, session.pendingDeletion == nil
@@ -341,6 +399,7 @@ public final class SessionController {
     if case .capture = event, !isCameraReady { return .rejected(.unavailableEvent) }
     let transition = ScanReducer.reduce(workflow, event: event)
     guard transition.disposition == .accepted else { return transition.disposition }
+    scanValidationIssues = nil
     scanWorkflow = transition.workflow
     pendingScan = transition.workflow.durable
     if case .saved = event { lastError = nil }

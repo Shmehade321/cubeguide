@@ -29,7 +29,7 @@ No renderer fix or iOS 18 qualification is claimed. Overlay recovery was committ
 | T02 Mathematics | automated exit passed; physical golden check open | task-02.md |
 | T03 Tables | local exit passed; remote CI not run | task-03.md |
 | T04 Search | automated exit passed; physical qualification open | task-04.md |
-| T05 Session/storage | running: guide/manual/scan storage and durable discard implemented; full lifecycle pending | task-05.md |
+| T05 Session/storage | running: guide/manual/scan storage, durable discard and reviewed-scan acceptance implemented; remaining physical storage/lifecycle qualification pending | task-05.md |
 | T06 Manual flow | running: Home/editor, validation/solver result UI, offline Help, persisted Settings, isolated practice and calculation-state UI coverage | task-06.md |
 | T07 Graphics | running: static/animated preview and overlays locally qualified on explicit iOS 26.5; A07 completion artwork locally qualified with final full PR and largest-text normal/Reduce Motion checks passed; minimum-OS, remaining artwork, broader accessibility and media qualification open | task-07.md |
 | T08 Guidance/audio | notRun | — |

@@ -10,6 +10,7 @@ public enum SessionPhase: String, CaseIterable, Sendable {
 public enum SessionRejection: Equatable, Sendable {
   case unavailableEvent, replacementRequired, revisionExhausted, confirmationRequired
   case draft(DraftError)
+  case scanNeedsReview, invalidScan
 }
 public enum EventDisposition: Equatable, Sendable {
   case accepted, ignored
@@ -24,7 +25,7 @@ public enum SessionEvent: Sendable {
   case manualStarted(SaveID)
   case manualStartFailed(SaveID)
   case retryManualStart
-  case confirmCompletion, retryCompletionSave
+  case confirmCompletion, confirmScanVerified, retryCompletionSave
   case mismatch, retryRecoverySave
   case edit
   case editDraft(DraftEdit)
@@ -92,6 +93,23 @@ public struct Session: Equatable, Sendable {
   fileprivate var interruptedSave = false
   fileprivate var failedSaveKind: GuideSaveKind?
   public init(revision: UInt64 = 0) { self.revision = revision }
+  init(reviewingScanRevision revision: UInt64) {
+    self.init(revision: revision)
+    phase = .editing
+    hasWork = true
+  }
+  init(rebasingCompleted source: Session, to revision: UInt64) throws {
+    guard revision > source.latestInputRevision, let progress = source.guideProgress,
+      progress.isComplete
+    else { throw ArchiveError.invalidProgress }
+    self = source
+    self.revision = revision
+    guideProgress = try GuideProgress(
+      plan: progress.plan, revision: revision,
+      acknowledgedActions: progress.acknowledgedActions)
+    completion = nil
+    phase = .expectedSolved
+  }
   init(restoringManualStart revision: UInt64) {
     self.init(revision: revision)
     phase = .editing
@@ -215,6 +233,22 @@ public enum SessionReducer {
       commands = [.cancelSolve(revision: session.revision), .stopPreview, .deleteLocalData(id)]
     }
     switch event {
+    case .confirmScanVerified:
+      if session.phase == .savingCompletion || session.phase == .completed { return ignored() }
+      let progress: GuideProgress
+      if session.phase == .expectedSolved, let guide = session.guideProgress, guide.isComplete {
+        progress = guide
+      } else if session.phase == .alreadySolved, let cube = session.confirmedCube,
+        cube.facelets == .solved,
+        let plan = try? Replay.verify([], for: cube, resourceVersion: "camera-scan-v1").get(),
+        let checked = try? GuideProgress(plan: plan, revision: session.revision)
+      {
+        progress = checked
+      } else {
+        return rejected()
+      }
+      next.completionCandidate = progress
+      _ = beginSave(.completion(.scanVerified), progress: progress)
     case .mismatch:
       if session.phase == .savingRecovery || session.phase == .recovery { return ignored() }
       guard [.guide, .expectedSolved, .completed].contains(session.phase),

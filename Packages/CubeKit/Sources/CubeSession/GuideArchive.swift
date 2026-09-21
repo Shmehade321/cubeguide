@@ -39,6 +39,7 @@ public enum GuideArchive {
     case .enteredColorsSolved:
       return progress.plan.original == .solved && progress.plan.moves.isEmpty
     case .userConfirmed: return !progress.plan.moves.isEmpty
+    case .scanVerified: return progress.isComplete
     }
   }
   public static func encode(_ request: GuideSaveRequest, palette: CenterPalette) throws -> Data {

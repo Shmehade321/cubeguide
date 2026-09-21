@@ -43,6 +43,17 @@ func enteredColorsCompletion() throws {
   #expect(completed.phase == .completed && completed.completion == .enteredColorsSolved)
 }
 
+@Test("R10: a complete six-face camera review records scan verification distinctly")
+func scanVerifiedCompletion() throws {
+  let finished = try Session(rebasingCompleted: finishedGuide(), to: 100)
+  let requested = apply(finished, .confirmScanVerified)
+  #expect(requested.disposition == .accepted)
+  let save = try #require(requested.session.pendingSave)
+  #expect(save.id.revision == 100 && save.kind == .completion(.scanVerified))
+  let bytes = try GuideArchive.encode(save, palette: archivePalette())
+  #expect(try GuideArchive.decode(bytes).completion == .scanVerified)
+}
+
 @Test("V11: completion save failures retain confirmation intent and retry with a new identity")
 func completionFailureAndInterruption() throws {
   for initial in [try finishedGuide(), apply(try editor(), .validate(.solved)).session] {
@@ -85,8 +96,7 @@ func completionArchiveRoundTrip() throws {
   }
 }
 
-@Test(
-  "R10/V11: completion metadata cannot claim success before the guide ends or imply a camera scan")
+@Test("R10/V11: completion metadata cannot claim success before the guide ends or mislabel input")
 func completionArchiveGuards() throws {
   let incomplete = try #require(try preparingSession().pendingSave)
   let forged = GuideSaveRequest(
@@ -100,10 +110,10 @@ func completionArchiveGuards() throws {
   #expect(throws: (any Error).self) { try GuideArchive.decode(premature) }
   let completion = try #require(apply(try finishedGuide(), .confirmCompletion).session.pendingSave)
   let completeBytes = try GuideArchive.encode(completion, palette: archivePalette())
-  for falseKind in ["enteredColorsSolved", "scanVerified"] {
-    let invalid = try mutatedArchive(completeBytes, payload: { $0["completion"] = falseKind })
-    #expect(throws: (any Error).self) { try GuideArchive.decode(invalid) }
-  }
+  let invalid = try mutatedArchive(completeBytes, payload: {
+    $0["completion"] = "enteredColorsSolved"
+  })
+  #expect(throws: (any Error).self) { try GuideArchive.decode(invalid) }
 }
 
 @Test("V11: completion save identity includes evidence kind and survives a real relaunch")

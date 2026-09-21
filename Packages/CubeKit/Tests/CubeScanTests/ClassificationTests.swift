@@ -58,6 +58,7 @@ func classificationRequiresCalibration() throws {
 func nearestCenterClassification() throws {
   let classification = try completeClassificationDraft().classify(using: permissivePolicy)
   #expect(classification.policyVersion == "fixture-v1")
+  #expect(classification.revision == 6)
   #expect(classification.stickers.count == 54)
   #expect(classification.stickers[18].color == .red)
   #expect(abs(classification.stickers[18].nearestDistance - 0.5) < 0.001)
