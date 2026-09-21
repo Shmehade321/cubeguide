@@ -128,3 +128,38 @@ func appSessionCoordinator() async throws {
   #expect(try await dependencies.sessionStore.loadDraft() == nil)
   #expect(playback.stopCount == 1)
 }
+
+@MainActor
+@Test("R05/R10: installed app persists entered-color completion without a camera claim")
+func appEnteredCompletion() async throws {
+  let directory = AppDependencies.guideDirectory.appendingPathComponent("completion-\(UUID())")
+  defer { try? FileManager.default.removeItem(at: directory) }
+  let dependencies = AppDependencies(guideDirectory: directory)
+  let palette = try CenterPalette([.green, .white, .orange, .blue, .yellow, .red])
+  var draft = ManualDraft(palette: palette)
+  for face in Face.allCases {
+    for row in 0..<3 {
+      for column in 0..<3 where row != 1 || column != 1 {
+        draft = try draft.setting(
+          face: face, row: row, column: column, color: palette.colors[Int(face.rawValue)])
+      }
+    }
+  }
+  try await dependencies.sessionStore.saveDraft(
+    draft, lease: dependencies.sessionStore.currentLease())
+  let controller = dependencies.makeSessionController(playback: CompositionPlayback())
+  await controller.load()
+  #expect(controller.send(.validateDraft) == .accepted)
+  #expect(controller.session.phase == .alreadySolved)
+  #expect(controller.send(.confirmCompletion) == .accepted)
+  let deadline = ContinuousClock.now.advanced(by: .seconds(10))
+  while controller.session.phase == .savingCompletion && ContinuousClock.now < deadline {
+    try await Task.sleep(for: .milliseconds(5))
+  }
+  #expect(
+    controller.session.phase == .completed && controller.session.completion == .enteredColorsSolved)
+  let relaunched = dependencies.makeSessionController(playback: CompositionPlayback())
+  await relaunched.load()
+  #expect(
+    relaunched.session.phase == .completed && relaunched.session.completion == .enteredColorsSolved)
+}

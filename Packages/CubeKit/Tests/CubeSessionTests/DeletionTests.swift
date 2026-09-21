@@ -101,6 +101,8 @@ func deletionEventMatrix() throws {
   // Columns: unconfirmed delete, confirmed delete, retry, success, failure.
   let rows: [(Session, String)] = [
     (Session(), "RARII"), (editing, "RARII"),
+    (try savingCompletionSession(), "RARII"), (try completionErrorSession(), "RARII"),
+    (try completedSession(), "RARII"),
     (try startingManualSession(), "RARII"), (try manualStartErrorSession(), "RARII"),
     (apply(editing, .validate(try Facelets(bad))).session, "RARII"),
     (apply(editing, .validate(.solved)).session, "RARII"),

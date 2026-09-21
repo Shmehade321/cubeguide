@@ -259,6 +259,9 @@ func preGuideTransitionMatrix() throws {
     .session
   let rows: [(Session, SessionPhase, String)] = [
     (Session(), .home, "ARRRRRIRRI"),
+    (try savingCompletionSession(), .savingCompletion, "RRRRRAIRRI"),
+    (try completionErrorSession(), .completionStorageError, "RRRRRRIRRI"),
+    (try completedSession(), .completed, "RRRRRAIRRI"),
     (try startingManualSession(), .startingManual, "RRRRRAIRRI"),
     (try manualStartErrorSession(), .manualStartError, "RRRRRRIRRI"),
     (deleting, .deleting, "RRRRRIIRRI"), (deletionError, .deletionError, "RRRRRRIRRI"),

@@ -8,7 +8,14 @@ public struct SaveID: Equatable, Hashable, Sendable, Codable {
     self.sequence = sequence
   }
 }
-public enum GuideSaveKind: Sendable { case preparation, acknowledgement }
+public enum GuideSaveKind: Equatable, Sendable {
+  case preparation, acknowledgement
+  case completion(CompletionKind)
+  public var completion: CompletionKind? {
+    if case .completion(let kind) = self { return kind }
+    return nil
+  }
+}
 public struct GuideSaveRequest: Equatable, Sendable {
   public let id: SaveID
   public let kind: GuideSaveKind

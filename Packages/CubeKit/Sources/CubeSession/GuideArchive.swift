@@ -9,6 +9,7 @@ public struct RestoredGuide: Equatable, Sendable {
   public let palette: CenterPalette
   public let saveID: SaveID
   public let pendingPrepared: Bool
+  public let completion: CompletionKind?
 }
 public enum GuideArchive {
   public static let maximumBytes = CheckedArchive.maximumBytes
@@ -25,12 +26,25 @@ public enum GuideArchive {
     let state: Facelets
     let pendingAction: ActionID?
     let pendingPrepared: Bool
+    let completion: CompletionKind?
+  }
+  private static func validCompletion(_ completion: CompletionKind?, progress: GuideProgress)
+    -> Bool
+  {
+    guard let completion else { return true }
+    guard progress.isComplete else { return false }
+    switch completion {
+    case .enteredColorsSolved:
+      return progress.plan.original == .solved && progress.plan.moves.isEmpty
+    case .userConfirmed: return !progress.plan.moves.isEmpty
+    }
   }
   public static func encode(_ request: GuideSaveRequest, palette: CenterPalette) throws -> Data {
     let progress = request.progress
     guard request.id.revision == progress.revision, request.id.sequence > 0,
       request.pendingPrepared == (request.kind == .preparation),
       !request.pendingPrepared || !progress.isComplete,
+      validCompletion(request.kind.completion, progress: progress),
       !progress.plan.resourceVersion.isEmpty,
       progress.plan.resourceVersion.utf8.count <= 256
     else { throw ArchiveError.invalidProgress }
@@ -41,7 +55,8 @@ public enum GuideArchive {
       resourceVersion: progress.plan.resourceVersion, palette: palette,
       saveID: request.id, acknowledgedActions: progress.acknowledgedActions,
       moveIndex: progress.moveIndex, pose: progress.pose, state: progress.state,
-      pendingAction: progress.pending?.id, pendingPrepared: request.pendingPrepared)
+      pendingAction: progress.pending?.id, pendingPrepared: request.pendingPrepared,
+      completion: request.kind.completion)
     return try CheckedArchive.encode(payload)
   }
   public static func decode(_ data: Data) throws -> RestoredGuide {
@@ -60,10 +75,12 @@ public enum GuideArchive {
     guard payload.originalHash == plan.originalStateHash,
       payload.moveIndex == progress.moveIndex, payload.pose == progress.pose,
       payload.state == progress.state, payload.pendingAction == progress.pending?.id,
-      !payload.pendingPrepared || !progress.isComplete
+      !payload.pendingPrepared || !progress.isComplete,
+      validCompletion(payload.completion, progress: progress)
     else { throw ArchiveError.invalidProgress }
     return RestoredGuide(
       progress: progress, palette: payload.palette,
-      saveID: payload.saveID, pendingPrepared: payload.pendingPrepared)
+      saveID: payload.saveID, pendingPrepared: payload.pendingPrepared,
+      completion: payload.completion)
   }
 }

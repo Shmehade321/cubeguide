@@ -4,7 +4,8 @@ import CubeSolver3
 public enum SessionPhase: String, CaseIterable, Sendable {
   case home, editing, invalid, alreadySolved, offer, solving, solveError, preparingAction,
     resumeCheck, guide, savingAcknowledgement, storageError, expectedSolved, recovery, savingDraft,
-    draftStorageError, deleting, deletionError, startingManual, manualStartError
+    draftStorageError, deleting, deletionError, startingManual, manualStartError, savingCompletion,
+    completionStorageError, completed
 }
 public enum SessionRejection: Equatable, Sendable {
   case unavailableEvent, replacementRequired, revisionExhausted, confirmationRequired
@@ -23,6 +24,7 @@ public enum SessionEvent: Sendable {
   case manualStarted(SaveID)
   case manualStartFailed(SaveID)
   case retryManualStart
+  case confirmCompletion, retryCompletionSave
   case edit
   case editDraft(DraftEdit)
   case validateDraft, retryDraftSave
@@ -53,8 +55,11 @@ public struct Session: Equatable, Sendable {
   public fileprivate(set) var phase: SessionPhase = .home
   public fileprivate(set) var revision: UInt64
   public fileprivate(set) var hasWork = false
+  public fileprivate(set) var completion: CompletionKind?
   public fileprivate(set) var pendingManualStart: SaveID?
   fileprivate var exitAfterManualStart = false
+  fileprivate var completionCandidate: GuideProgress?
+  fileprivate var exitAfterCompletionSave = false
   public fileprivate(set) var pendingDeletion: DeletionID?
   public fileprivate(set) var draft: ManualDraft?
   public fileprivate(set) var durableDraft: ManualDraft?
@@ -96,7 +101,10 @@ public struct Session: Equatable, Sendable {
     hasWork = true
     preparationDurable = archive.pendingPrepared
     saveSequence = archive.saveID.sequence
-    phase = archive.progress.isComplete ? .expectedSolved : .resumeCheck
+    completion = archive.completion
+    phase =
+      archive.completion != nil
+      ? .completed : archive.progress.isComplete ? .expectedSolved : .resumeCheck
   }
 }
 public struct SessionTransition: Sendable {
@@ -124,7 +132,7 @@ public enum SessionReducer {
       guard let progress else { return false }
       let (sequence, overflow) = next.saveSequence.addingReportingOverflow(1)
       guard !overflow else {
-        next.phase = .storageError
+        next.phase = kind.completion != nil ? .completionStorageError : .storageError
         next.failedSaveKind = kind
         return false
       }
@@ -133,7 +141,9 @@ public enum SessionReducer {
         id: SaveID(revision: session.revision, sequence: sequence),
         kind: kind, progress: progress, pendingPrepared: kind == .preparation)
       next.pendingSave = request
-      next.phase = kind == .preparation ? .preparingAction : .savingAcknowledgement
+      next.phase =
+        kind.completion != nil
+        ? .savingCompletion : kind == .preparation ? .preparingAction : .savingAcknowledgement
       commands.append(.saveGuide(request))
       return true
     }
@@ -169,6 +179,8 @@ public enum SessionReducer {
       next.pendingSave = nil
       next.pendingDraftSave = nil
       next.pendingManualStart = nil
+      next.completionCandidate = nil
+      next.exitAfterCompletionSave = false
       next.exitAfterManualStart = false
       next.exitAfterDraftSave = false
       next.preview = .idle
@@ -178,6 +190,33 @@ public enum SessionReducer {
       commands = [.cancelSolve(revision: session.revision), .stopPreview, .deleteLocalData(id)]
     }
     switch event {
+    case .confirmCompletion:
+      if session.phase == .savingCompletion || session.phase == .completed { return ignored() }
+      let progress: GuideProgress
+      let kind: CompletionKind
+      if session.phase == .expectedSolved, let guide = session.guideProgress, guide.isComplete {
+        progress = guide
+        kind = guide.plan.moves.isEmpty ? .enteredColorsSolved : .userConfirmed
+      } else if session.phase == .alreadySolved, let cube = session.confirmedCube,
+        cube.facelets == .solved
+      {
+        guard
+          let plan = try? Replay.verify([], for: cube, resourceVersion: "entered-colors-v1").get(),
+          let checked = try? GuideProgress(plan: plan, revision: session.revision)
+        else { return rejected() }
+        progress = checked
+        kind = .enteredColorsSolved
+      } else {
+        return rejected()
+      }
+      next.completionCandidate = progress
+      _ = beginSave(.completion(kind), progress: progress)
+    case .retryCompletionSave:
+      guard session.phase == .completionStorageError,
+        let kind = session.failedSaveKind?.completion,
+        let progress = session.completionCandidate
+      else { return rejected() }
+      _ = beginSave(.completion(kind), progress: progress)
     case .manualStarted(let id):
       guard session.phase == .startingManual, session.pendingManualStart == id else {
         return ignored()
@@ -263,7 +302,12 @@ public enum SessionReducer {
       next.failedSaveKind = nil
       next.preview = .idle
       next.playbackID = nil
-      if save.progress.isComplete {
+      if let completion = save.kind.completion {
+        next.completion = completion
+        next.completionCandidate = nil
+        next.phase = session.exitAfterCompletionSave ? .home : .completed
+        next.exitAfterCompletionSave = false
+      } else if save.progress.isComplete {
         next.phase = .expectedSolved
       } else if session.interruptedSave || session.phase == .resumeCheck || session.phase == .home {
         next.phase = session.phase == .home ? .home : .resumeCheck
@@ -321,7 +365,8 @@ public enum SessionReducer {
       next.pendingSave = nil
       next.failedSaveKind = request.kind
       next.interruptedSave = false
-      next.phase = .storageError
+      next.phase = request.kind.completion != nil ? .completionStorageError : .storageError
+      next.exitAfterCompletionSave = false
       next.aligned = false
       next.preview = .idle
       next.playbackID = nil
@@ -368,7 +413,10 @@ public enum SessionReducer {
       guard beginManualStart() else { return rejected(.revisionExhausted) }
     case .cancel, .background:
       if session.phase == .deleting { return ignored() }
-      if session.phase == .startingManual {
+      if session.phase == .savingCompletion {
+        if case .background = event { return ignored() }
+        next.exitAfterCompletionSave = true
+      } else if session.phase == .startingManual {
         if case .background = event { return ignored() }
         next.exitAfterManualStart = true
       } else if session.phase == .savingDraft {
@@ -394,9 +442,12 @@ public enum SessionReducer {
         return ignored()
       } else {
         guard
-          [.editing, .invalid, .alreadySolved, .offer, .solveError, .resumeCheck, .storageError]
-            .contains(
-              session.phase)
+          [
+            .editing, .invalid, .alreadySolved, .offer, .solveError, .resumeCheck, .storageError,
+            .completed,
+          ]
+          .contains(
+            session.phase)
         else {
           return rejected()
         }
@@ -451,7 +502,11 @@ public enum SessionReducer {
       next.usedExtendedAttempt = false
     case .resume:
       guard session.phase == .home, session.hasWork else { return rejected() }
-      if session.plan != nil, session.pendingAction != nil {
+      if session.completion != nil {
+        next.phase = .completed
+      } else if session.guideProgress?.isComplete == true {
+        next.phase = .expectedSolved
+      } else if session.plan != nil, session.pendingAction != nil {
         next.phase = .resumeCheck
       } else if let cube = session.confirmedCube {
         next.phase = cube.facelets == .solved ? .alreadySolved : .offer

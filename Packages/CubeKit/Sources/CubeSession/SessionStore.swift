@@ -155,7 +155,8 @@ public actor SessionStore {
         }
         if request.id.sequence == existing.saveID.sequence {
           guard request.progress == existing.progress, palette == existing.palette,
-            request.pendingPrepared == existing.pendingPrepared
+            request.pendingPrepared == existing.pendingPrepared,
+            request.kind.completion == existing.completion
           else { throw SessionStoreError.staleWrite }
         }
       }
