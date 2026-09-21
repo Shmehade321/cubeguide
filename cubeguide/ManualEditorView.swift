@@ -63,6 +63,7 @@ struct CenterAssignmentView: View {
 
 struct ManualEditorView: View {
   let draft: ManualDraft
+  let showColorLabels: Bool
   let saving: Bool
   let reviewCells: Set<Int>
   let validate: () -> Void
@@ -190,7 +191,7 @@ struct ManualEditorView: View {
                   selected = Cell(face: face, row: row, column: column)
                 }
               } label: {
-                Text(color.map { String($0.title.prefix(1)) } ?? "+")
+                Text(color.map { showColorLabels ? String($0.title.prefix(1)) : "" } ?? "+")
                   .font(.headline).frame(width: cellSize, height: cellSize)
                   .foregroundStyle(
                     color == nil ? Color.primary : (color == .blue ? Color.white : Color.black)

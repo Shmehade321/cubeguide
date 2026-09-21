@@ -5,6 +5,9 @@ import Foundation
 import Observation
 
 public protocol SessionStorage: Actor {
+  func loadPreferences() async throws -> AppPreferences
+  func savePreferences(_ preferences: AppPreferences, lease: StorageLease) async throws
+
   func startManual(revision: UInt64, lease: StorageLease) async throws
   func restore() async throws -> SessionRestoration
   func currentLease() async -> StorageLease
@@ -39,12 +42,50 @@ public enum SessionLoadStatus: Equatable, Sendable { case idle, loading, ready, 
 
 @MainActor @Observable
 public final class SessionController {
+  @ObservationIgnored private var pendingPreferences: AppPreferences?
+  public private(set) var preferencesError: (any Error)?
+  @discardableResult public func retryPreferences() -> EventDisposition {
+    guard preferencesStatus == .failed, let pendingPreferences else {
+      return .rejected(.unavailableEvent)
+    }
+    return savePreferences(pendingPreferences)
+  }
+  public private(set) var preferences = AppPreferences()
+  public private(set) var preferencesStatus: DraftDiscardStatus = .idle
+  @discardableResult public func savePreferences(_ value: AppPreferences) -> EventDisposition {
+    guard loadStatus == .ready, preferencesStatus != .saving, !isStartingScan,
+      session.phase != .deleting, session.phase != .deletionError,
+      discardStatus == .idle, manualFallbackStatus == .idle
+    else { return .rejected(.unavailableEvent) }
+    preferencesStatus = .saving
+    pendingPreferences = value
+    preferencesError = nil
+    let expectedGeneration = generation
+    enqueueStorage { [self] in
+      guard generation == expectedGeneration else { return }
+      do {
+        let current = await storage.currentLease()
+        guard generation == expectedGeneration else { return }
+        try await storage.savePreferences(value, lease: current)
+        guard generation == expectedGeneration else { return }
+        preferences = value
+        pendingPreferences = nil
+        preferencesStatus = .idle
+      } catch {
+        guard generation == expectedGeneration else { return }
+        preferencesError = error
+        preferencesStatus = .failed
+      }
+    }
+    return .accepted
+  }
+
   public private(set) var manualFallbackStatus: ManualFallbackStatus = .idle
   @ObservationIgnored private var manualFallbackDraft: ManualDraft?
   @discardableResult public func switchScanToManual(
     confirmedCenters: CenterPalette, confirmed: Bool
   ) -> EventDisposition {
-    guard loadStatus == .ready, discardStatus == .idle, !isStartingScan,
+    guard loadStatus == .ready, preferencesStatus != .saving, discardStatus == .idle, !isStartingScan,
       session.phase != .deleting, session.phase != .deletionError,
       let workflow = scanWorkflow
     else { return .rejected(.unavailableEvent) }
@@ -112,7 +153,7 @@ public final class SessionController {
   public private(set) var discardStatus: DraftDiscardStatus = .idle
   @ObservationIgnored private var discardRevision: UInt64?
   @discardableResult public func discardDraft(confirmed: Bool) -> EventDisposition {
-    guard loadStatus == .ready, manualFallbackStatus == .idle, !isStartingScan,
+    guard loadStatus == .ready, preferencesStatus != .saving, manualFallbackStatus == .idle, !isStartingScan,
       session.phase != .deleting,
       session.phase != .deletionError
     else { return .rejected(.unavailableEvent) }
@@ -216,7 +257,7 @@ public final class SessionController {
   @discardableResult public func startScan(purpose: ScanPurpose, replacing: Bool = false) async
     -> EventDisposition
   {
-    guard loadStatus == .ready, discardStatus == .idle, manualFallbackStatus == .idle,
+    guard loadStatus == .ready, preferencesStatus != .saving, discardStatus == .idle, manualFallbackStatus == .idle,
       scanWorkflow == nil, !isStartingScan,
       session.pendingSave == nil, session.pendingDraftSave == nil,
       session.pendingManualStart == nil, session.pendingDeletion == nil
@@ -315,7 +356,10 @@ public final class SessionController {
     let expectedGeneration = generation
     do {
       let restored = try await storage.restore()
+      let restoredPreferences = try await storage.loadPreferences()
       guard generation == expectedGeneration, loadStatus == .loading else { return }
+      preferences = restoredPreferences
+      preferencesStatus = .idle
       session = restored.session
       palette = restored.palette
       pendingScan = restored.pendingScan
@@ -390,6 +434,7 @@ public final class SessionController {
       if case .deleteLocalData = $0 { return true }
       return false
     }) {
+      preferencesStatus = .idle
       discardStatus = .idle
       discardRevision = nil
       manualFallbackStatus = .idle
@@ -545,6 +590,10 @@ public final class SessionController {
           let replacement = try await storage.delete(lease: current)
           guard generation == expectedGeneration else { return }
           lease = replacement
+          preferences = AppPreferences()
+          pendingPreferences = nil
+          preferencesError = nil
+          preferencesStatus = .idle
           palette = nil
           lastError = nil
           send(.deleted(id))

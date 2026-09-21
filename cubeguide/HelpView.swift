@@ -57,7 +57,7 @@ private enum HelpTopic: String, CaseIterable, Identifiable {
       [
         "Your entered colors and saved solution are stored on this iPhone. CubeGuide does not send them to a server, require an account, or save images to Photos.",
         "Help and the solver's required resources are included with the app. An internet connection is not needed to read these pages or calculate a solution.",
-        "Use Delete saved cube on Home to remove your saved colors and guide. Confirm the deletion only when you want to discard that work.",
+        "Use Delete local data in Settings to remove your saved colors and guide and reset preferences. Confirm only when you want to discard that work.",
       ]
     case .licenses:
       [

@@ -2,6 +2,57 @@ import XCTest
 
 final class FoundationUITests: XCTestCase {
   @MainActor
+  func testSettingsPersistAndDelete() {
+    let app = XCUIApplication()
+    app.launch()
+    if app.buttons["editor.home"].waitForExistence(timeout: 2) { tapReady(app.buttons["editor.home"]) }
+    let settings = app.buttons["home.settings"]
+    XCTAssertTrue(settings.waitForExistence(timeout: 5))
+    guard settings.exists else { return }
+    tapReady(settings)
+    tapReady(app.buttons["settings.delete"])
+    tapReady(app.buttons["settings.delete.confirm"])
+    tapReady(settings)
+    let narration = app.switches["settings.narration"]
+    XCTAssertEqual(narration.value as? String, "1")
+    narration.coordinate(withNormalizedOffset: CGVector(dx: 0.92, dy: 0.5)).tap()
+    let saved = NSPredicate(format: "value == %@ AND enabled == true", "0")
+    expectation(for: saved, evaluatedWith: narration)
+    waitForExpectations(timeout: 5)
+    for (identifier, expected) in [("settings.effects", "1"), ("settings.haptics", "0"), ("settings.labels", "0")] {
+      let control = app.switches[identifier]
+      control.coordinate(withNormalizedOffset: CGVector(dx: 0.92, dy: 0.5)).tap()
+      expectation(for: NSPredicate(format: "value == %@ AND enabled == true", expected), evaluatedWith: control)
+      waitForExpectations(timeout: 5)
+    }
+    tapReady(app.buttons["settings.speed"])
+    tapReady(app.buttons["Fast"])
+    XCTAssertTrue(app.buttons["settings.speed"].waitForExistence(timeout: 5))
+    let screenshot = XCTAttachment(screenshot: app.screenshot())
+    screenshot.name = "Persisted Settings"
+    screenshot.lifetime = .keepAlways
+    add(screenshot)
+    tapReady(app.buttons["settings.done"])
+    app.terminate()
+    app.launch()
+    tapReady(settings)
+    XCTAssertEqual(narration.value as? String, "0")
+    XCTAssertEqual(app.switches["settings.effects"].value as? String, "1")
+    XCTAssertEqual(app.switches["settings.haptics"].value as? String, "0")
+    XCTAssertEqual(app.switches["settings.labels"].value as? String, "0")
+    XCTAssertTrue(app.buttons["settings.speed"].label.contains("Fast"))
+    tapReady(app.buttons["settings.delete"])
+    tapReady(app.buttons["settings.delete.confirm"])
+    tapReady(settings)
+    XCTAssertEqual(narration.value as? String, "1")
+    XCTAssertEqual(app.switches["settings.effects"].value as? String, "0")
+    XCTAssertEqual(app.switches["settings.haptics"].value as? String, "1")
+    XCTAssertEqual(app.switches["settings.labels"].value as? String, "1")
+    XCTAssertTrue(app.buttons["settings.speed"].label.contains("Normal"))
+    tapReady(app.buttons["settings.done"])
+  }
+
+  @MainActor
   func testAppLaunches() {
     let app = XCUIApplication()
     app.launch()

@@ -203,6 +203,19 @@ public actor SessionStore {
     try replace(bytes, file: draftFile, temporary: draftTemporary)
     return self.lease
   }
+  public func loadPreferences() throws -> AppPreferences {
+    guard let bytes = try read(preferencesFile) else { return AppPreferences() }
+    return try CheckedArchive.decode(AppPreferences.self, from: bytes)
+  }
+  public func savePreferences(_ preferences: AppPreferences, lease: StorageLease) throws {
+    guard lease == self.lease else { throw SessionStoreError.staleLease }
+    // Preserve corrupt or newer settings until explicit local-data deletion.
+    _ = try loadPreferences()
+    try replace(CheckedArchive.encode(preferences), file: preferencesFile,
+      temporary: preferencesTemporary)
+  }
+  private var preferencesFile: URL { directory.appendingPathComponent("preferences.json") }
+  private var preferencesTemporary: URL { directory.appendingPathComponent("preferences.pending") }
   public func currentLease() -> StorageLease { lease }
   private var manualStartFile: URL { directory.appendingPathComponent("manual-start.json") }
   private var manualStartTemporary: URL { directory.appendingPathComponent("manual-start.pending") }
@@ -301,6 +314,7 @@ public actor SessionStore {
     try checkpoint(.beforeDelete)
     for ownedFile in [
       file, temporary, draftFile, draftTemporary, manualStartFile, manualStartTemporary,
+      preferencesFile, preferencesTemporary,
     ] {
       if FileManager.default.fileExists(atPath: ownedFile.path) {
         try FileManager.default.removeItem(at: ownedFile)

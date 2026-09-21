@@ -126,6 +126,17 @@ actor ControllerGate {
 
 enum ControllerInjectedFailure: Error { case afterWrite, afterDeletion }
 actor ControlledStorage: SessionStorage {
+  func loadPreferences() async throws -> AppPreferences { try await real.loadPreferences() }
+  func savePreferences(_ preferences: AppPreferences, lease: StorageLease) async throws {
+    try await real.savePreferences(preferences, lease: lease)
+    await preferencesGate?.pause()
+    if failPreferences { failPreferences = false; throw ControllerInjectedFailure.afterWrite }
+  }
+  var failPreferences = false
+  func failNextPreferences() { failPreferences = true }
+  var preferencesGate: ControllerGate?
+  func gatePreferences(_ gate: ControllerGate) { preferencesGate = gate }
+
   let real: SessionStore
   var restoreGate: ControllerGate?
   let draftGate: ControllerGate?

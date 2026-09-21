@@ -10,6 +10,8 @@ struct ContentView: View {
   @State private var deleting = false
   @State private var reviewingInput = false
   @State private var showingHelp = false
+  @State private var showingSettings = false
+  @Environment(\.accessibilityDifferentiateWithoutColor) private var differentiate
   @Environment(\.scenePhase) private var scenePhase
 
   init() {
@@ -42,7 +44,11 @@ struct ContentView: View {
       .navigationBarTitleDisplayMode(controller.session.phase == .home ? .large : .inline)
       .toolbar {
         if controller.loadStatus == .ready, controller.session.phase != .home {
-          ToolbarItem(placement: .topBarTrailing) {
+          ToolbarItemGroup(placement: .topBarTrailing) {
+            Button("Settings", systemImage: "gearshape") {
+              controller.pauseForAuxiliaryNavigation()
+              showingSettings = true
+            }.accessibilityIdentifier("navigation.settings")
             Button("Help", systemImage: "questionmark.circle", action: openHelp)
               .accessibilityIdentifier("navigation.help")
           }
@@ -67,17 +73,18 @@ struct ContentView: View {
           "Your current cube and guide will no longer be active. Start again only if you want to enter a different cube."
         )
       }
-      .alert("Delete saved cube?", isPresented: $deleting) {
+      .alert("Delete all local data?", isPresented: $deleting) {
         Button("Cancel", role: .cancel) {}
-        Button("Delete cube", role: .destructive) {
+        Button("Delete local data", role: .destructive) {
           controller.send(.deleteLocalData(confirmed: true))
         }
         .accessibilityIdentifier("delete.confirm")
       } message: {
-        Text("This removes your saved colors and guide from this device.")
+        Text("This removes your saved colors and guide and resets all preferences on this device.")
       }
     }
     .sheet(isPresented: $showingHelp) { HelpView() }
+    .sheet(isPresented: $showingSettings) { SettingsView(controller: controller) }
     .task { await controller.load() }
     .onChange(of: scenePhase) { _, phase in
       if phase != .active { controller.send(.background) }
@@ -103,9 +110,13 @@ struct ContentView: View {
         if controller.session.hasWork {
           Button("Resume saved cube", systemImage: "arrow.clockwise") { controller.send(.resume) }
             .buttonStyle(.bordered).controlSize(.large).accessibilityIdentifier("home.resume")
-          Button("Delete saved cube", role: .destructive) { deleting = true }
+          Button("Delete local data", role: .destructive) { deleting = true }
             .accessibilityIdentifier("home.delete")
         }
+        Button("Settings", systemImage: "gearshape") {
+          controller.pauseForAuxiliaryNavigation()
+          showingSettings = true
+        }.accessibilityIdentifier("home.settings")
         Button("Help", systemImage: "questionmark.circle", action: openHelp)
           .accessibilityIdentifier("home.help")
         Spacer()
@@ -113,7 +124,9 @@ struct ContentView: View {
     case .editing, .savingDraft:
       if let draft = controller.session.draft {
         ManualEditorView(
-          draft: draft, saving: controller.session.phase == .savingDraft,
+          draft: draft,
+          showColorLabels: controller.preferences.colorLabelsEnabled(differentiateWithoutColor: differentiate),
+          saving: controller.session.phase == .savingDraft,
           reviewCells: reviewingInput ? relatedCells : [],
           validate: { controller.send(.validateDraft) }
         ) {
@@ -256,7 +269,7 @@ struct ContentView: View {
         ))
       Button("Try again", action: retry).buttonStyle(.borderedProminent)
       Button("Help", action: openHelp).accessibilityIdentifier("failure.help")
-      Button("Delete saved cube", role: .destructive) { deleting = true }
+      Button("Delete local data", role: .destructive) { deleting = true }
     }.padding()
   }
 }
