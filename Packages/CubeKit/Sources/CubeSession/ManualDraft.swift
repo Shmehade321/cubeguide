@@ -1,7 +1,9 @@
 import CubeCore
+import CubeScan
 
 public enum DraftError: Error, Equatable {
-  case invalidCell, centerRequiresAssignment, incomplete, invalidShape, revisionExhausted
+  case invalidCell, centerRequiresAssignment, incomplete, invalidShape, invalidRevision,
+    revisionExhausted
 }
 
 /// Semantic colors remain independent of the canonical solver labels.
@@ -18,6 +20,17 @@ public struct ManualDraft: Equatable, Sendable, Codable {
       cells[Int(face.rawValue) * 9 + 4] = palette.colors[Int(face.rawValue)]
     }
     self.cells = cells
+  }
+  public init(manualFallbackFrom scan: ScanDraft, confirmedCenters: CenterPalette, revision: UInt64)
+    throws
+  {
+    guard revision > scan.revision else { throw DraftError.invalidRevision }
+    var cells = ManualDraft(palette: confirmedCenters, revision: revision).cells
+    for face in scan.faces.compactMap({ $0 }) {
+      let base = Int(face.slot.rawValue) * 9
+      for cell in 0..<9 where cell != 4 { cells[base + cell] = face.manualOverrides[cell] }
+    }
+    self.init(palette: confirmedCenters, cells: cells, revision: revision)
   }
   private init(palette: CenterPalette, cells: [CubeColor?], revision: UInt64) {
     self.palette = palette

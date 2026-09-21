@@ -31,16 +31,89 @@ public protocol GuidePlayback: AnyObject {
   func stop()
 }
 
+public enum ManualFallbackStatus: Equatable, Sendable { case idle, saving, failed }
+
 public enum DraftDiscardStatus: Equatable, Sendable { case idle, saving, failed }
 
 public enum SessionLoadStatus: Equatable, Sendable { case idle, loading, ready, failed }
 
 @MainActor @Observable
 public final class SessionController {
+  public private(set) var manualFallbackStatus: ManualFallbackStatus = .idle
+  @ObservationIgnored private var manualFallbackDraft: ManualDraft?
+  @discardableResult public func switchScanToManual(
+    confirmedCenters: CenterPalette, confirmed: Bool
+  ) -> EventDisposition {
+    guard loadStatus == .ready, discardStatus == .idle, !isStartingScan,
+      session.phase != .deleting, session.phase != .deletionError,
+      let workflow = scanWorkflow
+    else { return .rejected(.unavailableEvent) }
+    if manualFallbackStatus == .saving { return .ignored }
+    guard manualFallbackStatus == .idle,
+      workflow.phase != .freezing, workflow.phase != .faceReview,
+      let input = workflow.pendingSave?.scan ?? workflow.durable
+    else {
+      return .rejected(.unavailableEvent)
+    }
+    guard confirmed else { return .rejected(.confirmationRequired) }
+    let (revision, overflow) = max(session.latestInputRevision, input.draft.revision)
+      .addingReportingOverflow(1)
+    guard !overflow else { return .rejected(.revisionExhausted) }
+    do {
+      manualFallbackDraft = try ManualDraft(
+        manualFallbackFrom: input.draft,
+        confirmedCenters: confirmedCenters, revision: revision)
+    } catch let error as DraftError {
+      return .rejected(.draft(error))
+    } catch { return .rejected(.unavailableEvent) }
+    beginManualFallback()
+    return .accepted
+  }
+  @discardableResult public func retryManualFallback() -> EventDisposition {
+    guard manualFallbackStatus == .failed, manualFallbackDraft != nil else {
+      return .rejected(.unavailableEvent)
+    }
+    beginManualFallback()
+    return .accepted
+  }
+  private func beginManualFallback() {
+    guard let draft = manualFallbackDraft else { return }
+    generation = UUID()
+    let expectedGeneration = generation
+    manualFallbackStatus = .saving
+    lastError = nil
+    solveTask?.cancel()
+    playback.stop()
+    stopCamera(discard: true)
+    enqueueStorage { [self] in
+      guard generation == expectedGeneration else { return }
+      do {
+        let current = await storage.currentLease()
+        guard generation == expectedGeneration else { return }
+        try await storage.saveDraft(draft, lease: current)
+        guard generation == expectedGeneration else { return }
+        let restored = try await storage.restore()
+        guard generation == expectedGeneration else { return }
+        session = restored.session
+        palette = restored.palette
+        lease = restored.lease
+        pendingScan = restored.pendingScan
+        scanWorkflow = restored.pendingScan.map { ScanWorkflow(restoring: $0) }
+        manualFallbackStatus = .idle
+        manualFallbackDraft = nil
+        lastError = nil
+      } catch {
+        guard generation == expectedGeneration else { return }
+        lastError = error
+        manualFallbackStatus = .failed
+      }
+    }
+  }
   public private(set) var discardStatus: DraftDiscardStatus = .idle
   @ObservationIgnored private var discardRevision: UInt64?
   @discardableResult public func discardDraft(confirmed: Bool) -> EventDisposition {
-    guard loadStatus == .ready, !isStartingScan, session.phase != .deleting,
+    guard loadStatus == .ready, manualFallbackStatus == .idle, !isStartingScan,
+      session.phase != .deleting,
       session.phase != .deletionError
     else { return .rejected(.unavailableEvent) }
     if discardStatus == .saving { return .ignored }
@@ -143,7 +216,8 @@ public final class SessionController {
   @discardableResult public func startScan(purpose: ScanPurpose, replacing: Bool = false) async
     -> EventDisposition
   {
-    guard loadStatus == .ready, discardStatus == .idle, scanWorkflow == nil, !isStartingScan,
+    guard loadStatus == .ready, discardStatus == .idle, manualFallbackStatus == .idle,
+      scanWorkflow == nil, !isStartingScan,
       session.pendingSave == nil, session.pendingDraftSave == nil,
       session.pendingManualStart == nil, session.pendingDeletion == nil
     else {
@@ -216,7 +290,8 @@ public final class SessionController {
     }
   }
   @discardableResult public func sendScan(_ event: ScanEvent) -> ScanDisposition {
-    guard loadStatus == .ready, discardStatus == .idle, !isStartingScan,
+    guard loadStatus == .ready, discardStatus == .idle, manualFallbackStatus == .idle,
+      !isStartingScan,
       let workflow = scanWorkflow,
       session.phase != .deleting, session.phase != .deletionError
     else {
@@ -258,7 +333,7 @@ public final class SessionController {
     if loadStatus != .ready {
       guard case .deleteLocalData = event else { return .rejected(.unavailableEvent) }
     }
-    if discardStatus != .idle {
+    if discardStatus != .idle || manualFallbackStatus != .idle {
       switch event {
       case .deleteLocalData, .retryDeletion, .deleted, .deletionFailed: break
       default: return .rejected(.unavailableEvent)
@@ -299,6 +374,8 @@ public final class SessionController {
     }) {
       discardStatus = .idle
       discardRevision = nil
+      manualFallbackStatus = .idle
+      manualFallbackDraft = nil
       // Invalidates restores and callbacks immediately, before asynchronous deletion starts.
       generation = UUID()
       scanStart = nil

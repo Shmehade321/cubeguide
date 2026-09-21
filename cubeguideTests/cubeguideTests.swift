@@ -52,6 +52,15 @@ func appScanStorage() async throws {
   let resumed = reopened.makeSessionController(playback: CompositionPlayback())
   await resumed.load()
   #expect(resumed.scanWorkflow?.phase == .pausedCapture && !resumed.isCameraReady)
+  let centers = try CenterPalette([.green, .white, .orange, .blue, .yellow, .red])
+  #expect(controller.switchScanToManual(confirmedCenters: centers, confirmed: true) == .accepted)
+  deadline = ContinuousClock.now + .seconds(5)
+  while controller.manualFallbackStatus == .saving, ContinuousClock.now < deadline {
+    try await Task.sleep(for: .milliseconds(10))
+  }
+  #expect(controller.manualFallbackStatus == .idle && controller.session.phase == .editing)
+  #expect(controller.session.draft?.missingCount == 48 && controller.pendingScan == nil)
+  #expect(try await reopened.restoreSession().session.draft == controller.session.draft)
   #expect(controller.discardDraft(confirmed: true) == .accepted)
   deadline = ContinuousClock.now + .seconds(5)
   while controller.discardStatus == .saving, ContinuousClock.now < deadline {
