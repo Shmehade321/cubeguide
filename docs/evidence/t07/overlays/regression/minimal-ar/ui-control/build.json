@@ -1,0 +1,21 @@
+{
+  "command": [
+    "xcrun",
+    "--sdk",
+    "iphonesimulator",
+    "swiftc",
+    "-parse-as-library",
+    "-swift-version",
+    "6",
+    "-sdk",
+    "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk",
+    "-target",
+    "arm64-apple-ios18.0-simulator",
+    "Artifacts/t07-minimal-ui-cycles/Probe.swift",
+    "-o",
+    "Artifacts/t07-minimal-ui-cycles/RealityKitProbe.app/RealityKitProbe"
+  ],
+  "sourceSHA256": "9faf67d543d7be5cb9672c20de937c4d28e7dcdc5311f2ef62c93ae5ace3a13e",
+  "binarySHA256": "03e696e4d6187155e71c8954ba5c54681bfa762a6d68b8620a98074224bc373e",
+  "controlDifference": "UIKit UIView instead of ARView; no RealityKit import; identical lifecycle checks"
+}

@@ -1,0 +1,7 @@
+{
+  "status": "completed",
+  "ios18UIView": "100 verified attached/released cycles passed",
+  "ios26ARView": "100 verified attached/released cycles passed with the same strengthened ARView binary",
+  "ios18ARView": "crashed on cycle 2; existing crash evidence retained",
+  "scope": "Standalone ordinary-allocator probes; no CubeGuide or SwiftUI. Runtime-specific failure evidence, not a product fix or full regression pass."
+}
