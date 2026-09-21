@@ -7,6 +7,26 @@
       "source": "docs/graphics-provenance.md"
     },
     {
+      "id": "A02",
+      "path": "cubeguide/CubeSceneModel.swift",
+      "source": "docs/graphics-provenance.md"
+    },
+    {
+      "id": "A03",
+      "path": "cubeguide/GuideDirectionDiagram.swift",
+      "source": "docs/graphics-provenance.md"
+    },
+    {
+      "id": "A05",
+      "path": "cubeguide/ContentView.swift",
+      "source": "docs/graphics-provenance.md"
+    },
+    {
+      "id": "A06",
+      "path": "cubeguide/ScanFlowView.swift",
+      "source": "docs/graphics-provenance.md"
+    },
+    {
       "id": "A07",
       "path": "cubeguide/CompletionArtwork.swift",
       "source": "docs/graphics-provenance.md"

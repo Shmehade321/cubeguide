@@ -31,7 +31,7 @@ No renderer fix or iOS 18 qualification is claimed. Overlay recovery was committ
 | T04 Search | automated exit passed; physical qualification open | task-04.md |
 | T05 Session/storage | running: guide/manual/scan storage, durable discard and reviewed-scan acceptance implemented; remaining physical storage/lifecycle qualification pending | task-05.md |
 | T06 Manual flow | running: Home/editor, validation/solver result UI, offline Help, persisted Settings, isolated practice and calculation-state UI coverage | task-06.md |
-| T07 Graphics | running: static/animated preview and overlays locally qualified on explicit iOS 26.5; A07 completion artwork locally qualified with final full PR and largest-text normal/Reduce Motion checks passed; minimum-OS, remaining artwork, broader accessibility and media qualification open | task-07.md |
+| T07 Graphics | running: static/animated preview and overlays locally qualified on explicit iOS 26.5; A01 icon installed and generic-iOS asset compilation passed; A07 completion artwork locally qualified; onboarding diagrams, minimum-OS, broader accessibility and physical qualification open | task-07.md |
 | T08 Guidance/audio | running: exact phrase manifest/action mapping, caption fallback, ambient playback sequencing, stale-callback interruption handling and preference-gated haptics implemented; owned recordings/effects and physical listening/routes remain open | task-08.md |
 | T09 Camera | running: deterministic sampling/classification plus AVFoundation rear capture, delayed permission, frozen review, recapture/manual fallback and explicit 48-sticker conservative review implemented; quality signals, calibrated policy, real corpus and live-device trials open | task-09.md |
 | T10 Accessibility/physical | notRun | — |
