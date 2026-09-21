@@ -1,0 +1,17 @@
+{
+  "session": 24620,
+  "simulator": "610EA507-710F-4AA6-943C-AF57C0035F07",
+  "iterations": 3,
+  "expectedCyclesPerIteration": 20,
+  "productionChanges": false,
+  "uiTestSHA256": "c5197cdcc8ad44515c80766f2101f6f53472cf4da980b080f62937769229fca8",
+  "status": "passed",
+  "exitCode": 0,
+  "executedIterations": 3,
+  "cyclesPerIteration": 20,
+  "durationsSeconds": [
+    "234.366",
+    "231.084",
+    "230.518"
+  ]
+}

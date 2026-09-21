@@ -1,0 +1,204 @@
+Attributes: Application, 0x10a861040, pid: 70347, label: 'cubeguide'
+Element subtree:
+ →Application, 0x10a861040, pid: 70347, label: 'cubeguide'
+    Window (Main), 0x10a862080, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x10a861180, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x10a860c80, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x10a861900, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x10a860dc0, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x10a861f40, {{0.0, 0.0}, {402.0, 874.0}}
+              Other, 0x10a8617c0, {{0.0, 0.0}, {402.0, 874.0}}
+                NavigationBar, 0x10a860a00, {{0.0, 62.0}, {402.0, 54.0}}, identifier: 'Enter colors'
+                  Other, 0x10a862300, {{20.0, 66.0}, {69.7, 36.0}}, identifier: 'editor.home', label: 'Home'
+                    Other, 0x10a860780, {{20.0, 66.0}, {69.7, 36.0}}
+                      Button, 0x10a861a40, {{20.0, 66.0}, {69.7, 36.0}}, identifier: 'editor.home', label: 'Home'
+                  StaticText, 0x10a862940, {{105.7, 71.7}, {95.7, 24.7}}, label: 'Enter colors'
+                  Button, 0x10a863480, {{227.7, 66.0}, {41.3, 36.0}}, identifier: 'navigation.settings', label: 'Settings'
+                  Button, 0x10a863340, {{285.0, 66.0}, {40.0, 36.0}}, identifier: 'navigation.help', label: 'Help'
+                  Button, 0x10a863200, {{341.0, 66.0}, {41.0, 36.0}}, identifier: 'editor.faceMenu', label: 'Choose face'
+                Other, 0x10a8630c0, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x10a862f80, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x10a862e40, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x10a862d00, {{0.0, 0.0}, {402.0, 874.0}}
+                        ScrollView, 0x10a862bc0, {{0.0, 0.0}, {402.0, 874.0}}
+                          Other, 0x10a862a80, {{0.0, 0.0}, {402.0, 874.0}}
+                            Other, 0x10a860640, {{0.0, 0.0}, {402.0, 170.8}}
+                            Other, 0x10a8621c0, {{0.0, 733.2}, {402.0, 140.8}}
+                          Other, 0x10a860500, {{0.0, 0.0}, {402.0, 874.0}}
+                            Other, 0x10a8603c0, {{0.0, 733.2}, {402.0, 140.8}}
+                              Image, 0x10a8635c0, {{-120.0, 738.0}, {642.0, 272.0}}, identifier: 'AdditionalDimmingOverlay'
+                              Other, 0x10a863700, {{0.0, 733.2}, {402.0, 140.8}}
+                                Other, 0x10a863840, {{0.0, 733.2}, {402.0, 140.8}}
+                              Other, 0x10a863980, {{0.0, 733.2}, {402.0, 140.8}}
+                                Other, 0x10a863ac0, {{0.0, 733.2}, {402.0, 140.8}}
+                                Other, 0x10a863c00, {{0.0, 733.2}, {402.0, 140.8}}
+                          Other, 0x10a863d40, {{0.0, 116.0}, {402.0, 1185.7}}
+                            StaticText, 0x10a863e80, {{16.0, 132.0}, {247.7, 41.7}}, label: 'Match each sticker'
+                            StaticText, 0x10720fc00, {{16.0, 193.7}, {370.0, 102.3}}, label: 'Tap an empty square to enter its color. Keep the top edge of each face aligned with the named neighbor. Swipe the net sideways to reach every face.'
+                            StaticText, 0x10720fd40, {{16.0, 316.0}, {119.3, 24.3}}, label: '48 stickers left'
+                            Button, 0x10720fe80, {{16.0, 360.3}, {109.7, 24.3}}, identifier: 'editor.preview3D', label: 'View in 3D'
+                              Image, 0x10720ee40, {{18.0, 363.0}, {16.7, 19.0}}, identifier: 'cube', label: 'Depth Effect'
+                              StaticText, 0x10720ef80, {{16.0, 360.3}, {109.7, 24.3}}, label: 'View in 3D'
+                            ScrollView, 0x10720f0c0, {{16.0, 404.7}, {370.0, 763.0}}
+                              Other, 0x10720f200, {{-101.0, 404.7}, {604.0, 763.0}}
+                                StaticText, 0x10720f340, {{113.5, 404.7}, {23.0, 24.3}}, label: 'Up'
+                                StaticText, 0x10720f480, {{97.2, 435.0}, {55.7, 17.3}}, label: 'Top: Back'
+                                Button, 0x10720f5c0, {{54.5, 457.8}, {45.0, 45.0}}, identifier: 'cell.U.0.0', label: 'Up, row 1, column 1, Empty'
+                                Button, 0x10720f700, {{102.5, 457.8}, {45.0, 45.0}}, identifier: 'cell.U.0.1', label: 'Up, row 1, column 2, Empty'
+                                Button, 0x10720f840, {{150.5, 457.8}, {45.0, 45.0}}, identifier: 'cell.U.0.2', label: 'Up, row 1, column 3, Empty'
+                                Button, 0x10720f980, {{54.5, 505.8}, {45.0, 45.0}}, identifier: 'cell.U.1.0', label: 'Up, row 2, column 1, Empty'
+                                Button, 0x10720fac0, {{102.5, 505.8}, {45.0, 45.0}}, identifier: 'cell.U.1.1', label: 'Up, row 2, column 2, Green, center'
+                                Button, 0x10aa50000, {{150.5, 505.8}, {45.0, 45.0}}, identifier: 'cell.U.1.2', label: 'Up, row 2, column 3, Empty'
+                                Button, 0x10aa50140, {{54.5, 553.8}, {45.0, 45.0}}, identifier: 'cell.U.2.0', label: 'Up, row 3, column 1, Empty'
+                                Button, 0x10aa50280, {{102.5, 553.8}, {45.0, 45.0}}, identifier: 'cell.U.2.1', label: 'Up, row 3, column 2, Empty'
+                                Button, 0x10aa503c0, {{150.5, 553.8}, {45.0, 45.0}}, identifier: 'cell.U.2.2', label: 'Up, row 3, column 3, Empty'
+                                Button, 0x10aa50500, {{94.7, 617.7}, {61.0, 17.3}}, identifier: 'rotate.U', label: 'Rotate Up colors clockwise'
+                                StaticText, 0x10aa50640, {{-42.7, 664.3}, {31.3, 24.3}}, label: 'Left'
+                                StaticText, 0x10aa50780, {{103.8, 664.3}, {42.3, 24.3}}, label: 'Front'
+                                StaticText, 0x10aa508c0, {{256.0, 664.3}, {42.0, 24.3}}, label: 'Right'
+                                StaticText, 0x10aa50a00, {{409.3, 664.3}, {39.3, 24.3}}, label: 'Back'
+                                StaticText, 0x10aa50b40, {{-49.0, 694.7}, {44.0, 17.3}}, label: 'Top: Up'
+                                StaticText, 0x10aa50c80, {{103.0, 694.7}, {44.0, 17.3}}, label: 'Top: Up'
+                                StaticText, 0x10aa50dc0, {{255.0, 694.7}, {44.0, 17.3}}, label: 'Top: Up'
+                                StaticText, 0x10aa50f00, {{407.0, 694.7}, {44.0, 17.3}}, label: 'Top: Up'
+                                Button, 0x10aa51040, {{-97.5, 717.5}, {45.0, 45.0}}, identifier: 'cell.L.0.0', label: 'Left, row 1, column 1, Empty'
+                                Button, 0x10aa51180, {{-49.5, 717.5}, {45.0, 45.0}}, identifier: 'cell.L.0.1', label: 'Left, row 1, column 2, Empty'
+                                Button, 0x10aa512c0, {{-1.5, 717.5}, {45.0, 45.0}}, identifier: 'cell.L.0.2', label: 'Left, row 1, column 3, Empty'
+                                Button, 0x10aa51400, {{54.5, 717.5}, {45.0, 45.0}}, identifier: 'cell.F.0.0', label: 'Front, row 1, column 1, Empty'
+                                Button, 0x10aa51540, {{102.5, 717.5}, {45.0, 45.0}}, identifier: 'cell.F.0.1', label: 'Front, row 1, column 2, Empty'
+                                Button, 0x10aa51680, {{150.5, 717.5}, {45.0, 45.0}}, identifier: 'cell.F.0.2', label: 'Front, row 1, column 3, Empty'
+                                Button, 0x10aa517c0, {{206.5, 717.5}, {45.0, 45.0}}, identifier: 'cell.R.0.0', label: 'Right, row 1, column 1, Empty'
+                                Button, 0x10aa51900, {{254.5, 717.5}, {45.0, 45.0}}, identifier: 'cell.R.0.1', label: 'Right, row 1, column 2, Empty'
+                                Button, 0x10aa51a40, {{302.5, 717.5}, {45.0, 45.0}}, identifier: 'cell.R.0.2', label: 'Right, row 1, column 3, Empty'
+                                Button, 0x10aa51b80, {{358.5, 717.5}, {45.0, 45.0}}, identifier: 'cell.B.0.0', label: 'Back, row 1, column 1, Empty'
+                                Button, 0x10aa51cc0, {{406.5, 717.5}, {45.0, 45.0}}, identifier: 'cell.B.0.1', label: 'Back, row 1, column 2, Empty'
+                                Button, 0x10aa51e00, {{454.5, 717.5}, {45.0, 45.0}}, identifier: 'cell.B.0.2', label: 'Back, row 1, column 3, Empty'
+                                Button, 0x10aa51f40, {{-97.5, 765.5}, {45.0, 45.0}}, identifier: 'cell.L.1.0', label: 'Left, row 2, column 1, Empty'
+                                Button, 0x10aa52080, {{-49.5, 765.5}, {45.0, 45.0}}, identifier: 'cell.L.1.1', label: 'Left, row 2, column 2, Yellow, center'
+                                Button, 0x10aa521c0, {{-1.5, 765.5}, {45.0, 45.0}}, identifier: 'cell.L.1.2', label: 'Left, row 2, column 3, Empty'
+                                Button, 0x10aa52300, {{54.5, 765.5}, {45.0, 45.0}}, identifier: 'cell.F.1.0', label: 'Front, row 2, column 1, Empty'
+                                Button, 0x10aa52440, {{102.5, 765.5}, {45.0, 45.0}}, identifier: 'cell.F.1.1', label: 'Front, row 2, column 2, Orange, center'
+                                Button, 0x10aa52580, {{150.5, 765.5}, {45.0, 45.0}}, identifier: 'cell.F.1.2', label: 'Front, row 2, column 3, Empty'
+                                Button, 0x10aa526c0, {{206.5, 765.5}, {45.0, 45.0}}, identifier: 'cell.R.1.0', label: 'Right, row 2, column 1, Empty'
+                                Button, 0x10aa52800, {{254.5, 765.5}, {45.0, 45.0}}, identifier: 'cell.R.1.1', label: 'Right, row 2, column 2, White, center'
+                                Button, 0x10aa52940, {{302.5, 765.5}, {45.0, 45.0}}, identifier: 'cell.R.1.2', label: 'Right, row 2, column 3, Empty'
+                                Button, 0x10aa52a80, {{358.5, 765.5}, {45.0, 45.0}}, identifier: 'cell.B.1.0', label: 'Back, row 2, column 1, Empty'
+                                Button, 0x10aa52bc0, {{406.5, 765.5}, {45.0, 45.0}}, identifier: 'cell.B.1.1', label: 'Back, row 2, column 2, Red, center'
+                                Button, 0x10aa52d00, {{454.5, 765.5}, {45.0, 45.0}}, identifier: 'cell.B.1.2', label: 'Back, row 2, column 3, Empty'
+                                Button, 0x10aa52e40, {{-97.5, 813.5}, {45.0, 45.0}}, identifier: 'cell.L.2.0', label: 'Left, row 3, column 1, Empty'
+                                Button, 0x10aa52f80, {{-49.5, 813.5}, {45.0, 45.0}}, identifier: 'cell.L.2.1', label: 'Left, row 3, column 2, Empty'
+                                Button, 0x10aa530c0, {{-1.5, 813.5}, {45.0, 45.0}}, identifier: 'cell.L.2.2', label: 'Left, row 3, column 3, Empty'
+                                Button, 0x10aa53200, {{54.5, 813.5}, {45.0, 45.0}}, identifier: 'cell.F.2.0', label: 'Front, row 3, column 1, Empty'
+                                Button, 0x10aa53340, {{102.5, 813.5}, {45.0, 45.0}}, identifier: 'cell.F.2.1', label: 'Front, row 3, column 2, Empty'
+                                Button, 0x10aa53480, {{150.5, 813.5}, {45.0, 45.0}}, identifier: 'cell.F.2.2', label: 'Front, row 3, column 3, Empty'
+                                Button, 0x10aa535c0, {{206.5, 813.5}, {45.0, 45.0}}, identifier: 'cell.R.2.0', label: 'Right, row 3, column 1, Empty'
+                                Button, 0x10aa53700, {{254.5, 813.5}, {45.0, 45.0}}, identifier: 'cell.R.2.1', label: 'Right, row 3, column 2, Empty'
+                                Button, 0x10aa53840, {{302.5, 813.5}, {45.0, 45.0}}, identifier: 'cell.R.2.2', label: 'Right, row 3, column 3, Empty'
+                                Button, 0x10aa53980, {{358.5, 813.5}, {45.0, 45.0}}, identifier: 'cell.B.2.0', label: 'Back, row 3, column 1, Empty'
+                                Button, 0x10aa53ac0, {{406.5, 813.5}, {45.0, 45.0}}, identifier: 'cell.B.2.1', label: 'Back, row 3, column 2, Empty'
+                                Button, 0x10aa53c00, {{454.5, 813.5}, {45.0, 45.0}}, identifier: 'cell.B.2.2', label: 'Back, row 3, column 3, Empty'
+                                Button, 0x10aa53d40, {{-57.3, 877.3}, {61.0, 17.3}}, identifier: 'rotate.L', label: 'Rotate Left colors clockwise'
+                                Button, 0x10aa53e80, {{94.7, 877.3}, {61.0, 17.3}}, identifier: 'rotate.F', label: 'Rotate Front colors clockwise'
+                                Button, 0x10aa60000, {{246.7, 877.3}, {61.0, 17.3}}, identifier: 'rotate.R', label: 'Rotate Right colors clockwise'
+                                Button, 0x10aa60140, {{398.7, 877.3}, {61.0, 17.3}}, identifier: 'rotate.B', label: 'Rotate Back colors clockwise'
+                                StaticText, 0x10aa60280, {{102.3, 924.0}, {45.3, 24.3}}, label: 'Down'
+                                StaticText, 0x10aa603c0, {{96.2, 954.3}, {57.7, 17.3}}, label: 'Top: Front'
+                                Button, 0x10aa60500, {{54.5, 977.2}, {45.0, 45.0}}, identifier: 'cell.D.0.0', label: 'Down, row 1, column 1, Empty'
+                                Button, 0x10aa60640, {{102.5, 977.2}, {45.0, 45.0}}, identifier: 'cell.D.0.1', label: 'Down, row 1, column 2, Empty'
+                                Button, 0x10aa60780, {{150.5, 977.2}, {45.0, 45.0}}, identifier: 'cell.D.0.2', label: 'Down, row 1, column 3, Empty'
+                                Button, 0x10aa608c0, {{54.5, 1025.2}, {45.0, 45.0}}, identifier: 'cell.D.1.0', label: 'Down, row 2, column 1, Empty'
+                                Button, 0x10aa60a00, {{102.5, 1025.2}, {45.0, 45.0}}, identifier: 'cell.D.1.1', label: 'Down, row 2, column 2, Blue, center'
+                                Button, 0x10aa60b40, {{150.5, 1025.2}, {45.0, 45.0}}, identifier: 'cell.D.1.2', label: 'Down, row 2, column 3, Empty'
+                                Button, 0x10aa60c80, {{54.5, 1073.2}, {45.0, 45.0}}, identifier: 'cell.D.2.0', label: 'Down, row 3, column 1, Empty'
+                                Button, 0x10aa60dc0, {{102.5, 1073.2}, {45.0, 45.0}}, identifier: 'cell.D.2.1', label: 'Down, row 3, column 2, Empty'
+                                Button, 0x10aa60f00, {{150.5, 1073.2}, {45.0, 45.0}}, identifier: 'cell.D.2.2', label: 'Down, row 3, column 3, Empty'
+                                Button, 0x10aa61040, {{94.7, 1137.0}, {61.0, 17.3}}, identifier: 'rotate.D', label: 'Rotate Down colors clockwise'
+                              Other, 0x10aa61180, {{62.0, 1134.7}, {278.0, 30.0}}, label: 'Horizontal scroll bar, 2 pages', value: 50%
+                                Other, 0x10aa612c0, {{117.7, 1161.7}, {166.7, 3.0}}
+                              Other, 0x10aa61400, {{62.0, 1134.7}, {278.0, 30.0}}, label: 'Horizontal scroll bar, 2 pages', value: 50%
+                                Other, 0x10aa61540, {{117.7, 1161.7}, {166.7, 3.0}}
+                            Button, 0x10aa61680, {{16.0, 1187.7}, {187.0, 38.3}}, label: 'Change center colors'
+                            StaticText, 0x10aa617c0, {{16.0, 1246.0}, {352.3, 39.7}}, label: 'Centers stay fixed. Changing their assignments preserves the other colors you entered.'
+                          Other, 0x10aa61900, {{369.0, 116.0}, {30.0, 672.0}}, label: 'Vertical scroll bar, 2 pages', value: 0%
+                            Other, 0x10aa61a40, {{396.0, 119.0}, {3.0, 398.7}}
+                          Other, 0x10aa61b80, {{369.0, 116.0}, {30.0, 672.0}}, label: 'Vertical scroll bar, 2 pages', value: 0%
+                            Other, 0x10aa61cc0, {{396.0, 119.0}, {3.0, 398.7}}
+                Other, 0x10aa61e00, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x10aa61f40, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x10aa62080, {{0.0, 788.0}, {402.0, 86.0}}
+                      Other, 0x10aa621c0, {{154.7, 798.0}, {92.7, 48.0}}
+                        Other, 0x10aa62300, {{154.7, 798.0}, {92.7, 48.0}}
+                          Other, 0x10aa62440, {{154.7, 798.0}, {0.0, 0.0}}
+                            Other, 0x10aa62580, {{154.7, 798.0}, {92.7, 48.0}}
+                              Other, 0x10aa626c0, {{154.7, 798.0}, {92.7, 48.0}}
+                                Other, 0x10aa62800, {{159.7, 804.0}, {82.7, 36.0}}
+                                  Other, 0x10aa62940, {{159.7, 804.0}, {82.7, 36.0}}
+                                    Other, 0x10aa62a80, {{159.7, 804.0}, {82.7, 36.0}}, identifier: 'editor.validate', label: 'Validate'
+                                      Other, 0x10aa62bc0, {{159.7, 804.0}, {82.7, 36.0}}
+                                        Button, 0x10aa62d00, {{159.7, 804.0}, {82.7, 36.0}}, identifier: 'editor.validate', label: 'Validate', Disabled
+      Other, 0x10aa62e40, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x10aa62f80, {{0.0, 0.0}, {402.0, 874.0}}, identifier: 'PopoverDismissRegion', label: 'dismiss popup'
+        Popover, 0x10aa630c0, {{81.0, 72.0}, {240.0, 477.3}}
+          Image, 0x10aa63200, {{-69.0, -78.0}, {540.0, 764.3}}
+          Other, 0x10aa63340, {{81.0, 72.0}, {240.0, 464.3}}
+            Sheet, 0x10aa63480, {{81.0, 72.0}, {240.0, 464.3}}, label: 'Up, row 1, column 1'
+              Other, 0x10aa635c0, {{81.0, 72.0}, {240.0, 464.3}}
+                Other, 0x10aa63700, {{81.0, 72.0}, {240.0, 464.3}}
+                  Other, 0x10aa63840, {{81.0, 72.0}, {240.0, 464.3}}
+                  Other, 0x10aa63980, {{81.0, 72.0}, {240.0, 464.3}}
+                    ScrollView, 0x10aa63ac0, {{81.0, 72.0}, {240.0, 48.3}}
+                      Other, 0x10aa63c00, {{81.0, 72.0}, {240.0, 48.3}}
+                        StaticText, 0x10aa63d40, {{111.0, 96.0}, {180.0, 24.3}}, label: 'Up, row 1, column 1'
+                      Other, 0x10aa63e80, {{81.0, 93.2}, {240.0, 24.2}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                        Other, 0x10aa6c000, {{42.0, 114.3}, {36.0, 3.0}}
+                      Other, 0x10aa6c140, {{288.0, 96.2}, {30.0, 24.2}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                        Other, 0x10aa6c280, {{315.0, 33.0}, {3.0, 36.0}}
+                      Other, 0x10aa6c3c0, {{288.0, 96.2}, {30.0, 24.2}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                        Other, 0x10aa6c500, {{315.0, 33.0}, {3.0, 36.0}}
+                      Other, 0x10aa6c640, {{81.0, 93.2}, {240.0, 24.2}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                        Other, 0x10aa6c780, {{42.0, 114.3}, {36.0, 3.0}}
+                    ScrollView, 0x10aa6c8c0, {{81.0, 120.3}, {240.0, 416.0}}
+                      Other, 0x10aa6ca00, {{81.0, 120.3}, {240.0, 416.0}}
+                        Other, 0x10aa6cb40, {{97.0, 136.3}, {208.0, 384.0}}
+                          Button, 0x10aa6cc80, {{97.0, 136.3}, {208.0, 48.0}}, identifier: 'sticker.white', label: 'White'
+                            Button, 0x10aa6cdc0, {{97.0, 136.3}, {208.0, 48.0}}, identifier: 'sticker.white', label: 'White'
+                          Button, 0x10aa6cf00, {{97.0, 192.3}, {208.0, 48.0}}, identifier: 'sticker.yellow', label: 'Yellow'
+                            Button, 0x10aa6d040, {{97.0, 192.3}, {208.0, 48.0}}, identifier: 'sticker.yellow', label: 'Yellow'
+                          Button, 0x10aa6d180, {{97.0, 248.3}, {208.0, 48.0}}, identifier: 'sticker.red', label: 'Red'
+                            Button, 0x10aa6d2c0, {{97.0, 248.3}, {208.0, 48.0}}, identifier: 'sticker.red', label: 'Red'
+                          Button, 0x10aa6d400, {{97.0, 304.3}, {208.0, 48.0}}, identifier: 'sticker.orange', label: 'Orange'
+                            Button, 0x10aa6d540, {{97.0, 304.3}, {208.0, 48.0}}, identifier: 'sticker.orange', label: 'Orange'
+                          Button, 0x10aa6d680, {{97.0, 360.3}, {208.0, 48.0}}, identifier: 'sticker.blue', label: 'Blue'
+                            Button, 0x10aa6d7c0, {{97.0, 360.3}, {208.0, 48.0}}, identifier: 'sticker.blue', label: 'Blue'
+                          Button, 0x10aa6d900, {{97.0, 416.3}, {208.0, 48.0}}, identifier: 'sticker.green', label: 'Green'
+                            Button, 0x10aa6da40, {{97.0, 416.3}, {208.0, 48.0}}, identifier: 'sticker.green', label: 'Green'
+                          Button, 0x10aa6db80, {{97.0, 472.3}, {208.0, 48.0}}, identifier: 'sticker.clear', label: 'Clear sticker'
+                            Button, 0x10aa6dcc0, {{97.0, 472.3}, {208.0, 48.0}}, identifier: 'sticker.clear', label: 'Clear sticker'
+                      Other, 0x10aa6de00, {{288.0, 120.3}, {30.0, 395.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                        Other, 0x10aa6df40, {{315.0, 210.3}, {3.0, 7.0}}
+                      Other, 0x10aa6e080, {{102.0, 503.3}, {198.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                        Other, 0x10aa6e1c0, {{171.0, 530.3}, {7.0, 3.0}}
+                      Other, 0x10aa6e300, {{288.0, 120.3}, {30.0, 395.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                        Other, 0x10aa6e440, {{315.0, 210.3}, {3.0, 7.0}}
+                      Other, 0x10aa6e580, {{102.0, 503.3}, {198.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                        Other, 0x10aa6e6c0, {{171.0, 530.3}, {7.0, 3.0}}
+          Other, 0x10aa6e800, {{81.0, 72.0}, {240.0, 477.3}}
+            Other, 0x10aa6e940, {{81.0, 72.0}, {240.0, 477.3}}
+              Other, 0x10aa6ea80, {{81.0, 72.0}, {240.0, 477.3}}
+                Other, 0x10aa6ebc0, {{81.0, 72.0}, {240.0, 477.3}}
+                  Other, 0x10aa6ed00, {{81.0, 72.0}, {240.0, 477.3}}
+                    Other, 0x10aa6ee40, {{81.0, 72.0}, {0.0, 0.0}}
+                      Other, 0x10aa6ef80, {{81.0, 72.0}, {240.0, 477.3}}
+                        Other, 0x10aa6f0c0, {{81.0, 72.0}, {240.0, 477.3}}
+                          Other, 0x10aa6f200, {{81.0, 72.0}, {240.0, 477.3}}
+                            Other, 0x10aa6f340, {{81.0, 72.0}, {240.0, 477.3}}
+    Window, 0x10aa6f480, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x10aa6f5c0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x10aa6f700, {{0.0, 0.0}, {402.0, 874.0}}
+Path to element:
+ →Application, 0x10a861040, pid: 70347, label: 'cubeguide'
+Query chain:
+ →Find: Target Application 'hasancorp.cubeguide'
+  Output: {
+    Application, 0x10aa6f840, pid: 70347, label: 'cubeguide'
+  }

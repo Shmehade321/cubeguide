@@ -10,7 +10,7 @@ final class PreviewUITests: XCTestCase {
     tap(app.buttons["home.practice"])
     XCTAssertTrue(app.staticTexts["practice.banner"].waitForExistence(timeout: 5))
     tap(app.buttons["cell.U.0.0"])
-    tap(app.buttons["sticker.clear"])
+    tap(app.sheets.buttons.matching(identifier: "sticker.clear").firstMatch)
     XCTAssertTrue(app.staticTexts["1 stickers left"].waitForExistence(timeout: 5))
     tap(app.buttons["editor.preview3D"])
     XCTAssertTrue(app.descendants(matching: .any)["preview.cube"].waitForExistence(timeout: 10))

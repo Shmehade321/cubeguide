@@ -121,11 +121,11 @@ final class GuideUITests: XCTestCase {
     app.scrollViews.firstMatch.swipeUp()
     tap(app.buttons["guide.uncertain"])
     tap(app.buttons["recovery.manual"])
-    tap(app.buttons["recovery.cancelReplacement"])
+    tap(app.alerts.buttons.matching(identifier: "recovery.cancelReplacement").firstMatch)
     XCTAssertTrue(app.buttons["recovery.keep"].exists)
     capture(app, name: "Recovery retains guide until replacement")
     tap(app.buttons["recovery.manual"])
-    tap(app.buttons["recovery.confirmReplacement"])
+    tap(app.alerts.buttons.matching(identifier: "recovery.confirmReplacement").firstMatch)
     XCTAssertTrue(app.staticTexts["Assign center colors"].waitForExistence(timeout: 10))
     XCTAssertTrue(app.staticTexts["practice.banner"].exists)
     tap(app.buttons["practice.exit"])
@@ -173,8 +173,29 @@ final class GuideUITests: XCTestCase {
   }
 
   @MainActor private func tap(_ element: XCUIElement) {
-    let ready = NSPredicate(format: "exists == true AND hittable == true AND enabled == true")
-    XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: ready, object: element)], timeout: 10), .completed)
+    let ready = NSPredicate(format: "exists == true AND enabled == true")
+    let result = XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: ready, object: element)], timeout: 10)
+    let app = XCUIApplication()
+    if result == .completed {
+      // Longer captions and system navigation chrome can move controls below
+      // the viewport. Scroll the real guide instead of waiting for it to shrink.
+      let scroll = app.scrollViews.firstMatch
+      for _ in 0..<4 {
+        if element.isHittable || !scroll.exists { break }
+        if element.frame.midY < scroll.frame.midY { scroll.swipeDown() }
+        else { scroll.swipeUp() }
+      }
+    }
+    if result != .completed || !element.isHittable {
+      capture(app, name: "Unavailable guide control")
+      let hierarchy = XCTAttachment(string: app.debugDescription)
+      hierarchy.name = "Unavailable guide control accessibility hierarchy"
+      hierarchy.lifetime = .keepAlways
+      add(hierarchy)
+    }
+    XCTAssertEqual(result, .completed, "Guide control must exist and be enabled")
+    XCTAssertTrue(element.isHittable, "Guide control must be reachable by scrolling")
+    guard result == .completed, element.isHittable else { return }
     element.tap()
   }
 }

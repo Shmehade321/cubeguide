@@ -1,0 +1,12 @@
+{
+  "exitCode": 65,
+  "executedIterations": 3,
+  "passed": 0,
+  "failed": 3,
+  "previewReached": false,
+  "productionSourcesUnchanged": true,
+  "postRunChanges": [
+    "cubeguideUITests/cubeguideUITests.swift"
+  ],
+  "scope": "iOS 26.5 control stopped before RealityKit preview: sticker.blue (iteration 1), delete.confirm (iterations 2 and 3). Not evidence for or against original renderer crash. After run completed, the UI helper was augmented with failure attachments only."
+}

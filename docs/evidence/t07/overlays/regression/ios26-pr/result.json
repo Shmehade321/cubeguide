@@ -1,0 +1,13 @@
+{
+  "session": 67570,
+  "status": "failed",
+  "simulator": "610EA507-710F-4AA6-943C-AF57C0035F07",
+  "runtime": "iOS 26.5",
+  "console": "Artifacts/t07-overlays-ios26-pr-console.log",
+  "sources": "Artifacts/t07-overlays-ios26-pr/source-state.json",
+  "scope": "Fresh full PR; original iOS 18.5 crashes remain open. Resume this process; do not edit tested sources while active.",
+  "exitCode": 65,
+  "passedTests": 53,
+  "failedTests": 3,
+  "skippedTests": 0
+}

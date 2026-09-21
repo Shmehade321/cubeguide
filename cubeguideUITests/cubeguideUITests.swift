@@ -9,7 +9,8 @@ final class FoundationUITests: XCTestCase {
     if app.buttons["editor.home"].waitForExistence(timeout: 2) { tapReady(app.buttons["editor.home"]) }
     if app.buttons["home.delete"].exists {
       tapReady(app.buttons["home.delete"])
-      tapReady(app.buttons["delete.confirm"])
+      // iOS 26 exposes the alert action and its nested button with the same ID.
+      tapReady(app.alerts.buttons.matching(identifier: "delete.confirm").firstMatch)
     }
     tapReady(app.buttons["home.enterColors"])
     for (face, color) in [("U", "Green"), ("R", "White"), ("F", "Orange"),
@@ -19,7 +20,7 @@ final class FoundationUITests: XCTestCase {
     }
     tapReady(app.buttons["centers.confirm"])
     tapReady(app.buttons["cell.U.0.0"])
-    tapReady(app.buttons["sticker.blue"])
+    tapReady(app.sheets.buttons.matching(identifier: "sticker.blue").firstMatch)
     for cycle in 1...20 {
       XCTContext.runActivity(named: "Preview teardown and Home cycle \(cycle)") { _ in
         tapReady(app.buttons["editor.preview3D"])
@@ -74,7 +75,7 @@ final class FoundationUITests: XCTestCase {
     guard settings.exists else { return }
     tapReady(settings)
     tapReady(app.buttons["settings.delete"])
-    tapReady(app.buttons["settings.delete.confirm"])
+    tapReady(app.alerts.buttons.matching(identifier: "settings.delete.confirm").firstMatch)
     tapReady(settings)
     let narration = app.switches["settings.narration"]
     XCTAssertEqual(narration.value as? String, "1")
@@ -105,7 +106,7 @@ final class FoundationUITests: XCTestCase {
     XCTAssertEqual(app.switches["settings.labels"].value as? String, "0")
     XCTAssertTrue(app.buttons["settings.speed"].label.contains("Fast"))
     tapReady(app.buttons["settings.delete"])
-    tapReady(app.buttons["settings.delete.confirm"])
+    tapReady(app.alerts.buttons.matching(identifier: "settings.delete.confirm").firstMatch)
     tapReady(settings)
     XCTAssertEqual(narration.value as? String, "1")
     XCTAssertEqual(app.switches["settings.effects"].value as? String, "0")
@@ -129,7 +130,7 @@ final class FoundationUITests: XCTestCase {
     if app.buttons["editor.home"].waitForExistence(timeout: 2) { app.buttons["editor.home"].tap() }
     if app.buttons["home.delete"].exists {
       app.buttons["home.delete"].tap()
-      app.buttons["delete.confirm"].tap()
+      app.alerts.buttons.matching(identifier: "delete.confirm").firstMatch.tap()
     }
     let enter = app.buttons["home.enterColors"]
     XCTAssertTrue(enter.waitForExistence(timeout: 5))
@@ -164,7 +165,7 @@ final class FoundationUITests: XCTestCase {
     XCTAssertTrue(app.buttons["centers.confirm"].waitForExistence(timeout: 5))
     app.buttons["Cancel"].firstMatch.tap()
     sticker.tap()
-    app.buttons["sticker.blue"].tap()
+    app.sheets.buttons.matching(identifier: "sticker.blue").firstMatch.tap()
     let changed = NSPredicate(format: "label CONTAINS %@", "Blue")
     expectation(for: changed, evaluatedWith: sticker)
     waitForExpectations(timeout: 5)
@@ -180,10 +181,10 @@ final class FoundationUITests: XCTestCase {
     waitForExpectations(timeout: 5)
     XCTAssertTrue(sticker.label.contains("Empty"))
     rotated.tap()
-    app.buttons["sticker.clear"].tap()
+    app.sheets.buttons.matching(identifier: "sticker.clear").firstMatch.tap()
     XCTAssertTrue(app.staticTexts["48 stickers left"].waitForExistence(timeout: 5))
     sticker.tap()
-    app.buttons["sticker.blue"].tap()
+    app.sheets.buttons.matching(identifier: "sticker.blue").firstMatch.tap()
     expectation(for: changed, evaluatedWith: sticker)
     waitForExpectations(timeout: 5)
     let screenshot = XCTAttachment(screenshot: app.screenshot())
@@ -205,7 +206,7 @@ final class FoundationUITests: XCTestCase {
     tapReady(app.buttons["home.practice"])
     XCTAssertTrue(app.staticTexts["practice.banner"].waitForExistence(timeout: 5))
     tapReady(app.buttons["cell.U.0.0"])
-    tapReady(app.buttons["sticker.clear"])
+    tapReady(app.sheets.buttons.matching(identifier: "sticker.clear").firstMatch)
     XCTAssertTrue(app.staticTexts["1 stickers left"].waitForExistence(timeout: 5))
     tapReady(app.buttons["practice.exit"])
     tapReady(app.buttons["home.resume"])
@@ -219,18 +220,18 @@ final class FoundationUITests: XCTestCase {
     XCTAssertTrue(sticker.label.contains("Blue"))
     app.buttons["editor.home"].tap()
     enter.tap()
-    app.buttons["replacement.keep"].tap()
+    app.alerts.buttons.matching(identifier: "replacement.keep").firstMatch.tap()
     app.buttons["home.resume"].tap()
     XCTAssertTrue(sticker.waitForExistence(timeout: 5))
     XCTAssertTrue(sticker.label.contains("Blue"))
     app.buttons["editor.home"].tap()
     enter.tap()
-    app.buttons["replacement.confirm"].tap()
+    app.alerts.buttons.matching(identifier: "replacement.confirm").firstMatch.tap()
     XCTAssertTrue(confirm.waitForExistence(timeout: 5))
     XCTAssertFalse(confirm.isEnabled)
     app.buttons["editor.home"].tap()
     app.buttons["home.delete"].tap()
-    app.buttons["delete.confirm"].tap()
+    app.alerts.buttons.matching(identifier: "delete.confirm").firstMatch.tap()
     XCTAssertTrue(enter.waitForExistence(timeout: 5))
     XCTAssertFalse(app.buttons["home.resume"].exists)
   }
@@ -243,7 +244,7 @@ final class FoundationUITests: XCTestCase {
     }
     if app.buttons["home.delete"].exists {
       tapReady(app.buttons["home.delete"])
-      tapReady(app.buttons["delete.confirm"])
+      tapReady(app.alerts.buttons.matching(identifier: "delete.confirm").firstMatch)
       XCTAssertTrue(app.alerts.firstMatch.waitForNonExistence(timeout: 5))
       XCTAssertTrue(app.buttons["home.resume"].waitForNonExistence(timeout: 5))
     }
@@ -271,7 +272,7 @@ final class FoundationUITests: XCTestCase {
           expectation(for: ready, evaluatedWith: cell)
           waitForExpectations(timeout: 5)
           cell.tap()
-          let choice = app.buttons["sticker.\(color.lowercased())"]
+          let choice = app.sheets.buttons.matching(identifier: "sticker.\(color.lowercased())").firstMatch
           expectation(for: ready, evaluatedWith: choice)
           waitForExpectations(timeout: 5)
           choice.tap()
@@ -288,7 +289,7 @@ final class FoundationUITests: XCTestCase {
     tapReady(app.buttons["editor.faceMenu"])
     tapReady(app.buttons["focus.U"])
     tapReady(app.buttons["cell.U.0.0"])
-    tapReady(app.buttons["sticker.blue"])
+    tapReady(app.sheets.buttons.matching(identifier: "sticker.blue").firstMatch)
     tapReady(app.buttons["face.done"])
     validate.tap()
     XCTAssertTrue(app.staticTexts["Check your entered colors"].waitForExistence(timeout: 5))
@@ -303,7 +304,7 @@ final class FoundationUITests: XCTestCase {
     tapReady(app.buttons["editor.faceMenu"])
     tapReady(app.buttons["focus.U"])
     tapReady(app.buttons["cell.U.0.0"])
-    tapReady(app.buttons["sticker.green"])
+    tapReady(app.sheets.buttons.matching(identifier: "sticker.green").firstMatch)
     tapReady(app.buttons["face.done"])
     XCTAssertNotEqual(app.buttons["cell.U.0.1"].value as? String, "Review this sticker")
     validate.tap()
@@ -316,7 +317,7 @@ final class FoundationUITests: XCTestCase {
     XCTAssertTrue(app.staticTexts["Your entered colors are solved"].waitForExistence(timeout: 5))
     tapReady(app.buttons["completion.home"])
     tapReady(app.buttons["home.delete"])
-    tapReady(app.buttons["delete.confirm"])
+    tapReady(app.alerts.buttons.matching(identifier: "delete.confirm").firstMatch)
   }
 
   @MainActor
@@ -328,7 +329,7 @@ final class FoundationUITests: XCTestCase {
     }
     if app.buttons["home.delete"].exists {
       tapReady(app.buttons["home.delete"])
-      tapReady(app.buttons["delete.confirm"])
+      tapReady(app.alerts.buttons.matching(identifier: "delete.confirm").firstMatch)
       XCTAssertTrue(app.alerts.firstMatch.waitForNonExistence(timeout: 5))
       XCTAssertTrue(app.buttons["home.resume"].waitForNonExistence(timeout: 5))
     }
@@ -363,7 +364,7 @@ final class FoundationUITests: XCTestCase {
           expectation(for: ready, evaluatedWith: cell)
           waitForExpectations(timeout: 5)
           cell.tap()
-          let choice = app.buttons["sticker.\(color.lowercased())"]
+          let choice = app.sheets.buttons.matching(identifier: "sticker.\(color.lowercased())").firstMatch
           expectation(for: ready, evaluatedWith: choice)
           waitForExpectations(timeout: 5)
           choice.tap()
@@ -393,7 +394,7 @@ final class FoundationUITests: XCTestCase {
     tapReady(app.buttons["editor.home"])
     XCTAssertTrue(app.buttons["home.delete"].waitForExistence(timeout: 5))
     tapReady(app.buttons["home.delete"])
-    tapReady(app.buttons["delete.confirm"])
+    tapReady(app.alerts.buttons.matching(identifier: "delete.confirm").firstMatch)
   }
 
   @MainActor
@@ -436,10 +437,23 @@ final class FoundationUITests: XCTestCase {
 
   @MainActor
   private func tapReady(_ element: XCUIElement) {
-    expectation(
-      for: NSPredicate(format: "exists == true AND hittable == true AND enabled == true"),
-      evaluatedWith: element)
-    waitForExpectations(timeout: 5)
+    let ready = XCTNSPredicateExpectation(
+      predicate: NSPredicate(format: "exists == true AND hittable == true AND enabled == true"),
+      object: element)
+    let result = XCTWaiter.wait(for: [ready], timeout: 5)
+    if result != .completed {
+      let app = XCUIApplication()
+      let screenshot = XCTAttachment(screenshot: app.screenshot())
+      screenshot.name = "Unavailable control screenshot"
+      screenshot.lifetime = .keepAlways
+      add(screenshot)
+      let hierarchy = XCTAttachment(string: app.debugDescription)
+      hierarchy.name = "Unavailable control accessibility hierarchy"
+      hierarchy.lifetime = .keepAlways
+      add(hierarchy)
+    }
+    XCTAssertEqual(result, .completed, "Control must exist, be hittable and enabled: \(element)")
+    guard result == .completed else { return }
     element.tap()
   }
 

@@ -1,0 +1,84 @@
+Attributes: Application, 0x108c25540, pid: 70035, label: 'cubeguide'
+Element subtree:
+ →Application, 0x108c25540, pid: 70035, label: 'cubeguide'
+    Window (Main), 0x108c25400, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x108c252c0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x108c25180, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x108c25040, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x108c24f00, {{0.0, 0.0}, {402.0, 874.0}}
+              Other, 0x108c24dc0, {{0.0, 0.0}, {402.0, 874.0}}
+                NavigationBar, 0x108c24c80, {{0.0, 62.0}, {402.0, 106.7}}, identifier: 'CubeGuide'
+                  StaticText, 0x108c24b40, {{16.0, 116.0}, {178.0, 48.7}}, label: 'CubeGuide'
+                Other, 0x108c24a00, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x108c25f40, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x108c26d00, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x108c26bc0, {{0.0, 0.0}, {402.0, 874.0}}
+                        StaticText, 0x108c26a80, {{18.5, 184.7}, {318.3, 48.7}}, label: 'Start with your cube'
+                        StaticText, 0x108c26940, {{18.5, 257.3}, {365.0, 50.3}}, label: 'Enter the colors on all six faces. Your confirmed entries are saved on this iPhone.'
+                        Button, 0x108c26800, {{18.7, 331.7}, {159.3, 54.3}}, identifier: 'home.enterColors', label: 'Enter colors'
+                          Image, 0x108c266c0, {{40.7, 351.0}, {16.3, 16.0}}, identifier: 'square.grid.3x3', label: 'square.grid.3x3'
+                          StaticText, 0x108c26580, {{18.7, 331.7}, {159.3, 54.3}}, label: 'Enter colors'
+                        Button, 0x108c26440, {{18.7, 410.0}, {218.3, 54.3}}, identifier: 'home.resume', label: 'Resume saved cube'
+                          Image, 0x108c26300, {{40.0, 427.3}, {14.7, 18.0}}, identifier: 'arrow.clockwise', label: 'Refresh'
+                          StaticText, 0x108c261c0, {{18.7, 410.0}, {218.3, 54.3}}, label: 'Resume saved cube'
+                        Button, 0x108c26080, {{18.7, 488.3}, {127.0, 24.3}}, identifier: 'home.delete', label: 'Delete local data'
+                        Button, 0x108c26e40, {{18.7, 536.7}, {218.3, 24.3}}, identifier: 'home.practice', label: 'Practice with an example'
+                          Image, 0x108c26f80, {{20.7, 539.3}, {16.7, 19.0}}, identifier: 'cube', label: 'Depth Effect'
+                          StaticText, 0x108c270c0, {{18.7, 536.7}, {218.3, 24.3}}, label: 'Practice with an example'
+                        Button, 0x108c27200, {{18.7, 585.0}, {91.7, 24.3}}, identifier: 'home.settings', label: 'Settings'
+                          Image, 0x108c27340, {{20.0, 588.3}, {18.0, 18.0}}, identifier: 'gearshape', label: 'gearshape'
+                          StaticText, 0x108c27480, {{18.7, 585.0}, {91.7, 24.3}}, label: 'Settings'
+                        Button, 0x108c275c0, {{18.7, 633.3}, {63.0, 24.3}}, identifier: 'home.help', label: 'Help'
+                          Image, 0x108c27700, {{20.0, 637.0}, {17.0, 17.0}}, identifier: 'questionmark.circle', label: 'questionmark.circle'
+                          StaticText, 0x108c27840, {{18.7, 633.3}, {63.0, 24.3}}, label: 'Help'
+                Other, 0x108c27980, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x108c27ac0, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x108c27c00, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x108c27d40, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x108c27e80, {{0.0, 0.0}, {402.0, 874.0}}
+        Alert, 0x10321bc00, {{41.0, 320.3}, {320.0, 261.3}}, label: 'Delete all local data?'
+          Other, 0x10321bd40, {{41.0, 320.3}, {320.0, 261.3}}
+            Other, 0x10321be80, {{41.0, 320.3}, {320.0, 261.3}}
+              Other, 0x10321ae40, {{41.0, 320.3}, {320.0, 261.3}}
+              Other, 0x10321af80, {{41.0, 320.3}, {320.0, 261.3}}
+                ScrollView, 0x10321b0c0, {{41.0, 320.3}, {320.0, 125.3}}
+                  Other, 0x10321b200, {{41.0, 320.3}, {320.0, 125.3}}
+                    StaticText, 0x10321b340, {{71.0, 344.3}, {260.0, 24.3}}, label: 'Delete all local data?'
+                    StaticText, 0x10321b480, {{71.0, 376.0}, {260.0, 67.0}}, label: 'This removes your saved colors and guide and resets all preferences on this device.'
+                  Other, 0x10321b5c0, {{328.0, 320.3}, {30.0, 125.3}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                    Other, 0x10321b700, {{355.0, 281.3}, {3.0, 36.0}}
+                  Other, 0x10321b840, {{41.0, 412.7}, {320.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                    Other, 0x10321b980, {{2.0, 439.7}, {36.0, 3.0}}
+                  Other, 0x10321bac0, {{328.0, 320.3}, {30.0, 125.3}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                    Other, 0x108c90000, {{355.0, 281.3}, {3.0, 36.0}}
+                  Other, 0x108c90140, {{41.0, 412.7}, {320.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                    Other, 0x108c90280, {{2.0, 439.7}, {36.0, 3.0}}
+                ScrollView, 0x108c903c0, {{41.0, 445.7}, {320.0, 136.0}}
+                  Other, 0x108c90500, {{41.0, 445.7}, {320.0, 136.0}}
+                    Other, 0x108c90640, {{57.0, 461.7}, {288.0, 104.0}}
+                      Button, 0x108c90780, {{57.0, 461.7}, {288.0, 48.0}}, identifier: 'delete.confirm', label: 'Delete local data'
+                        Button, 0x108c908c0, {{57.0, 461.7}, {288.0, 48.0}}, identifier: 'delete.confirm', label: 'Delete local data'
+                      Button, 0x108c90a00, {{57.0, 517.7}, {288.0, 48.0}}, label: 'Cancel'
+                  Other, 0x108c90b40, {{328.0, 445.7}, {30.0, 136.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                    Other, 0x108c90c80, {{355.0, 535.7}, {3.0, 7.0}}
+                  Other, 0x108c90dc0, {{41.0, 548.7}, {320.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                    Other, 0x108c90f00, {{131.0, 575.7}, {7.0, 3.0}}
+                  Other, 0x108c91040, {{328.0, 445.7}, {30.0, 136.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                    Other, 0x108c91180, {{355.0, 535.7}, {3.0, 7.0}}
+                  Other, 0x108c912c0, {{41.0, 548.7}, {320.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                    Other, 0x108c91400, {{131.0, 575.7}, {7.0, 3.0}}
+          Other, 0x108c91540, {{41.0, 320.3}, {320.0, 261.3}}
+            Other, 0x108c91680, {{41.0, 320.3}, {320.0, 261.3}}
+              Other, 0x108c917c0, {{41.0, 320.3}, {320.0, 261.3}}
+                Other, 0x108c91900, {{41.0, 320.3}, {320.0, 261.3}}
+                  Other, 0x108c91a40, {{41.0, 320.3}, {320.0, 261.3}}
+                    Other, 0x108c91b80, {{41.0, 320.3}, {402.0, 874.0}}
+                Other, 0x108c91cc0, {{41.0, 320.3}, {320.0, 261.3}}
+                  Other, 0x108c91e00, {{41.0, 320.3}, {402.0, 874.0}}
+Path to element:
+ →Application, 0x108c25540, pid: 70035, label: 'cubeguide'
+Query chain:
+ →Find: Target Application 'hasancorp.cubeguide'
+  Output: {
+    Application, 0x108c91f40, pid: 70035, label: 'cubeguide'
+  }

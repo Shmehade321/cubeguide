@@ -2,6 +2,12 @@
 
 Baseline: 78f7fbc. User authorized full implementation with TDD, quality checks and commits per coherent task/increment. No product delivery or publication is claimed.
 
+## Current continuation — 21 September 2026
+
+Resumed T07 from committed checkpoint `cdc58ee`. The iOS 18.5 preview crash has an independent bare-ARView reproducer and remains an open minimum-OS qualification issue. On explicitly selected iOS 26.5, the real product passed 100 preview/Home/Resume cycles across three diagnostic repetitions and two full suites. Test-only fixes disambiguate nested dialog actions and scroll guide controls into view. After retaining the first full run's three failed guide tests and validating their correction, the fresh full PR completed with all 56 simulator tests passing, zero failures/skips, and all package/storage/solver/reference stages passing. All 211 non-document inputs match the run snapshot. See the [concise investigation and evidence links](t07/runtime-investigation.md).
+
+No renderer fix or iOS 18 qualification is claimed. Completion art remains the next planned T07 implementation increment after this regression checkpoint. The Git checkout has no configured remote, so pushing requires the repository URL.
+
 ## Rulings and pre-flight
 
 - Ruling: work in the supplied checkout on `codex/cubeguide-implementation`, preserving the user's uncommitted documentation/project references. The current-worktree instruction and continuous execution take precedence over an optional isolated checkout workflow. No main-branch implementation.

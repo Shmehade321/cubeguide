@@ -1,0 +1,12 @@
+{
+  "session": 38296,
+  "status": "passed",
+  "runtime": "iOS 26.5",
+  "simulator": "610EA507-710F-4AA6-943C-AF57C0035F07",
+  "console": "Artifacts/t07-overlays-ios26-final-pr-console.log",
+  "scope": "Fresh full PR after scoped dialog queries and bounded guide scrolling; iOS 18.5 failure stays open.",
+  "exitCode": 0,
+  "simulatorTests": 56,
+  "failedTests": 0,
+  "skippedTests": 0
+}
