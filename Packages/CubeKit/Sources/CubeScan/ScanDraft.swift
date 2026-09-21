@@ -32,6 +32,36 @@ public struct ScanFace: Equatable, Sendable, Codable {
     self.manualOverrides = manualOverrides
     self.correctionTurns = correctionTurns
   }
+  public func setting(row: Int, column: Int, color: CubeColor?) throws -> ScanFace {
+    guard (0..<3).contains(row), (0..<3).contains(column) else { throw ScanError.invalidCell }
+    guard row != 1 || column != 1 else { throw ScanError.centerRequiresAssignment }
+    var overrides = manualOverrides
+    overrides[row * 3 + column] = color
+    return try ScanFace(
+      slot: slot, measurements: measurements, metadata: metadata,
+      centerName: centerName, manualOverrides: overrides, correctionTurns: correctionTurns)
+  }
+  public func assigningCenter(_ color: CubeColor?) throws -> ScanFace {
+    try ScanFace(
+      slot: slot, measurements: measurements, metadata: metadata,
+      centerName: color, manualOverrides: manualOverrides, correctionTurns: correctionTurns)
+  }
+  public func rotating(by turns: QuarterTurns) throws -> ScanFace {
+    func rotate<T>(_ input: [T]) -> [T] {
+      var result = input
+      for _ in 0..<Int(turns.rawValue) {
+        let previous = result
+        for row in 0..<3 {
+          for column in 0..<3 { result[column * 3 + 2 - row] = previous[row * 3 + column] }
+        }
+      }
+      return result
+    }
+    return try ScanFace(
+      slot: slot, measurements: rotate(measurements), metadata: metadata,
+      centerName: centerName, manualOverrides: rotate(manualOverrides),
+      correctionTurns: (correctionTurns + turns.rawValue) % 4)
+  }
   private enum CodingKeys: String, CodingKey {
     case slot, measurements, manualOverrides, centerName, metadata, correctionTurns
   }
@@ -102,39 +132,15 @@ public struct ScanDraft: Equatable, Sendable, Codable {
     guard (0..<3).contains(row), (0..<3).contains(column) else { throw ScanError.invalidCell }
     guard row != 1 || column != 1 else { throw ScanError.centerRequiresAssignment }
     let value = try accepted(face)
-    var overrides = value.manualOverrides
-    overrides[row * 3 + column] = color
-    return try replacing(
-      ScanFace(
-        slot: face, measurements: value.measurements, metadata: value.metadata,
-        centerName: value.centerName, manualOverrides: overrides,
-        correctionTurns: value.correctionTurns))
+    return try replacing(value.setting(row: row, column: column, color: color))
   }
   public func assigningCenter(_ color: CubeColor?, to face: Face) throws -> ScanDraft {
     let value = try accepted(face)
-    return try replacing(
-      ScanFace(
-        slot: face, measurements: value.measurements, metadata: value.metadata,
-        centerName: color, manualOverrides: value.manualOverrides,
-        correctionTurns: value.correctionTurns))
+    return try replacing(value.assigningCenter(color))
   }
   public func rotating(_ face: Face, by turns: QuarterTurns) throws -> ScanDraft {
     let value = try accepted(face)
-    func rotate<T>(_ input: [T]) -> [T] {
-      var result = input
-      for _ in 0..<Int(turns.rawValue) {
-        let previous = result
-        for row in 0..<3 {
-          for column in 0..<3 { result[column * 3 + 2 - row] = previous[row * 3 + column] }
-        }
-      }
-      return result
-    }
-    return try replacing(
-      ScanFace(
-        slot: face, measurements: rotate(value.measurements), metadata: value.metadata,
-        centerName: value.centerName, manualOverrides: rotate(value.manualOverrides),
-        correctionTurns: (value.correctionTurns + turns.rawValue) % 4))
+    return try replacing(value.rotating(by: turns))
   }
   private enum CodingKeys: String, CodingKey { case faces, revision }
   public init(from decoder: any Decoder) throws {
