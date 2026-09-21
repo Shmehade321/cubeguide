@@ -1,0 +1,52 @@
+{
+  "devicesAndConfigurations" : [
+    {
+      "device" : {
+        "architecture" : "arm64",
+        "deviceId" : "67DB7428-A25B-4167-8FC2-24F47A392E81",
+        "deviceName" : "iPhone 16 Pro",
+        "modelName" : "iPhone 16 Pro",
+        "osBuildNumber" : "22F77",
+        "osVersion" : "18.5",
+        "platform" : "iOS Simulator"
+      },
+      "expectedFailures" : 0,
+      "failedTests" : 1,
+      "passedTests" : 0,
+      "skippedTests" : 0,
+      "testPlanConfiguration" : {
+        "configurationId" : "1",
+        "configurationName" : "PR"
+      }
+    }
+  ],
+  "environmentDescription" : "PR · Built with macOS 27.0",
+  "expectedFailures" : 0,
+  "failedTests" : 1,
+  "finishTime" : 1789979558.543,
+  "passedTests" : 0,
+  "result" : "Failed",
+  "runtimeWarnings" : [
+
+  ],
+  "skippedTests" : 0,
+  "startTime" : 1789979502.042,
+  "statistics" : [
+
+  ],
+  "testFailures" : [
+    {
+      "failureText" : "XCTAssertEqual failed: (\"XCTWaiterResult(rawValue: 2)\") is not equal to (\"XCTWaiterResult(rawValue: 1)\")",
+      "targetName" : "cubeguideUITests",
+      "testIdentifier" : 1,
+      "testIdentifierString" : "GuideUITests/testPracticeGuideRequiresAlignmentAndExplicitAcknowledgement()",
+      "testIdentifierURL" : "test://com.apple.xcode/cubeguide/cubeguideUITests/GuideUITests/testPracticeGuideRequiresAlignmentAndExplicitAcknowledgement",
+      "testName" : "testPracticeGuideRequiresAlignmentAndExplicitAcknowledgement()"
+    }
+  ],
+  "title" : "Test - cubeguide",
+  "topInsights" : [
+
+  ],
+  "totalTestCount" : 1
+}

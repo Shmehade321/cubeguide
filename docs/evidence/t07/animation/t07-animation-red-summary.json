@@ -1,0 +1,74 @@
+{
+  "devicesAndConfigurations" : [
+    {
+      "device" : {
+        "architecture" : "arm64",
+        "deviceId" : "67DB7428-A25B-4167-8FC2-24F47A392E81",
+        "deviceName" : "iPhone 16 Pro",
+        "modelName" : "iPhone 16 Pro",
+        "osBuildNumber" : "22F77",
+        "osVersion" : "18.5",
+        "platform" : "iOS Simulator"
+      },
+      "expectedFailures" : 0,
+      "failedTests" : 2,
+      "passedTests" : 0,
+      "skippedTests" : 0,
+      "testPlanConfiguration" : {
+        "configurationId" : "1",
+        "configurationName" : "PR"
+      }
+    }
+  ],
+  "environmentDescription" : "PR · Built with macOS 27.0",
+  "expectedFailures" : 0,
+  "failedTests" : 2,
+  "finishTime" : 1789978086.667,
+  "passedTests" : 0,
+  "result" : "Failed",
+  "runtimeWarnings" : [
+
+  ],
+  "skippedTests" : 0,
+  "startTime" : 1789978053.469,
+  "statistics" : [
+
+  ],
+  "testFailures" : [
+    {
+      "failureText" : "Expectation failed: body.position == vector(point.viewed(at: pose))\nbody.position → SIMD3<Float>(0.0, 1.0, 0.0)\nvector(point.viewed(at: pose)) → SIMD3<Float>(0.0, 0.0, 1.0)",
+      "targetName" : "cubeguideTests",
+      "testIdentifier" : 2,
+      "testIdentifierString" : "CubeAnimationTests/allEndpoints()",
+      "testIdentifierURL" : "test://com.apple.xcode/cubeguide/cubeguideTests/CubeAnimationTests/allEndpoints()",
+      "testName" : "V10: every planned move/pose snaps actual entities to canonical endpoints without retained pivots"
+    },
+    {
+      "failureText" : "Expectation failed: selected.count == 9\nselected.count → 0",
+      "targetName" : "cubeguideTests",
+      "testIdentifier" : 1,
+      "testIdentifierString" : "CubeAnimationTests/layerSamples()",
+      "testIdentifierURL" : "test://com.apple.xcode/cubeguide/cubeguideTests/CubeAnimationTests/layerSamples()",
+      "testName" : "V10: front demonstration moves one full layer about its center, leaving other cubies fixed"
+    }
+  ],
+  "title" : "Test - cubeguide",
+  "topInsights" : [
+    {
+      "category" : "Common Failures",
+      "impact" : "50% of failures",
+      "text" : "135 runs of 1 test failed with Expectation failed: simd_length(actual - expected) < 0.000001"
+    },
+    {
+      "category" : "Common Failures",
+      "impact" : "50% of failures",
+      "text" : "52 runs of 1 test failed with Expectation failed: sticker.findEntity(named: \"label.\\(color.title.prefix(1))\") != nil"
+    },
+    {
+      "category" : "Common Failures",
+      "impact" : "50% of failures",
+      "text" : "27 runs of 1 test failed with Expectation failed: simd_length(actual - expected) < 0.000001"
+    }
+  ],
+  "totalTestCount" : 2
+}

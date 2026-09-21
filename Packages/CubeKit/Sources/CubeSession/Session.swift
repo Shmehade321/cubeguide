@@ -489,7 +489,7 @@ public enum SessionReducer {
         guard
           [
             .editing, .invalid, .alreadySolved, .offer, .solveError, .resumeCheck, .storageError,
-            .completed,
+            .completed, .expectedSolved,
           ]
           .contains(
             session.phase)

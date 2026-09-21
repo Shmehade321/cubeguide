@@ -1,0 +1,41 @@
+Attributes: Button, 0x105f26510, {{101.0, 937.7}, {200.0, 54.3}}, identifier: 'guide.uncertain', label: 'Not sure—start again'
+Element subtree:
+ →Button, 0x105f26510, {{101.0, 937.7}, {200.0, 54.3}}, identifier: 'guide.uncertain', label: 'Not sure—start again'
+Path to element:
+ →Application, 0x105f1eca0, pid: 69553, label: 'cubeguide'
+  ↳Window (Main), 0x105f1fc60, {{0.0, 0.0}, {402.0, 874.0}}
+   ↳Other, 0x105f1f050, {{0.0, 0.0}, {402.0, 874.0}}
+    ↳Other, 0x105f25e50, {{0.0, 0.0}, {402.0, 874.0}}
+     ↳Other, 0x105f25f70, {{0.0, 0.0}, {402.0, 874.0}}
+      ↳Other, 0x105f26090, {{0.0, 150.7}, {402.0, 723.3}}
+       ↳Other, 0x105f25bb0, {{0.0, 150.7}, {402.0, 723.3}}
+        ↳Other, 0x105f25cd0, {{0.0, 150.7}, {402.0, 723.3}}
+         ↳Other, 0x105f26630, {{0.0, 150.7}, {402.0, 723.3}}
+          ↳Other, 0x105f261b0, {{0.0, 150.7}, {402.0, 723.3}}
+           ↳ScrollView, 0x105f262d0, {{0.0, 150.7}, {402.0, 723.3}}
+            ↳Other, 0x105f263f0, {{0.0, 194.7}, {402.0, 813.3}}
+             ↳Button, 0x105f26510, {{101.0, 937.7}, {200.0, 54.3}}, identifier: 'guide.uncertain', label: 'Not sure—start again'
+Query chain:
+ →Find: Target Application 'hasancorp.cubeguide'
+  Output: {
+    Application, 0x106334c00, pid: 69553, label: 'cubeguide'
+  }
+  ↪︎Find: Descendants matching type Button
+    Output: {
+      Button, 0x106163630, {{154.0, 110.3}, {94.3, 24.3}}, identifier: 'practice.exit', label: 'Exit practice'
+      Button, 0x106130950, {{349.3, 150.7}, {44.7, 44.0}}, identifier: 'navigation.help', label: 'Help'
+      Button, 0x10615bf50, {{16.0, 156.7}, {53.7, 32.3}}, identifier: 'editor.home', label: 'Home'
+      Button, 0x106118480, {{18.7, 316.0}, {159.3, 54.3}}, identifier: 'home.enterColors', label: 'Enter colors'
+      Button, 0x106164740, {{18.7, 394.3}, {218.3, 24.3}}, identifier: 'home.practice', label: 'Practice with an example'
+      Button, 0x106119a80, {{18.7, 442.7}, {91.7, 24.3}}, identifier: 'home.settings', label: 'Settings'
+      Button, 0x106133920, {{18.7, 491.0}, {63.0, 24.3}}, identifier: 'home.help', label: 'Help'
+      Button, 0x106147fe0, {{30.7, 738.7}, {135.3, 54.3}}, identifier: 'guide.showBefore', label: 'Show before'
+      Button, 0x10615d290, {{174.3, 738.7}, {197.3, 54.3}}, identifier: 'guide.showAfter', label: 'Show expected after'
+      Button, 0x1061410d0, {{128.3, 805.0}, {145.7, 54.3}}, identifier: 'guide.matchesAfter', label: 'Matches after'
+      Button, 0x106152a90, {{121.3, 871.3}, {159.3, 54.3}}, identifier: 'guide.matchesBefore', label: 'Matches before'
+      Button, 0x10615b150, {{101.0, 937.7}, {200.0, 54.3}}, identifier: 'guide.uncertain', label: 'Not sure—start again'
+    }
+    ↪︎Find: Elements matching predicate '"guide.uncertain" IN identifiers'
+      Output: {
+        Button, 0x106a29730, {{101.0, 937.7}, {200.0, 54.3}}, identifier: 'guide.uncertain', label: 'Not sure—start again'
+      }

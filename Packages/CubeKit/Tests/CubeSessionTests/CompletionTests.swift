@@ -268,3 +268,17 @@ func controllerEnteredCompletion() async throws {
     restored.session.phase == .completed && restored.session.completion == .enteredColorsSolved)
   #expect(restored.palette == draft.palette)
 }
+
+@Test("R10/R15: leaving the expected-solved screen preserves the need for physical confirmation")
+func unconfirmedCompletionMayLeaveHome() throws {
+  let finished = try finishedGuide()
+  let leaving = apply(finished, .cancel)
+  #expect(leaving.disposition == .accepted)
+  #expect(leaving.session.phase == .home)
+  #expect(leaving.session.completion == nil)
+  #expect(leaving.session.guideProgress == finished.guideProgress)
+  let resumed = apply(leaving.session, .resume)
+  #expect(resumed.disposition == .accepted)
+  #expect(resumed.session.phase == .expectedSolved)
+  #expect(resumed.session.completion == nil)
+}

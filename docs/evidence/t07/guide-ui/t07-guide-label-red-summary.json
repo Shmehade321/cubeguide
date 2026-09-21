@@ -1,0 +1,56 @@
+{
+  "devicesAndConfigurations" : [
+    {
+      "device" : {
+        "architecture" : "arm64",
+        "deviceId" : "67DB7428-A25B-4167-8FC2-24F47A392E81",
+        "deviceName" : "iPhone 16 Pro",
+        "modelName" : "iPhone 16 Pro",
+        "osBuildNumber" : "22F77",
+        "osVersion" : "18.5",
+        "platform" : "iOS Simulator"
+      },
+      "expectedFailures" : 0,
+      "failedTests" : 1,
+      "passedTests" : 20,
+      "skippedTests" : 0,
+      "testPlanConfiguration" : {
+        "configurationId" : "1",
+        "configurationName" : "PR"
+      }
+    }
+  ],
+  "environmentDescription" : "PR · Built with macOS 27.0",
+  "expectedFailures" : 0,
+  "failedTests" : 1,
+  "finishTime" : 1789981207.614,
+  "passedTests" : 20,
+  "result" : "Failed",
+  "runtimeWarnings" : [
+
+  ],
+  "skippedTests" : 0,
+  "startTime" : 1789981175.677,
+  "statistics" : [
+
+  ],
+  "testFailures" : [
+    {
+      "failureText" : "Expectation failed: presentation.previewDescription == \"Demonstration in progress\"\npresentation.previewDescription → \"Before this action\"",
+      "targetName" : "cubeguideTests",
+      "testIdentifier" : 13,
+      "testIdentifierString" : "GuidePresentationTests/controllerComposition()",
+      "testIdentifierURL" : "test://com.apple.xcode/cubeguide/cubeguideTests/GuidePresentationTests/controllerComposition()",
+      "testName" : "R09/R11: persistent presentation survives screen preparation and reports preview without acknowledgement"
+    }
+  ],
+  "title" : "Test - cubeguide",
+  "topInsights" : [
+    {
+      "category" : "Longest Test Runs",
+      "impact" : "35% of duration",
+      "text" : "1 longest test run with outlier durations exceeding 3.31s (three standard deviations)"
+    }
+  ],
+  "totalTestCount" : 21
+}

@@ -1,0 +1,47 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "PR",
+        "deviceId" : "67DB7428-A25B-4167-8FC2-24F47A392E81",
+        "deviceName" : "iPhone 16 Pro",
+        "exportedFileName" : "BB6AC880-192C-4871-82D9-440BA70CCA54.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Expected solved requires physical confirmation_0_1CF7B925-3678-4FDC-A4FC-50555C612258.png",
+        "timestamp" : 1789983045.047
+      }
+    ],
+    "testIdentifier" : "GuideUITests/testGuideCompletionRequiresSeparatePhysicalConfirmation()",
+    "testIdentifierURL" : "test://com.apple.xcode/cubeguide/cubeguideUITests/GuideUITests/testGuideCompletionRequiresSeparatePhysicalConfirmation"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "PR",
+        "deviceId" : "67DB7428-A25B-4167-8FC2-24F47A392E81",
+        "deviceName" : "iPhone 16 Pro",
+        "exportedFileName" : "272456F7-9046-4A94-8DDD-5DC25B154673.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Practice guide expected after preview_0_16991308-6486-42F5-B4E3-85676D457417.png",
+        "timestamp" : 1789983076.482
+      }
+    ],
+    "testIdentifier" : "GuideUITests/testPracticeGuideRequiresAlignmentAndExplicitAcknowledgement()",
+    "testIdentifierURL" : "test://com.apple.xcode/cubeguide/cubeguideUITests/GuideUITests/testPracticeGuideRequiresAlignmentAndExplicitAcknowledgement"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "PR",
+        "deviceId" : "67DB7428-A25B-4167-8FC2-24F47A392E81",
+        "deviceName" : "iPhone 16 Pro",
+        "exportedFileName" : "F616BAA7-B06E-46C0-9238-A12E08F7DD81.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Recovery retains guide until replacement_0_FDFED103-B4CD-4884-B439-E3ED074FCD24.png",
+        "timestamp" : 1789983110.397
+      }
+    ],
+    "testIdentifier" : "GuideUITests/testUncertainGuideCanKeepOrReplaceWithManualInput()",
+    "testIdentifierURL" : "test://com.apple.xcode/cubeguide/cubeguideUITests/GuideUITests/testUncertainGuideCanKeepOrReplaceWithManualInput"
+  }
+]

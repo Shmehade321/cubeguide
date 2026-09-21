@@ -11,6 +11,9 @@ final class CubeSceneModel {
   let root = Entity()
   private(set) var bodies: [CubePosition: ModelEntity] = [:]
   private(set) var stickers: [Int: ModelEntity] = [:]
+  private let pivot = Entity()
+  private var previewFinished = false
+  private var preview: (action: GuideAction, palette: CenterPalette, labels: Bool, rotation: CubeRotation)?
   private static let bodyMesh = MeshResource.generateBox(size: 0.92, cornerRadius: 0.06)
   private static let stickerMesh = MeshResource.generateBox(
     size: SIMD3(0.82, 0.82, 0.025), cornerRadius: 0.012)
@@ -37,9 +40,18 @@ final class CubeSceneModel {
   }
 
   func display(draft: ManualDraft, pose: CubeOrientation, showColorLabels: Bool) {
+    display(colors: draft.cells, pose: pose, showColorLabels: showColorLabels)
+  }
+
+  private func display(colors: [CubeColor?], pose: CubeOrientation, showColorLabels: Bool) {
+    preview = nil
+    previewFinished = false
     for (point, body) in bodies {
+      root.addChild(body)
       body.transform = Transform(translation: vector(point.viewed(at: pose)))
     }
+    pivot.removeFromParent()
+    pivot.transform = Transform()
     for source in CubeGeometry.stickers {
       guard let sticker = stickers[source.index] else { continue }
       let placed = source.viewed(at: pose)
@@ -48,7 +60,7 @@ final class CubeSceneModel {
       let right = simd_cross(top, normal)
       sticker.transform = Transform(rotation: simd_quatf(simd_float3x3(columns: (right, top, normal))),
         translation: normal * 0.48)
-      let color = draft.cells[source.index]
+      let color = colors[source.index]
       let tint = color.map { UIColor($0.swatch) } ?? UIColor(white: 0.30, alpha: 1)
       sticker.model?.materials = [SimpleMaterial(color: tint, roughness: 0.6, isMetallic: false)]
       let label: String?
@@ -56,6 +68,50 @@ final class CubeSceneModel {
       else { label = "?" }
       updateLabel(label, on: sticker, light: color == nil || color == .blue)
     }
+  }
+
+  func beginPreview(_ action: GuideAction, palette: CenterPalette, showColorLabels: Bool) {
+    display(state: action.before, palette: palette, pose: action.fromPose, labels: showColorLabels)
+    let rotation: CubeRotation
+    switch action.operation {
+    case .turn(let move):
+      rotation = CubeRotation(axis: action.fromPose.viewFace(for: move.face), turns: move.turns)
+    case .regrip(let operation): rotation = CubeRotation(regrip: operation)
+    }
+    root.addChild(pivot)
+    for (point, body) in bodies {
+      let selected: Bool
+      if case .turn(let move) = action.operation { selected = point.isOnLayer(move.face) }
+      else { selected = true }
+      // The pivot is identity and shares the root's coordinates at preparation.
+      if selected { pivot.addChild(body) }
+    }
+    preview = (action, palette, showColorLabels, rotation)
+  }
+
+  func samplePreview(progress: Double) {
+    guard let current = preview, !previewFinished, progress.isFinite else { return }
+    if progress >= 1 {
+      display(state: current.action.after, palette: current.palette,
+        pose: current.action.toPose, labels: current.labels)
+      // Retain the immutable before-state until acknowledgement/replacement or cancellation.
+      preview = current
+      previewFinished = true
+    } else {
+      let angle = Float(max(0, progress)) * Float(current.rotation.signedQuarterTurns) * .pi / 2
+      pivot.orientation = simd_quatf(angle: angle, axis: vector(CubeGeometry.axis(for: current.rotation.axis)))
+    }
+  }
+
+  func cancelPreview() {
+    guard let current = preview else { return }
+    display(state: current.action.before, palette: current.palette,
+      pose: current.action.fromPose, labels: current.labels)
+  }
+
+  private func display(state: Facelets, palette: CenterPalette, pose: CubeOrientation, labels: Bool) {
+    display(colors: state.faces.map { palette.colors[Int($0.rawValue)] },
+      pose: pose, showColorLabels: labels)
   }
 
   private func updateLabel(_ text: String?, on sticker: ModelEntity, light: Bool) {

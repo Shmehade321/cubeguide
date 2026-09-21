@@ -7,6 +7,7 @@ import Testing
 import UIKit
 @testable import cubeguide
 
+extension PresentationTests {
 @MainActor
 struct CubeSceneTests {
   @Test("R01/R18: preview uses a virtual camera with automatic AR disabled and detaches on teardown")
@@ -110,4 +111,5 @@ struct CubeSceneTests {
     try #require(values.count == 4)
     return values
   }
+}
 }

@@ -1,0 +1,10 @@
+{
+  "cubeguide/ContentView.swift": "489367f3d3d1633fe0570264b085deda3f6523806c8f8a9e34b7cf5da1b73be3",
+  "cubeguide/GuideFlowView.swift": "c11d44065b63133d6a39338a8f367f966ead41aa34d18744ea255c50fdecb5f6",
+  "cubeguide/GuidePresentation.swift": "4fbb825f7d0065d2216ff5a949fc5de12f18bf39fc2f7154169930799d91d944",
+  "cubeguideUITests/GuideUITests.swift": "c93896c118b616089a7cce9a2ec460b443d9f58a6c6b8777fb37525ff2674cff",
+  "cubeguideTests/GuidePresentationTests.swift": "209ae838f50f20d9eb8689899e63f52d72d7178149e6839ac04a066690fb941e",
+  "Packages/CubeKit/Sources/CubeSession/Session.swift": "09d37bb6efe2b281bc1b9f05df10ac2c5f4d9499ba45916e7849a64826933683",
+  "Packages/CubeKit/Tests/CubeSessionTests/SessionTests.swift": "0a282b5e6b2f06a05826172bf9d36aabc5bdbc0f0ed7d5ed8ad49512d32fe3d1",
+  "Packages/CubeKit/Tests/CubeSessionTests/CompletionTests.swift": "7468d820ac69b9b5d639e06f0959c4dd597f4926ebf4d78f72e7ef82fa41539b"
+}

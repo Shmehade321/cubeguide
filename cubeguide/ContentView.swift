@@ -6,8 +6,10 @@ import SwiftUI
 
 struct ContentView: View {
   @State private var controller: SessionController
+  @State private var presentation: GuidePresentation?
   private let isPractice: Bool
   @State private var showingPractice = false
+  @State private var replacingAfterRecovery = false
   @State private var replacing = false
   @State private var deleting = false
   @State private var reviewingInput = false
@@ -17,10 +19,15 @@ struct ContentView: View {
   @Environment(\.scenePhase) private var scenePhase
 
   init() {
-    _controller = State(initialValue: AppDependencies().makeSessionController())
+    let presentation = GuidePresentation()
+    let controller = AppDependencies().makeSessionController(playback: presentation)
+    presentation.bind(controller)
+    _controller = State(initialValue: controller)
+    _presentation = State(initialValue: presentation)
     isPractice = false
   }
-  init(controller: SessionController, isPractice: Bool) {
+  init(controller: SessionController, isPractice: Bool, presentation: GuidePresentation? = nil) {
+    _presentation = State(initialValue: presentation)
     _controller = State(initialValue: controller)
     self.isPractice = isPractice
   }
@@ -222,20 +229,46 @@ struct ContentView: View {
         }
         Button("Edit colors") { controller.send(.edit) }.accessibilityIdentifier("validation.edit")
       }.padding()
-    case .preparingAction: ProgressView("Saving your verified solution…")
-    case .guide, .resumeCheck:
-      VStack(spacing: 20) {
-        Text("Solution verified").font(.title.bold()).accessibilityIdentifier("solve.verified")
-        if let plan = controller.session.plan {
-          Text(
-            "\(plan.moves.count) \(plan.moves.count == 1 ? "move" : "moves") in the verified solution."
-          )
-          .accessibilityIdentifier("solve.moveCount")
-        }
-        Text(
-          "The solution has been checked against your entered colors. The animated guide is not available yet."
-        )
-      }.padding()
+    case .preparingAction, .guide, .resumeCheck, .savingAcknowledgement, .storageError:
+      if let presentation {
+        GuideFlowView(controller: controller, presentation: presentation)
+      } else {
+        ContentUnavailableView("Guide unavailable", systemImage: "cube")
+      }
+    case .recovery:
+      ScrollView {
+        VStack(spacing: 20) {
+          Text("Let's check your cube").font(.title.bold())
+          Text("Your saved guide is paused. Enter every face again if your cube no longer matches it. Starting over replaces the saved guide only after you confirm.")
+          Button("Enter colors again") { replacingAfterRecovery = true }
+            .buttonStyle(.borderedProminent).accessibilityIdentifier("recovery.manual")
+          Button("Keep guide and compare again") { controller.send(.cancel) }
+            .accessibilityIdentifier("recovery.keep")
+        }.padding()
+      }
+      .alert("Replace your saved guide?", isPresented: $replacingAfterRecovery) {
+        Button("Keep current", role: .cancel) {}.accessibilityIdentifier("recovery.cancelReplacement")
+        Button("Replace and enter colors", role: .destructive) {
+          reviewingInput = false
+          controller.send(.startManual(replacing: true))
+        }.accessibilityIdentifier("recovery.confirmReplacement")
+      } message: {
+        Text("You will choose all six centers and enter your cube again. The previous instructions will no longer be active.")
+      }
+    case .savingRecovery: ProgressView("Pausing your saved guide…")
+    case .recoveryStorageError:
+      failure("Couldn't save recovery") { controller.send(.retryRecoverySave) }
+    case .expectedSolved:
+      ScrollView {
+        VStack(spacing: 20) {
+          Text("The guide is finished. Check that your cube is solved.").font(.title.bold())
+          Text("Look at all six physical faces. This is the expected result of the moves you acknowledged; the camera has not checked your cube.")
+          Button("Yes, my cube is solved") { controller.send(.confirmCompletion) }
+            .buttonStyle(.borderedProminent).accessibilityIdentifier("completion.confirmPhysical")
+          Button("Still different") { controller.send(.mismatch) }
+            .accessibilityIdentifier("completion.mismatch")
+        }.padding()
+      }
     case .savingCompletion: ProgressView("Saving completion…")
     case .completionStorageError:
       failure("Couldn't save completion") { controller.send(.retryCompletionSave) }

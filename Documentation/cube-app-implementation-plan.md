@@ -112,8 +112,10 @@ Required workflow states and permitted transitions (all unlisted state/event pai
 | storageError | retrySave→prior save state only after explicit before/after physical check; rescan→recovery; exit→home |
 | resumeCheck | confirmedBefore→guide; confirmedAfter→savingAcknowledgement for that one pending action; uncertain→recovery; exit→home |
 | recovery | newScan→scanning in new revision; manual→editing in new revision; cancel→resumeCheck preserving old session |
-| expectedSolved | userConfirms→completed(userConfirmed); checkCamera→scanning in verification context; mismatch→recovery |
+| expectedSolved | userConfirms→completed(userConfirmed); checkCamera→scanning in verification context; mismatch→recovery; exit→home preserving unconfirmed final progress |
 | completed | new→home; checkCamera→scanning in verification context; exit→home |
+
+Execution refinement · 21 September 2026: Home navigation from expectedSolved retains final durable progress without adding completion evidence. Resume returns to expectedSolved and still requires explicit physical confirmation or a new verification scan. This closes the previously unspecified Home action on S10; it does not count exit as completion.
 
 Global delete cancels producers, increments the session/storage generation, serializes behind in-flight writes, removes files and returns home only after deletion succeeds; on deletion failure show the error without claiming erasure. On background/interruption: scanning/faceReview→pausedCapture (retain accepted measurements, discard unaccepted image); solving→offer after cancellation; guide/preparingAction→resumeCheck; editing/invalid/offer/completed retain their state. An outstanding acknowledgement write settles under its original revision, then enters resumeCheck unless it durably completed the final move, in which case resume asks for solved confirmation. No resumeCheck is constructed without a verified plan and pending/next action. Help/settings navigation preserves the previous workflow state but pauses camera/audio. A completed six-face verification returns to editing for review, then to completed(scanVerified) if solved, offer if valid-scrambled, or invalid; it does not overwrite the old session until the user accepts replacement.
 

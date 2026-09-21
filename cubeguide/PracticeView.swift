@@ -5,6 +5,7 @@ struct PracticeView: View {
   let preferences: AppPreferences
   @Environment(\.dismiss) private var dismiss
   @State private var practice: PracticeSession?
+  @State private var presentation = GuidePresentation()
   @State private var failed = false
 
   var body: some View {
@@ -18,7 +19,7 @@ struct PracticeView: View {
         }.accessibilityIdentifier("practice.exit")
       }.frame(maxWidth: .infinity).padding().background(.thinMaterial)
       if let practice {
-        ContentView(controller: practice.controller, isPractice: true)
+        ContentView(controller: practice.controller, isPractice: true, presentation: presentation)
       } else if failed {
         ContentUnavailableView("Couldn't open practice", systemImage: "exclamationmark.triangle",
           description: Text("Your real cube is unchanged. Exit and try again."))
@@ -28,8 +29,9 @@ struct PracticeView: View {
     }
     .task {
       do {
-        let opened = try await PracticeSession.start(preferences: preferences)
+        let opened = try await PracticeSession.start(preferences: preferences, playback: presentation)
         guard !Task.isCancelled else { opened.close(); return }
+        presentation.bind(opened.controller)
         practice = opened
       } catch { if !Task.isCancelled { failed = true } }
     }

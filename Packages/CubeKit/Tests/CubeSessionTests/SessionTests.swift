@@ -281,7 +281,7 @@ func preGuideTransitionMatrix() throws {
     (saving, .savingAcknowledgement, "RRRRRAARRI"),
     (storageError, .storageError, "RRRRRAIRRI"),
     (recovery, .recovery, "CRRRRAIRRI"),
-    (expectedSolved, .expectedSolved, "RRRRRRIRRI"),
+    (expectedSolved, .expectedSolved, "RRRRRAIRRI"),
   ]
   #expect(Set(rows.map { $0.1 }) == Set(SessionPhase.allCases))
   for (state, phase, expected) in rows {
