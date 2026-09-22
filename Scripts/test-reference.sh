@@ -5,6 +5,11 @@ cd "$(dirname "$0")/.."
 : "${2:?Supply a new evidence directory}"
 reference_corpus=$1
 reference_out=$2
+reference_workers=${CUBE_SOLVER_WORKERS:-$(python3 - <<'PY'
+import os
+print(min(12, os.cpu_count() or 1))
+PY
+)}
 mkdir "$reference_out"
 reference_java=${JAVA_HOME:-$(/usr/libexec/java_home -v 11)}
 "$reference_java/bin/java" -version > "$reference_out/java.txt" 2>&1
@@ -21,5 +26,5 @@ with open(sys.argv[2],'x') as output:
 PY
 mkdir "$reference_out/classes"
 "$reference_java/bin/javac" -d "$reference_out/classes" Tools/ReferenceSolver/upstream/src/*.java Tools/ReferenceSolver/adapter/ReferenceRunner.java
-"$reference_java/bin/java" -cp "$reference_out/classes" ReferenceRunner < "$reference_out/input.txt" > "$reference_out/results.tsv"
+Scripts/run-logged.sh "$reference_out/runner.log" python3 Tools/Corpus/parallel_run.py stdio --workers "$reference_workers" --input "$reference_out/input.txt" --output "$reference_out/results.tsv" -- "$reference_java/bin/java" -cp "$reference_out/classes" ReferenceRunner
 python3 Tools/ReferenceSolver/compare.py "$reference_corpus" "$reference_out/results.tsv" "$reference_out/analysis.json"
