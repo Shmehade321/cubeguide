@@ -1,0 +1,138 @@
+{
+ "schemaVersion": 1,
+ "asset": "A08",
+ "source": "Scripts/capture-screenshots.sh + cubeguideUITests/ScreenshotTests.swift (CubeGuideScreenshots scheme, Release)",
+ "devices": {
+  "6.9in": "iPhone 16 Pro Max iOS 18.5 F3186141",
+  "6.5in": "iPhone 11 Pro Max iOS 18.5 (CubeGuide screenshots 6.5in)"
+ },
+ "note": "Real Release-build screenshots; shots 04-09 show the labeled in-app practice example. Captions describe on-screen content.",
+ "files": {
+  "01-home-6.9in.png": {
+   "caption": "Start with your cube: scan or enter colors.",
+   "screen": "S01",
+   "slot": "6.9in",
+   "pixels": "1320x2868",
+   "sha256": "5c206b341d987c9ba74aa59c4456cd3dba13b3619f9ebc9b22062c9f6f82bbbc"
+  },
+  "02-scan-intro-6.9in.png": {
+   "caption": "Scan introduction: how to show all six faces.",
+   "screen": "S02",
+   "slot": "6.9in",
+   "pixels": "1320x2868",
+   "sha256": "4cb26e85029c61d788e9a6076f13bc4636d1cd405e8118947e8d2422d24ac982"
+  },
+  "03-manual-entry-6.9in.png": {
+   "caption": "Manual entry: assign the six center colors.",
+   "screen": "S05",
+   "slot": "6.9in",
+   "pixels": "1320x2868",
+   "sha256": "7c2ef14bfe1020d53db1066afd506d5d8913bb6f792a3a6fad394d41797ce831"
+  },
+  "04-practice-editor-6.9in.png": {
+   "caption": "Practice example editor with a labeled scramble.",
+   "screen": "S05",
+   "slot": "6.9in",
+   "pixels": "1320x2868",
+   "sha256": "ea0a2f20d7b06378b99d350289cac09744f911f94321f06e4de7522eea98f5eb"
+  },
+  "05-offer-6.9in.png": {
+   "caption": "Scrambled-state offer: Solve or Not now.",
+   "screen": "S06",
+   "slot": "6.9in",
+   "pixels": "1320x2868",
+   "sha256": "0151e9d1b8a4f15177a26eacbfa2e4ae3b84e4b598629347d07e8af05c162692"
+  },
+  "06-align-6.9in.png": {
+   "caption": "Guide alignment: match your hold to the picture.",
+   "screen": "S08",
+   "slot": "6.9in",
+   "pixels": "1320x2868",
+   "sha256": "62414b0786f023a57277e5eaea415e20769b11426ab928409d4b826879e5873c"
+  },
+  "07-guide-6.9in.png": {
+   "caption": "Step-by-step guide with labeled 3D cube and acknowledge control.",
+   "screen": "S08",
+   "slot": "6.9in",
+   "pixels": "1320x2868",
+   "sha256": "acaffdf4b5cec4d07f74ba3edd449106ba10a4c25fb0968c160603f40ecaa798"
+  },
+  "08-expected-solved-6.9in.png": {
+   "caption": "Expected solved state awaiting physical confirmation.",
+   "screen": "S10",
+   "slot": "6.9in",
+   "pixels": "1320x2868",
+   "sha256": "6f62d23e96369ec916925437f8f3da9e66dd970173d967c267d28c04662714d4"
+  },
+  "09-completed-6.9in.png": {
+   "caption": "Completion after confirming the cube is solved.",
+   "screen": "S10",
+   "slot": "6.9in",
+   "pixels": "1320x2868",
+   "sha256": "6207bb14f751f751d83b931c5f701ce8675b79ea9232d0c585260170b554f69c"
+  },
+  "01-home-6.5in.png": {
+   "caption": "Start with your cube: scan or enter colors.",
+   "screen": "S01",
+   "slot": "6.5in",
+   "pixels": "1242x2688",
+   "sha256": "eba58985aaa8811e49e15c2dbb03c669da6585b4ced1f1945637c9b4495eddf4"
+  },
+  "02-scan-intro-6.5in.png": {
+   "caption": "Scan introduction: how to show all six faces.",
+   "screen": "S02",
+   "slot": "6.5in",
+   "pixels": "1242x2688",
+   "sha256": "1fcf9c960a02c7781020b5636f8c0076c50a1c1dbf4aa4a6b6205a7e75226995"
+  },
+  "03-manual-entry-6.5in.png": {
+   "caption": "Manual entry: assign the six center colors.",
+   "screen": "S05",
+   "slot": "6.5in",
+   "pixels": "1242x2688",
+   "sha256": "13c2bb7984f67b365425eac693a186e89530b6b652ab80a3668a74755512f264"
+  },
+  "04-practice-editor-6.5in.png": {
+   "caption": "Practice example editor with a labeled scramble.",
+   "screen": "S05",
+   "slot": "6.5in",
+   "pixels": "1242x2688",
+   "sha256": "ddbb5977401220d0fff48bcfeef67d2402003a467678a90b9357164451f24e97"
+  },
+  "05-offer-6.5in.png": {
+   "caption": "Scrambled-state offer: Solve or Not now.",
+   "screen": "S06",
+   "slot": "6.5in",
+   "pixels": "1242x2688",
+   "sha256": "b73b7840110216e6b4f58be3e7087fc9d65a99c2cacff8ebda094dae1ab56494"
+  },
+  "06-align-6.5in.png": {
+   "caption": "Guide alignment: match your hold to the picture.",
+   "screen": "S08",
+   "slot": "6.5in",
+   "pixels": "1242x2688",
+   "sha256": "6077378eed393f966149a2f53f7e2e7e903a7a501777bddc067cc8f309e12cab"
+  },
+  "07-guide-6.5in.png": {
+   "caption": "Step-by-step guide with labeled 3D cube and acknowledge control.",
+   "screen": "S08",
+   "slot": "6.5in",
+   "pixels": "1242x2688",
+   "sha256": "e4e5dff6053026fdf960714201e5b70a18749dc9fdc4cf775416d39ec3da2b42"
+  },
+  "08-expected-solved-6.5in.png": {
+   "caption": "Expected solved state awaiting physical confirmation.",
+   "screen": "S10",
+   "slot": "6.5in",
+   "pixels": "1242x2688",
+   "sha256": "99c23d97e531b93f8f77b21cc88a4ea5c2a41661e4438601081402c7d8caaefb"
+  },
+  "09-completed-6.5in.png": {
+   "caption": "Completion after confirming the cube is solved.",
+   "screen": "S10",
+   "slot": "6.5in",
+   "pixels": "1242x2688",
+   "sha256": "3f108581d8de1f193699c7b477215a31355f74e328c9b7f7e3ed8c82751d7521"
+  }
+ }
+}
