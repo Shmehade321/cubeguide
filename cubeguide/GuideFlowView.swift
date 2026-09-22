@@ -33,9 +33,8 @@ struct GuideFlowView: View {
         }
         if let action = controller.session.pendingAction {
           Text(caption(action)).font(.headline).multilineTextAlignment(.center)
-          if !presentation.reduceMotion {
-            Text(comparisonAfter ? "Expected after this action" : presentation.previewDescription)
-          }
+          Text(showingAfter ? "Expected after this action" : presentation.previewDescription)
+            .accessibilityIdentifier("guide.previewState")
           if presentation.reduceMotion, let palette = controller.palette {
             StaticGuideView(
               action: action, palette: palette, after: showingAfter,
@@ -117,14 +116,16 @@ struct GuideFlowView: View {
     }
     .task(id: controller.session.pendingAction?.id) {
       comparisonAfter = false
-      presentation.setReduceMotion(reduceMotion)
+      presentation.setReduceMotion(reduceMotion || CubeRendererPolicy.requiresStaticRenderer())
       presentation.refreshLabels(differentiateWithoutColor: differentiate)
       presentation.prepare()
     }
     .onChange(of: differentiate) { _, value in
       presentation.refreshLabels(differentiateWithoutColor: value)
     }
-    .onChange(of: reduceMotion) { _, value in presentation.setReduceMotion(value) }
+    .onChange(of: reduceMotion) { _, value in
+      presentation.setReduceMotion(value || CubeRendererPolicy.requiresStaticRenderer())
+    }
     .onChange(of: controller.session.phase) { _, _ in comparisonAfter = false }
     .onDisappear { presentation.stop() }
   }

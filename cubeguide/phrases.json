@@ -36,5 +36,8 @@
     {"id":"E01","file":"E01.m4a","maximumMilliseconds":150},
     {"id":"E02","file":"E02.m4a","maximumMilliseconds":250},
     {"id":"E03","file":"E03.m4a","maximumMilliseconds":800}
-  ]
+  ],
+  "composites": {
+    "pose": ["N16", "{frontColor:N10-N15}", "N17", "{topColor:N10-N15}", "N18", "{rightColor:N10-N15}"]
+  }
 }

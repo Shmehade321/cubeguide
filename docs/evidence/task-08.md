@@ -13,3 +13,7 @@ Focused tests verify all nine action-to-phrase identities, exact catalog uniquen
 E01–E03 are now reproducibly generated original non-speech tones with editable mono 44.1 kHz PCM masters and bundled AAC outputs. Their durations are 120 ms, 200 ms and 720 ms, within the specified maxima; unit tests open each bundled file and verify format and duration. Enabled effects play the acceptance, correction and completion cues through the ambient mixed audio session.
 
 The N01–N30 human recordings and their editable licensed masters are not present. Human listening, loudness/true-peak review, Silent-switch, Bluetooth/headphone and physical-direction qualification therefore remain blocking T08 work and this task is not complete.
+
+## Increment 2 — pose narration and interruption ownership
+
+Every new action now narrates the exact front, top and right pose colors before its turn/regrip phrase, using the same immutable action pose and palette that drive the renderer. The phrase manifest declares this composition explicitly. Phone-call and lost-route interruptions stop narration and send Pause through the session reducer, so visual playback, captions and durable progress cannot continue independently. Tests prove phrase order, stale-callback rejection and reducer/animation pause together. Human N01–N30 media and physical listening remain open.

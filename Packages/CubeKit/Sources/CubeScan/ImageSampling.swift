@@ -67,7 +67,7 @@ public enum ColorConversion {
 
 public enum FaceImageSampler {
   public static func measurements(
-    in image: SRGBImage, corners: [ImagePoint], samplesPerAxis: Int = 8
+    in image: SRGBImage, corners: [ImagePoint], samplesPerAxis: Int = 40
   ) throws -> [ColorMeasurement] {
     guard corners.count == 4 else { throw ScanError.invalidCrop }
     guard (1...40).contains(samplesPerAxis) else { throw ScanError.invalidMeasurement }
@@ -87,8 +87,15 @@ public enum FaceImageSampler {
         labs.reserveCapacity(samplesPerAxis * samplesPerAxis)
         for sampleY in 0..<samplesPerAxis {
           for sampleX in 0..<samplesPerAxis {
-            let u = (Double(column) + (Double(sampleX) + 0.5) / Double(samplesPerAxis)) / 3
-            let v = (Double(row) + (Double(sampleY) + 0.5) / Double(samplesPerAxis)) / 3
+            // The normalized crop represents a 300 x 300 rectified face. Each sticker is
+            // therefore 100 x 100, and the capture contract samples its centered 40 x 40
+            // region (pixel centers 30.5 through 69.5) to avoid borders and reflections.
+            let innerOffset = 0.3
+            let innerExtent = 0.4
+            let sampleU = innerOffset + (Double(sampleX) + 0.5) * innerExtent / Double(samplesPerAxis)
+            let sampleV = innerOffset + (Double(sampleY) + 0.5) * innerExtent / Double(samplesPerAxis)
+            let u = (Double(column) + sampleU) / 3
+            let v = (Double(row) + sampleV) / 3
             let point = transform.map(x: u, y: v)
             guard point.x.isFinite, point.y.isFinite,
               (0...1).contains(point.x), (0...1).contains(point.y)

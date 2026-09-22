@@ -8,7 +8,7 @@ import Testing
 private func step(_ state: ScanWorkflow, _ event: ScanEvent) -> ScanTransition {
   ScanReducer.reduce(state, event: event)
 }
-private func observation(_ slot: Face) throws -> ScanFace {
+private func observation(_ slot: Face, seed: Double = 0) throws -> ScanFace {
   let tops: [Face] = [.back, .up, .up, .front, .up, .up]
   let colors: [CubeColor] = [.green, .white, .orange, .blue, .yellow, .red]
   let base = try #require(pendingScan().draft.faces[2])
@@ -20,7 +20,7 @@ private func observation(_ slot: Face) throws -> ScanFace {
     samplingVersion: original.samplingVersion)
   let samples = try (0..<9).map {
     try ColorMeasurement(
-      median: LabColor(lightness: Double($0), a: 10, b: 20),
+      median: LabColor(lightness: seed + Double($0), a: 10, b: 20),
       display: base.measurements[0].display, spread: 1, sampleCount: 1600)
   }
   return try ScanFace(
@@ -137,6 +137,28 @@ func scanWorkflowReviewEdits() throws {
   let rejected = step(duplicate, .accept)
   #expect(rejected.disposition == .rejected(.observation(.duplicateCenter)))
   #expect(rejected.workflow == duplicate && rejected.commands.isEmpty)
+}
+
+@Test("R02/R03: crop reprocessing replaces only the observation and preserves review edits")
+func scanWorkflowReviewObservationUpdate() throws {
+  let base = try reviewing(scanning())
+  let centered = step(base, .editReview(.center(.green))).workflow
+  let edited = step(centered, .editReview(.sticker(row: 0, column: 0, color: .blue))).workflow
+  let rotated = step(edited, .editReview(.rotate(.clockwise))).workflow
+  let replacement = try observation(.front, seed: 80)
+
+  let updated = step(rotated, .updateReviewObservation(replacement))
+
+  #expect(updated.disposition == .accepted)
+  #expect(updated.workflow.review?.centerName == .green)
+  #expect(updated.workflow.review?.manualOverrides == rotated.review?.manualOverrides)
+  #expect(updated.workflow.review?.correctionTurns == 1)
+  #expect(updated.workflow.review?.measurements[0].median.lightness == 86)
+  #expect(updated.workflow.durable == rotated.durable)
+  #expect(updated.commands.isEmpty)
+  #expect(
+    step(rotated, .updateReviewObservation(try observation(.right, seed: 80))).disposition
+      == .rejected(.invalidObservation))
 }
 
 @Test(
@@ -330,15 +352,15 @@ func scanWorkflowMatrix() throws {
   let editing = try completeScan()
   // begin open resume capture captured failure accept retake edit correct recapture saved failed retry interrupt cancel
   let rows: [(ScanWorkflow, String)] = [
-    (new, "ARRRIIRRRRRIIRII"),
-    (home, "RARRIIRRRRRIIRII"),
-    (paused, "RRARIIRRRRRIIRIA"),
-    (live, "RRRAIIRRRRRIIRAA"),
-    (freeze, "RRRIAARRRRRIIRAA"),
-    (review, "RRRRIIAAARRIIRAA"),
-    (saving, "RRRRIIIRRRRAAIAA"),
-    (failed, "RRRRIIRRRRRIIAAR"),
-    (editing, "RRRRIIRRRAAIIRIA"),
+    (new, "ARRRIIRRRRRRIIRII"),
+    (home, "RARRIIRRRRRRIIRII"),
+    (paused, "RRARIIRRRRRRIIRIA"),
+    (live, "RRRAIIRRRRRRIIRAA"),
+    (freeze, "RRRIAARRRRRRIIRAA"),
+    (review, "RRRRIIAAAARRIIRAA"),
+    (saving, "RRRRIIIRRRRRAAIAA"),
+    (failed, "RRRRIIRRRRRRIIAAR"),
+    (editing, "RRRRIIRRRRAAIIRIA"),
   ]
   #expect(Set(rows.map { $0.0.phase }) == Set(ScanPhase.allCases))
   for (state, expected) in rows {
@@ -347,7 +369,9 @@ func scanWorkflowMatrix() throws {
     let events: [ScanEvent] = [
       .begin, .open, .resume(confirmedUnchanged: true), .capture,
       .captured(frame, try observation(.front)), .captureFailed(frame, .captureFailed),
-      .accept, .retake, .editReview(.center(.orange)), .correct(.front, .rotate(.clockwise)),
+      .accept, .retake, .editReview(.center(.orange)),
+      .updateReviewObservation(try observation(.front)),
+      .correct(.front, .rotate(.clockwise)),
       .recapture(.front), .saved(save), .saveFailed(save), .retrySave, .interrupt(.background),
       .cancel,
     ]

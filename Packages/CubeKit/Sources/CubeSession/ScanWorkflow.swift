@@ -44,6 +44,7 @@ public enum ScanEvent: Sendable {
   case captureFailed(ScanOperationID, ScanPauseReason)
   case accept, retake
   case editReview(ScanEdit)
+  case updateReviewObservation(ScanFace)
   case correct(Face, ScanEdit)
   case recapture(Face)
   case saved(ScanOperationID)
@@ -190,6 +191,21 @@ public enum ScanReducer {
       case .editReview(let correction):
         guard workflow.phase == .faceReview, let review = workflow.review else { return rejected() }
         next.review = try edit(review, correction)
+      case .updateReviewObservation(let observation):
+        guard workflow.phase == .faceReview, let review = workflow.review else { return rejected() }
+        guard observation.slot == review.slot else { return rejected(.invalidObservation) }
+        let rotatedObservation: ScanFace
+        switch review.correctionTurns {
+        case 0: rotatedObservation = observation
+        case 1: rotatedObservation = try observation.rotating(by: .clockwise)
+        case 2: rotatedObservation = try observation.rotating(by: .half)
+        case 3: rotatedObservation = try observation.rotating(by: .counterclockwise)
+        default: return rejected(.invalidObservation)
+        }
+        next.review = try ScanFace(
+          slot: review.slot, measurements: rotatedObservation.measurements,
+          metadata: observation.metadata, centerName: review.centerName,
+          manualOverrides: review.manualOverrides, correctionTurns: review.correctionTurns)
       case .correct(let slot, let correction):
         guard workflow.phase == .editing,
           let face = workflow.input.draft.faces[Int(slot.rawValue)]

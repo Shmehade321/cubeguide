@@ -21,7 +21,13 @@ struct CubePreviewScreen: View {
       ScrollView {
         VStack(spacing: 16) {
           Text("\(54 - draft.missingCount) entered stickers · \(draft.missingCount) unknown")
-          CubeSceneView(draft: draft, pose: pose, showColorLabels: showColorLabels)
+          Group {
+            if CubeRendererPolicy.requiresStaticRenderer() {
+              StaticDraftCube(draft: draft, pose: pose, showColorLabels: showColorLabels)
+            } else {
+              CubeSceneView(draft: draft, pose: pose, showColorLabels: showColorLabels)
+            }
+          }
             .frame(height: 280).clipShape(RoundedRectangle(cornerRadius: 16))
             .accessibilityElement(children: .ignore)
             .accessibilityLabel("3D preview of entered colors")
@@ -56,6 +62,50 @@ struct CubePreviewScreen: View {
     Button(title) { pose = pose.regripped(operation) }
       .frame(maxWidth: .infinity, minHeight: 44).buttonStyle(.bordered)
       .accessibilityIdentifier(id)
+  }
+}
+
+private struct StaticDraftCube: View {
+  let draft: ManualDraft
+  let pose: CubeOrientation
+  let showColorLabels: Bool
+
+  var body: some View {
+    Canvas { context, size in
+      for placement in CubeGeometry.stickers.prefix(27) {
+        guard let source = CubeGeometry.stickers.first(where: {
+          let viewed = $0.viewed(at: pose)
+          return viewed.position == placement.position && viewed.normal == placement.normal
+            && viewed.top == placement.top
+        }) else { continue }
+        let normal = StaticCubeDrawing.vector(CubeGeometry.axis(for: placement.normal))
+        let top = StaticCubeDrawing.vector(CubeGeometry.axis(for: placement.top))
+        let right = simd_cross(top, normal)
+        let center = StaticCubeDrawing.vector(placement.position) + normal * 0.5
+        let points = [center - right * 0.46 + top * 0.46,
+          center + right * 0.46 + top * 0.46,
+          center + right * 0.46 - top * 0.46,
+          center - right * 0.46 - top * 0.46].map { corner in
+            let projected = StaticCubeDrawing.project(corner)
+            let scale = min(size.width / 6.5, size.height / 5.8)
+            return CGPoint(x: size.width / 2 + projected.x * scale,
+              y: size.height / 2 + projected.y * scale)
+          }
+        var path = Path()
+        path.addLines(points)
+        path.closeSubpath()
+        let color = draft.cells[source.index]
+        context.fill(path, with: .color(color?.swatch ?? Color.secondary.opacity(0.35)))
+        context.stroke(path, with: .color(.primary), lineWidth: 1)
+        if showColorLabels || color == nil {
+          let center = CGPoint(x: points.map(\.x).reduce(0, +) / 4,
+            y: points.map(\.y).reduce(0, +) / 4)
+          let label = color.map { String($0.title.prefix(1)) } ?? "?"
+          context.draw(Text(label).font(.caption.bold())
+            .foregroundStyle(color == .blue || color == nil ? Color.white : Color.black), at: center)
+        }
+      }
+    }
   }
 }
 

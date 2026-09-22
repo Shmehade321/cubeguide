@@ -2,6 +2,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 Scripts/validate-assets.sh
+Scripts/verify-tables.sh
 python3 Scripts/check-qualification.py release
 : "${DEVELOPMENT_TEAM:?Owner must provide the signing team}"
 artifact_dir=${ARTIFACT_DIR:-Artifacts/archive-$(date +%Y%m%d-%H%M%S)}

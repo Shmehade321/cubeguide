@@ -1,0 +1,7 @@
+{
+  "version": "manual-review-required-v1",
+  "maximumSpread": 0,
+  "minimumMargin": 1000000,
+  "maximumDistance": 0,
+  "minimumCenterSeparation": 0
+}

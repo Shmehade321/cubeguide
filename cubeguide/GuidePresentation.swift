@@ -1,3 +1,4 @@
+import CubeCore
 import CubeScan
 import CubeSession
 import Observation
@@ -44,6 +45,10 @@ final class GuidePresentation: GuidePlayback {
     self.now = now
     self.scheduler = scheduler
     self.narration = narration
+    narration.setInterruptionHandler { [weak self] in
+      guard let self, self.controller?.session.preview == .playing else { return }
+      self.controller?.send(.pause)
+    }
   }
 
   func setReduceMotion(_ enabled: Bool) {
@@ -120,7 +125,8 @@ final class GuidePresentation: GuidePlayback {
     _ action: GuideAction, id: PlaybackID, restart: Bool,
     finished: @escaping @MainActor @Sendable (PlaybackID) -> Void
   ) {
-    guard controller?.session.guideProgress?.pending == action, id.action == action.id, prepare()
+    guard controller?.session.guideProgress?.pending == action, id.action == action.id,
+      prepare(), let palette
     else {
       stop()
       controller?.send(.background)
@@ -142,10 +148,32 @@ final class GuidePresentation: GuidePlayback {
     if !restart, animationStartedForAction == action.id {
       startAnimation()
     } else {
-      narration.play(
-        PhraseCatalog.phrase(for: action.operation),
-        enabled: effectivePreferences.narration,
-        finished: startAnimation)
+      let pose = action.fromPose
+      let color: (Face) -> CubeColor = {
+        palette.colors[Int(pose.canonicalFace(at: $0).rawValue)]
+      }
+      let phrases = PhraseCatalog.pose(
+        front: color(.front), top: color(.up), right: color(.right))
+        + [PhraseCatalog.phrase(for: action.operation)]
+      playSequence(
+        phrases[...], enabled: effectivePreferences.narration,
+        generation: generation, finished: startAnimation)
+    }
+  }
+
+  private func playSequence(
+    _ phrases: ArraySlice<Phrase>, enabled: Bool, generation: UInt64,
+    finished: @escaping @MainActor @Sendable () -> Void
+  ) {
+    guard narrationGeneration == generation else { return }
+    guard let phrase = phrases.first else {
+      finished()
+      return
+    }
+    narration.play(phrase, enabled: enabled) { [weak self] in
+      guard let self, self.narrationGeneration == generation else { return }
+      self.playSequence(
+        phrases.dropFirst(), enabled: enabled, generation: generation, finished: finished)
     }
   }
   func showComparison(after: Bool) {

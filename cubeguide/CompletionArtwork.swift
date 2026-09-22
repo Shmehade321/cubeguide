@@ -16,7 +16,7 @@ struct CompletionArtwork: View {
 
   var body: some View {
     VStack(spacing: 8) {
-      if reduceMotion {
+      if reduceMotion || CubeRendererPolicy.requiresStaticRenderer() {
         StaticCompletionCube(state: state, palette: palette, pose: pose, showColorLabels: showColorLabels)
       } else {
         CompletionSceneView(state: state, palette: palette, pose: pose, labels: showColorLabels)
@@ -27,9 +27,9 @@ struct CompletionArtwork: View {
         .font(.title).accessibilityHidden(true)
     }
     .frame(height: 210)
-    .opacity(reduceMotion || revealed ? 1 : 0)
+    .opacity(reduceMotion || CubeRendererPolicy.requiresStaticRenderer() || revealed ? 1 : 0)
     .onAppear {
-      if reduceMotion { revealed = true }
+      if reduceMotion || CubeRendererPolicy.requiresStaticRenderer() { revealed = true }
       else { withAnimation(.easeOut(duration: 0.2)) { revealed = true } }
     }
     .accessibilityElement(children: .contain)

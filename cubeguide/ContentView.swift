@@ -3,6 +3,7 @@ import CubeScan
 import CubeSession
 import CubeSolver3
 import SwiftUI
+import UIKit
 
 struct ContentView: View {
   @State private var controller: SessionController
@@ -12,6 +13,7 @@ struct ContentView: View {
   @State private var showingPractice = false
   @State private var replacingAfterRecovery = false
   @State private var replacing = false
+  @State private var replacingWithScan = false
   @State private var deleting = false
   @State private var reviewingInput = false
   @State private var showingHelp = false
@@ -115,6 +117,15 @@ struct ContentView: View {
           "Your current cube and guide will no longer be active. Start again only if you want to enter a different cube."
         )
       }
+      .alert("Replace your saved cube?", isPresented: $replacingWithScan) {
+        Button("Keep current", role: .cancel) {}.accessibilityIdentifier("scanReplacement.keep")
+        Button("Replace current", role: .destructive) {
+          showingScanIntroduction = true
+        }
+        .accessibilityIdentifier("scanReplacement.confirm")
+      } message: {
+        Text("Your current cube and guide stay saved until you confirm and start the new scan.")
+      }
       .alert("Delete all local data?", isPresented: $deleting) {
         Button("Cancel", role: .cancel) {}
         Button("Delete local data", role: .destructive) {
@@ -133,7 +144,49 @@ struct ContentView: View {
     .task { await controller.load() }
     .onChange(of: scenePhase) { _, phase in
       if phase != .active { controller.send(.background) }
+      updateIdleTimer()
     }
+    .onChange(of: controller.scanWorkflow?.phase) { _, _ in updateIdleTimer() }
+    .onChange(of: controller.session.preview) { _, _ in updateIdleTimer() }
+    .onReceive(NotificationCenter.default.publisher(for: ProcessInfo.thermalStateDidChangeNotification)) {
+      _ in
+      guard [.serious, .critical].contains(ProcessInfo.processInfo.thermalState) else { return }
+      if controller.scanWorkflow != nil {
+        controller.sendScan(.interrupt(.thermal))
+      } else {
+        controller.send(.background)
+      }
+      updateIdleTimer()
+    }
+    .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) {
+      _ in
+      if controller.scanWorkflow?.phase == .freezing {
+        controller.sendScan(.interrupt(.orientationChanged))
+      }
+    }
+    .onReceive(NotificationCenter.default.publisher(for: UIApplication.didReceiveMemoryWarningNotification)) {
+      _ in
+      if controller.scanWorkflow != nil {
+        controller.sendScan(.interrupt(.cameraUnavailable))
+      } else {
+        controller.send(.background)
+      }
+      updateIdleTimer()
+    }
+    .onAppear {
+      UIDevice.current.beginGeneratingDeviceOrientationNotifications()
+      updateIdleTimer()
+    }
+    .onDisappear {
+      UIDevice.current.endGeneratingDeviceOrientationNotifications()
+      UIApplication.shared.isIdleTimerDisabled = false
+    }
+  }
+
+  private func updateIdleTimer() {
+    UIApplication.shared.isIdleTimerDisabled = scenePhase == .active
+      && IdleTimerPolicy.shouldDisable(
+        scanPhase: controller.scanWorkflow?.phase, preview: controller.session.preview)
   }
 
   @ViewBuilder private var sessionContent: some View {
@@ -163,7 +216,8 @@ struct ContentView: View {
           .buttonStyle(.borderedProminent).controlSize(.large)
           .accessibilityIdentifier("home.enterColors")
           Button("Scan cube", systemImage: "camera.viewfinder") {
-            showingScanIntroduction = true
+            if controller.session.hasWork { replacingWithScan = true }
+            else { showingScanIntroduction = true }
           }
           .buttonStyle(.bordered).controlSize(.large)
           .accessibilityIdentifier("home.scan")
@@ -337,6 +391,8 @@ struct ContentView: View {
             }.accessibilityIdentifier("completion.scan")
           }
           Button("Home") { controller.send(.cancel) }.accessibilityIdentifier("completion.home")
+          Button("Start another", systemImage: "plus") { replacingWithScan = true }
+            .accessibilityIdentifier("completion.startAnother")
         }.padding()
       }
     case .startingManual: ProgressView("Starting your cube…")
@@ -418,5 +474,11 @@ struct ContentView: View {
       Button("Help", action: openHelp).accessibilityIdentifier("failure.help")
       if !isPractice { Button("Delete local data", role: .destructive) { deleting = true } }
     }.padding()
+  }
+}
+
+enum IdleTimerPolicy {
+  nonisolated static func shouldDisable(scanPhase: ScanPhase?, preview: PreviewStatus?) -> Bool {
+    scanPhase == .scanning || scanPhase == .freezing || preview == .playing
   }
 }

@@ -78,6 +78,32 @@ func samplesNineStickerGrid() throws {
   }
 }
 
+@Test("R02: each sticker samples only the central forty percent")
+func samplesCentralFortyPercent() throws {
+  let size = 300
+  var pixels = Array(repeating: UInt8.zero, count: size * size * 3)
+  for y in 0..<size {
+    for x in 0..<size {
+      let localX = x % 100
+      let localY = y % 100
+      let isInnerSample = (30..<70).contains(localX) && (30..<70).contains(localY)
+      let offset = (y * size + x) * 3
+      pixels[offset] = isInnerSample ? 0 : 255
+      pixels[offset + 1] = isInnerSample ? 255 : 0
+      pixels[offset + 2] = 0
+    }
+  }
+
+  let result = try FaceImageSampler.measurements(
+    in: SRGBImage(width: size, height: size, bytes: pixels), corners: fullCrop,
+    samplesPerAxis: 40)
+
+  #expect(result.count == 9)
+  #expect(result.allSatisfy { $0.sampleCount == 1_600 })
+  #expect(result.allSatisfy { $0.display.green > 0.99 && $0.display.red < 0.01 })
+  #expect(result.allSatisfy { $0.spread < 0.001 })
+}
+
 @Test("R02: sampling rejects invalid shapes and unbounded work")
 func imageSamplingGuards() throws {
   #expect(throws: ScanError.invalidMeasurement) {

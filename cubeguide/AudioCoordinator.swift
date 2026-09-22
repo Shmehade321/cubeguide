@@ -1,5 +1,6 @@
 @preconcurrency import AVFAudio
 import CubeCore
+import CubeScan
 import CubeSession
 import UIKit
 
@@ -60,6 +61,21 @@ enum PhraseCatalog {
     }
     return all[index]
   }
+
+  static func pose(front: CubeColor, top: CubeColor, right: CubeColor) -> [Phrase] {
+    [all[15], color(front), all[16], color(top), all[17], color(right)]
+  }
+
+  private static func color(_ color: CubeColor) -> Phrase {
+    switch color {
+    case .white: all[9]
+    case .yellow: all[10]
+    case .red: all[11]
+    case .orange: all[12]
+    case .blue: all[13]
+    case .green: all[14]
+    }
+  }
 }
 
 @MainActor
@@ -67,12 +83,18 @@ protocol InstructionAudio: AnyObject {
   func play(_ phrase: Phrase, enabled: Bool, finished: @escaping @MainActor @Sendable () -> Void)
   func pause()
   func stop()
+  func setInterruptionHandler(_ handler: @escaping @MainActor @Sendable () -> Void)
+}
+
+extension InstructionAudio {
+  func setInterruptionHandler(_ handler: @escaping @MainActor @Sendable () -> Void) {}
 }
 
 @MainActor
 final class AudioCoordinator: NSObject, InstructionAudio, AVAudioPlayerDelegate {
   private var player: AVAudioPlayer?
   private var completion: (@MainActor @Sendable () -> Void)?
+  private var interruptionHandler: (@MainActor @Sendable () -> Void)?
   private var observers: [NSObjectProtocol] = []
 
   override init() {
@@ -84,7 +106,7 @@ final class AudioCoordinator: NSObject, InstructionAudio, AVAudioPlayerDelegate 
       ) { [weak self] note in
         let raw = note.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt
         guard raw == AVAudioSession.InterruptionType.began.rawValue else { return }
-        Task { @MainActor in self?.pause() }
+        Task { @MainActor in self?.handleInterruption() }
       })
     observers.append(
       center.addObserver(
@@ -92,7 +114,7 @@ final class AudioCoordinator: NSObject, InstructionAudio, AVAudioPlayerDelegate 
       ) { [weak self] note in
         let raw = note.userInfo?[AVAudioSessionRouteChangeReasonKey] as? UInt
         guard raw == AVAudioSession.RouteChangeReason.oldDeviceUnavailable.rawValue else { return }
-        Task { @MainActor in self?.pause() }
+        Task { @MainActor in self?.handleInterruption() }
       })
   }
 
@@ -131,6 +153,10 @@ final class AudioCoordinator: NSObject, InstructionAudio, AVAudioPlayerDelegate 
 
   func stop() { pause() }
 
+  func setInterruptionHandler(_ handler: @escaping @MainActor @Sendable () -> Void) {
+    interruptionHandler = handler
+  }
+
   nonisolated func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
     Task { @MainActor in self.complete() }
   }
@@ -144,6 +170,11 @@ final class AudioCoordinator: NSObject, InstructionAudio, AVAudioPlayerDelegate 
     let callback = completion
     completion = nil
     callback?()
+  }
+
+  private func handleInterruption() {
+    pause()
+    interruptionHandler?()
   }
 }
 

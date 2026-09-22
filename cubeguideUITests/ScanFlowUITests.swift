@@ -19,6 +19,9 @@ final class ScanFlowUITests: XCTestCase {
     scan.tap()
     XCTAssertTrue(app.staticTexts["Scan your cube"].waitForExistence(timeout: 5))
     XCTAssertTrue(app.staticTexts["Show all six faces without turning any layer."].exists)
+    XCTAssertTrue(app.descendants(matching: .any)["scan.intro.wholeCube"].exists)
+    XCTAssertTrue(app.descendants(matching: .any)["scan.intro.sixFaces"].exists)
+    XCTAssertTrue(app.descendants(matching: .any)["scan.intro.review"].exists)
     XCTAssertTrue(app.buttons["scan.start"].exists)
     XCTAssertTrue(app.buttons["scan.manualFallback"].exists)
 
