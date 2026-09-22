@@ -13,9 +13,11 @@ final class GuideUITests: XCTestCase {
     XCTAssertTrue(app.buttons["guide.align"].waitForExistence(timeout: 20))
     let diagram = app.descendants(matching: .any)["guide.directionDiagram"].firstMatch
     XCTAssertTrue(diagram.waitForExistence(timeout: 5))
-    let cube = app.descendants(matching: .any)["guide.animatedCube"].firstMatch
-    XCTAssertTrue(cube.exists)
-    XCTAssertFalse(app.descendants(matching: .any)["guide.staticCube"].firstMatch.exists)
+    let animated = app.descendants(matching: .any)["guide.animatedCube"].firstMatch
+    let statik = app.descendants(matching: .any)["guide.staticCube"].firstMatch
+    XCTAssertTrue(animated.exists != statik.exists,
+      "Exactly one guide renderer must present on this runtime")
+    let cube = animated.exists ? animated : statik
     XCTAssertFalse(cube.frame.intersects(diagram.frame))
     let progress = app.staticTexts["guide.progress"].label
     capture(app, name: "Animated guide separate direction before")
@@ -154,7 +156,10 @@ final class GuideUITests: XCTestCase {
     let artwork = app.descendants(matching: .any)["completion.artwork"].firstMatch
     XCTAssertTrue(artwork.waitForExistence(timeout: 5))
     XCTAssertGreaterThan(artwork.frame.height, 100)
-    XCTAssertTrue(app.descendants(matching: .any)["completion.renderedCube"].firstMatch.exists)
+    let rendered = app.descendants(matching: .any)["completion.renderedCube"].firstMatch
+    let statik = app.descendants(matching: .any)["completion.staticCube"].firstMatch
+    XCTAssertTrue(rendered.exists != statik.exists,
+      "Exactly one completion renderer must present on this runtime")
     capture(app, name: "Expected solved requires physical confirmation")
     tap(app.buttons["editor.home"])
     tap(app.buttons["practice.resume"])

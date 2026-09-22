@@ -22,18 +22,27 @@ struct GuideFlowView: View {
   }
 
   var body: some View {
-    ScrollView {
-      VStack(spacing: 12) {
-        Text("Solution verified").font(.headline).accessibilityIdentifier("solve.verified")
+    ScreenScaffold {
+      VStack(alignment: .leading, spacing: 8) {
+        HStack(spacing: 8) {
+          Image(systemName: "checkmark.circle.fill").accessibilityHidden(true)
+          Text("Solution verified").accessibilityIdentifier("solve.verified")
+        }
+        .font(.headline)
         if let progress = controller.session.guideProgress {
           Text("\(progress.plan.moves.count) moves in the verified solution.")
-            .font(.caption).accessibilityIdentifier("solve.moveCount")
+            .font(.caption).foregroundStyle(.secondary)
+            .accessibilityIdentifier("solve.moveCount")
           Text("Step \(progress.acknowledgedActions + 1) of \(progress.actions.count)")
+            .font(.headline)
             .accessibilityIdentifier("guide.progress")
         }
-        if let action = controller.session.pendingAction {
+      }.card()
+      if let action = controller.session.pendingAction {
+        VStack(spacing: 12) {
           Text(caption(action)).font(.headline).multilineTextAlignment(.center)
           Text(showingAfter ? "Expected after this action" : presentation.previewDescription)
+            .foregroundStyle(.secondary)
             .accessibilityIdentifier("guide.previewState")
           if presentation.reduceMotion, let palette = controller.palette {
             StaticGuideView(
@@ -54,12 +63,19 @@ struct GuideFlowView: View {
             }
           }
           Text(anchors(action)).font(.subheadline).multilineTextAlignment(.center)
+            .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .card()
+        VStack(spacing: 12) {
           if [.preparingAction, .savingAcknowledgement].contains(controller.session.phase) {
             ProgressView("Saving your progress…")
+              .frame(maxWidth: .infinity, alignment: .leading)
           } else if [.resumeCheck, .storageError].contains(controller.session.phase) {
             Text(
               "Compare your physical cube before continuing. If a regrip was interrupted, return to the pictured holding position."
             )
+            .foregroundStyle(.secondary)
             controlsLayout {
               Button("Show before") {
                 comparisonAfter = false
@@ -79,8 +95,12 @@ struct GuideFlowView: View {
               .accessibilityIdentifier("guide.uncertain")
           } else if !controller.session.aligned {
             Text("Match the front and top colors before starting.")
-            Button("I'm holding it like this") { controller.send(.confirmAlignment) }
-              .accessibilityIdentifier("guide.align")
+              .foregroundStyle(.secondary)
+            CTAButton(
+              "I'm holding it like this", identifier: "guide.align", kind: .primary
+            ) {
+              controller.send(.confirmAlignment)
+            }
           } else {
             controlsLayout {
               Button(controller.session.preview == .paused ? "Continue preview" : "Play") {
@@ -92,7 +112,9 @@ struct GuideFlowView: View {
                   controller.session.preview != .playing)
               Button("Replay") { controller.send(.replay) }.accessibilityIdentifier("guide.replay")
             }
-            Button(acknowledgement(action)) {
+            CTAButton(
+              acknowledgement(action), identifier: "guide.acknowledge", kind: .primary
+            ) {
               let result = controller.send(.acknowledge(action.id))
               if result == .accepted {
                 HapticFeedback.light(
@@ -104,15 +126,18 @@ struct GuideFlowView: View {
                   effectsEnabled: controller.preferences.effects)
               }
             }
-            .buttonStyle(.borderedProminent).accessibilityIdentifier("guide.acknowledge")
             .disabled(controller.session.preview != .finished)
           }
         }
-        if controller.session.phase == .guide {
-          Button("My cube looks different") { controller.send(.mismatch) }
-            .accessibilityIdentifier("guide.mismatch")
-        }
-      }.buttonStyle(.bordered).controlSize(.large).padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .card()
+        .buttonStyle(.bordered).controlSize(.large)
+      }
+      if controller.session.phase == .guide {
+        Button("My cube looks different") { controller.send(.mismatch) }
+          .frame(maxWidth: .infinity, minHeight: 44)
+          .accessibilityIdentifier("guide.mismatch")
+      }
     }
     .task(id: controller.session.pendingAction?.id) {
       comparisonAfter = false

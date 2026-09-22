@@ -78,3 +78,34 @@ func cameraImageProcessorProducesBoundedFace() throws {
   #expect(result.face.measurements.allSatisfy { $0.sampleCount == 1_600 })
   #expect(result.face.measurements.allSatisfy { $0.spread < 0.001 })
 }
+
+@MainActor
+@Test("Camera processing records the true source orientation and mirroring")
+func cameraImageProcessorRecordsSourceOrientation() throws {
+  let format = UIGraphicsImageRendererFormat()
+  format.scale = 1
+  format.opaque = true
+  let base = UIGraphicsImageRenderer(size: CGSize(width: 1200, height: 2400), format: format)
+    .image { context in
+      UIColor(red: 0.2, green: 0.7, blue: 0.2, alpha: 1).setFill()
+      context.fill(CGRect(x: 0, y: 0, width: 1200, height: 2400))
+    }
+  let cgImage = try #require(base.cgImage)
+  let cases: [(UIImage.Orientation, FrameOrientation, Bool)] = [
+    (.up, .up, false),
+    (.upMirrored, .up, true),
+    (.down, .down, false),
+    (.downMirrored, .down, true),
+    (.left, .left, false),
+    (.leftMirrored, .left, true),
+    (.right, .right, false),
+    (.rightMirrored, .right, true),
+  ]
+  for (orientation, expected, expectedMirrored) in cases {
+    let source = UIImage(cgImage: cgImage, scale: 1, orientation: orientation)
+    let result = try CameraImageProcessor.process(source, slot: .front)
+    #expect(result.face.measurements.count == 9)
+    #expect(result.face.metadata.sourceOrientation == expected)
+    #expect(result.face.metadata.sourceMirrored == expectedMirrored)
+  }
+}

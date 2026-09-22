@@ -15,35 +15,57 @@ struct CenterAssignmentView: View {
   }
   private var palette: CenterPalette? { try? CenterPalette(assignments.compactMap { $0 }) }
   var body: some View {
-    ScrollView {
-      VStack(alignment: .leading, spacing: 16) {
-        Text("Assign center colors").font(.title.bold())
-        Text(
-          "Choose a front face and hold an adjacent face on top. Use those as Front and Up throughout entry. Match each face's center; use each color once."
-        )
+    ScreenScaffold {
+      Text("Assign center colors").font(.title.bold())
+        .accessibilityAddTraits(.isHeader)
+      Text(
+        "Choose a front face and hold an adjacent face on top. Use those as Front and Up throughout entry. Match each face's center; use each color once."
+      )
+      .foregroundStyle(.secondary)
+      VStack(spacing: 0) {
         ForEach(Face.allCases, id: \.rawValue) { face in
+          let assigned = assignments[Int(face.rawValue)]
           Button {
             selectedFace = face
           } label: {
-            HStack {
-              Text(face.title)
+            HStack(spacing: 12) {
+              Circle()
+                .fill(assigned?.swatch ?? Color(uiColor: .systemGray5))
+                .overlay(Circle().stroke(.primary.opacity(0.3), lineWidth: 1))
+                .frame(width: 28, height: 28)
+                .accessibilityHidden(true)
+              Text(face.title).foregroundStyle(.primary)
               Spacer()
-              Text(assignments[Int(face.rawValue)]?.title ?? "Choose color")
+              Text(assigned?.title ?? "Choose color")
+                .foregroundStyle(assigned == nil ? Color.accentColor : Color.secondary)
               Image(systemName: "chevron.down")
-            }.frame(minHeight: 44)
+                .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
+            }
+            .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+            .contentShape(Rectangle())
           }
+          .buttonStyle(.plain)
           .accessibilityLabel(
-            "\(face.title) center, \(assignments[Int(face.rawValue)]?.title ?? "not assigned")"
+            "\(face.title) center, \(assigned?.title ?? "not assigned")"
           )
           .accessibilityIdentifier("center.\(face.code)")
+          if face != Face.allCases.last {
+            Divider().padding(.leading, 40)
+          }
         }
-        Button("Confirm centers") { if let palette { confirm(palette) } }
-          .buttonStyle(.borderedProminent).controlSize(.large)
-          .disabled(palette == nil).accessibilityIdentifier("centers.confirm")
-        if assignments.compactMap({ $0 }).count == 6 && palette == nil {
-          Text("Use six different center colors.").foregroundStyle(.secondary)
+      }.card()
+      CTAButton("Confirm centers", identifier: "centers.confirm", kind: .primary) {
+        if let palette { confirm(palette) }
+      }
+      .disabled(palette == nil)
+      if assignments.compactMap({ $0 }).count == 6 && palette == nil {
+        HStack(spacing: 8) {
+          Image(systemName: "exclamationmark.triangle").accessibilityHidden(true)
+          Text("Use six different center colors.")
         }
-      }.padding()
+        .foregroundStyle(.secondary)
+      }
     }
     .confirmationDialog(
       "Choose center color",

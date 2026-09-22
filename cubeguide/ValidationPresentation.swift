@@ -31,12 +31,19 @@ struct CalculationView: View {
   let cancel: () -> Void
   @State private var started = ContinuousClock.now
   var body: some View {
-    VStack(spacing: 20) {
-      ProgressView("Calculating…")
-      TimelineView(.periodic(from: .now, by: 1)) { _ in
-        Text("\(max(0, started.duration(to: .now).components.seconds)) seconds elapsed")
-      }
-      Button("Cancel", action: cancel).accessibilityIdentifier("solve.cancel")
-    }.padding()
+    ScreenScaffold {
+      VStack(alignment: .leading, spacing: 12) {
+        ProgressView("Calculating…")
+          .font(.title3.bold())
+          .frame(maxWidth: .infinity, alignment: .leading)
+        TimelineView(.periodic(from: .now, by: 1)) { _ in
+          Text("\(max(0, started.duration(to: .now).components.seconds)) seconds elapsed")
+            .foregroundStyle(.secondary)
+        }
+        Text("The verified solver is searching. Your entered colors stay saved.")
+          .foregroundStyle(.secondary)
+        CTAButton("Cancel", identifier: "solve.cancel", kind: .secondary, action: cancel)
+      }.card()
+    }
   }
 }
