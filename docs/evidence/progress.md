@@ -2,6 +2,14 @@
 
 Baseline: 78f7fbc. User authorized full implementation with TDD, quality checks and commits per coherent task/increment. No product delivery or publication is claimed.
 
+## Current continuation — 22 September 2026 (uncommitted worktree on `development`, HEAD `989044f`)
+
+Gap-remediation session vs the Documentation contracts, with a professional interactive UI rebuild (S01–S11 restyle; identifiers, copy and behavior preserved; one additive `scan.cancelIntro` exit covered by `ReviewShotsUITests`):
+
+- Solver tiers executed on `Packages/`+`Tools/` identical to HEAD: PR 10,000/10,000, nightly 100,000/100,000, release 1,000,000/1,000,000 verified with zero timeouts; pinned Java reference (`4d183b9`) differentials pass on all three corpora. Portable nightly/release manifests, analyses and differentials are now in `t04/` (previously only in gitignored `Artifacts/`). Desktop-runner correctness only; device benchmarks still open. See task-04.md.
+- iOS 18 full scheme green with retained evidence (28/28, exit 0, `DerivedData-18`); iOS 26.5 full 23-test UI suite finished 20 passed / 1 flaked / 2 operator-error runner restarts, with all 23 passing across clean reruns but not in one green run. See task-11.md. Camera orientation hardcode fixed (Phase 2b); RealityKit-path tests reconciled with the static-render policy (Phase 2c).
+- Still open (externals): A08 store screenshots, N01–N30 human narration + rights, 300-session camera corpus + calibration, physical devices (min-OS + current), 20 novice trials, listening checks, signing/TestFlight/store authorization and submission. No archive, TestFlight, submission, approval or release exists.
+
 ## Current continuation — 21 September 2026
 
 The final local source adds the complete A04 Help illustration set, reproducible E01–E03 effect assets with editable PCM masters, and an editable A01 SVG master. The final clean PR Xcode plan passed 66 tests with zero failures/skips, including 20 UI tests, and the generic unsigned Release device build succeeded. The asset gate is now missing only A08 and N01–N30. These results do not satisfy the physical, human-media, corpus-calibration, minimum-OS, signing or distribution gates described below.
@@ -39,7 +47,7 @@ Current hardening adds queued AVFoundation lifecycle ownership, stale/duplicate 
 | T08 Guidance/audio | running: exact phrase/pose composition, caption fallback, ambient sequencing, reducer-synchronized interruption handling, E01–E03 and preference-gated haptics implemented; owned human recordings and physical listening/routes open | task-08.md |
 | T09 Camera | running: deterministic central sampling/classification, queued AVFoundation lifecycle, frozen/crop review, quality hints, correction/manual fallback and fail-closed 48-sticker review implemented; calibrated policy, real corpus and live-device trials open | task-09.md |
 | T10 Accessibility/physical | running: simulator Reduce Motion, large-text, orientation, non-color labels and accessible Help coverage pass; VoiceOver/device and 20 novice sessions remain open | task-10.md |
-| T11 Qualification | running: infrastructure, table reproduction, mutation catalogs and generic unsigned Release analysis pass on working source; final clean full plan, release corpus and device/media/lifecycle evidence open | task-11.md |
+| T11 Qualification | running: infrastructure, table reproduction, mutation catalogs, generic unsigned Release analysis, nightly 100k + release 1M solver tiers and 26.5 UI reruns pass on working source; final candidate-commit full plan and device/media/lifecycle evidence open | task-11.md |
 | T12 Distribution | notRun; phone validation runbook prepared, configuration/deployment intentionally deferred | phone-validation-runbook.md |
 
 ## External gates
