@@ -20,9 +20,9 @@ evidence missing), **blocked** (needs humans, devices, or owner inputs).
 | R09 Explicit progress | met (sim) | Exactly-once acknowledgement, duplicate-tap, replay-no-advance covered incl. 17 session mutations killed. |
 | R10 Recovery/completion | partial | Recovery/resume/expectedSolved/completed flows UI-tested with distinct user-vs-scan confirmation. Physical wrong-turn recovery: blocked. |
 | R11 Safe resume | partial | Atomic save, crash injection at acknowledgement boundaries, 33 process-kill storage cases green. Locked-device/disk-full on hardware: blocked. |
-| R12 Accessibility | partial | Reduce Motion static path, large text, orientations, non-color labels pass on simulators. VoiceOver on device, silence switch, contrast meter: blocked/partial. |
+| R12 Accessibility | partial | Reduce Motion static path, large text, orientations, non-color labels pass on simulators; computed sRGB contrast ≥4.5:1 on all 6 label pairs (red/green thin). VoiceOver on device, silence switch, rendered contrast measurement: blocked. |
 | R13 Responsive execution | partial | Cancellation/timeout/stale-result/resource-failure UI outcomes tested. Device latency/memory/thermal/frame gates: blocked. |
-| R14 TDD/evidence | partial | Red/green records in `t04/`; this ledger + task-11 record unrun gates. Full candidate-commit plan rerun pending (worktree dirty). |
+| R14 TDD/evidence | partial | Red/green records in `t04/`; candidate-commit (`284effd`) full PR plan green (exit 0, 81/0/0); unrun gates recorded here + task-11. |
 | R15 Screens S01–S11 | met (sim) | All screens/states implemented and UI-tested; rebuilt UI reviewed via `ReviewShotsUITests` attachments. |
 | R16 Visual assets | partial | A01–A08 implemented + provenance recorded + registered (18 Release PNGs, dimensions verified, content inspected). Human visual QA on device + owner store-listing review: blocked. |
 | R17 Sound/haptics | blocked | E01–E03 + sequencing/interruption/haptics implemented and tested; N01–N30 human recordings + rights + listening sign-off missing. Caption fallback verified. |

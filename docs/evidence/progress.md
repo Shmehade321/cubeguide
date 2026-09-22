@@ -8,7 +8,8 @@ Gap-remediation session vs the Documentation contracts, with a professional inte
 
 - Solver tiers executed on `Packages/`+`Tools/` identical to HEAD: PR 10,000/10,000, nightly 100,000/100,000, release 1,000,000/1,000,000 verified with zero timeouts; pinned Java reference (`4d183b9`) differentials pass on all three corpora. Portable nightly/release manifests, analyses and differentials are now in `t04/` (previously only in gitignored `Artifacts/`). Desktop-runner correctness only; device benchmarks still open. See task-04.md.
 - iOS 18 full scheme green with retained evidence (28/28, exit 0, `DerivedData-18`); iOS 26.5 full 23-test UI suite finished 20 passed / 1 flaked / 2 operator-error runner restarts, with all 23 passing across clean reruns but not in one green run. See task-11.md. Camera orientation hardcode fixed (Phase 2b); RealityKit-path tests reconciled with the static-render policy (Phase 2c).
-- Still open (externals): A08 store screenshots, N01–N30 human narration + rights, 300-session camera corpus + calibration, physical devices (min-OS + current), 20 novice trials, listening checks, signing/TestFlight/store authorization and submission. No archive, TestFlight, submission, approval or release exists.
+- Still open (externals): N01–N30 human narration + rights, 300-session camera corpus + calibration, physical devices (min-OS + current), 20 novice trials, listening checks, signing/TestFlight/store authorization and submission. No archive, TestFlight, submission, approval or release exists.
+- Candidate `284effd` full PR plan green (exit 0, 81 executed / 0 skipped / 0 failed on iOS 18 sim `67DB7428`; only worktree dirt is the user's untracked `AGENTS.md`). A08 closed (18 Release PNGs + manifest). Computed sRGB contrast ≥4.5:1 on all sticker-label pairs. All machine-verifiable work is done; the remainder needs humans, hardware, or owner inputs (see `phase-4-ceiling-audit.md`).
 
 ## Current continuation — 21 September 2026
 
