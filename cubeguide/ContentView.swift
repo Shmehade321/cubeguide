@@ -19,6 +19,7 @@ struct ContentView: View {
   @State private var showingHelp = false
   @State private var showingSettings = false
   @State private var showingScanIntroduction = false
+  @State private var discardingScan = false
   @Environment(\.accessibilityDifferentiateWithoutColor) private var differentiate
   @Environment(\.scenePhase) private var scenePhase
 
@@ -68,8 +69,15 @@ struct ContentView: View {
             },
             cancel: { showingScanIntroduction = false }
           )
-        } else if controller.scanWorkflow != nil, let camera {
+        } else if controller.discardStatus == .saving {
+          ProgressView("Discarding scan…")
+        } else if controller.discardStatus == .failed {
+          failure("Couldn't discard the scan") { controller.retryDraftDiscard() }
+        } else if let workflow = controller.scanWorkflow, workflow.phase != .home, let camera {
           ScanFlowView(controller: controller, camera: camera)
+        } else if controller.scanWorkflow != nil, camera != nil {
+          // A cancelled scan stays saved; it must be resumed or explicitly discarded.
+          parkedScan
         } else if let scan = controller.pendingScan {
           CenterAssignmentView(initial: scan.draft.confirmedCenters) { palette in
             controller.switchScanToManual(confirmedCenters: palette, confirmed: true)
@@ -508,6 +516,48 @@ struct ContentView: View {
         pose: controller.session.guideProgress?.pose ?? .identity,
         showColorLabels: controller.preferences.colorLabelsEnabled(
           differentiateWithoutColor: differentiate))
+    }
+  }
+
+  private var parkedScan: some View {
+    ScreenScaffold {
+      VStack(alignment: .leading, spacing: 12) {
+        HStack(spacing: 8) {
+          Image(systemName: "camera.viewfinder").accessibilityHidden(true)
+          Text("Scan paused")
+        }
+        .font(.title3.bold())
+        Text(
+          "The faces you accepted are saved on this iPhone. Resume to keep scanning, or discard this scan to start over."
+        )
+        .foregroundStyle(.secondary)
+        CTAButton("Resume scan", symbol: "camera", identifier: "scan.resumeSaved", kind: .primary) {
+          controller.send(.resume)
+        }
+        CTAButton(
+          "Discard scan", identifier: "scan.discard", kind: .secondary, role: .destructive
+        ) {
+          discardingScan = true
+        }
+      }.card()
+      VStack(spacing: 0) {
+        MenuRow("Settings", symbol: "gearshape", identifier: "scan.parked.settings") {
+          controller.pauseForAuxiliaryNavigation()
+          showingSettings = true
+        }
+        Divider().padding(.leading, 40)
+        MenuRow(
+          "Help", symbol: "questionmark.circle", identifier: "scan.parked.help", action: openHelp)
+      }.card()
+    }
+    .alert("Discard this scan?", isPresented: $discardingScan) {
+      Button("Keep scan", role: .cancel) {}.accessibilityIdentifier("scan.discard.keep")
+      Button("Discard scan", role: .destructive) {
+        controller.discardDraft(confirmed: true)
+      }
+      .accessibilityIdentifier("scan.discard.confirm")
+    } message: {
+      Text("The faces captured so far will be removed. A saved guide, if any, stays unchanged.")
     }
   }
 

@@ -407,3 +407,32 @@ func scanCoordinatorDeleteRetryAndLateFrame() async throws {
   current(.captured(try cameraObservation(.front)))
   #expect(controller.scanWorkflow?.phase == .faceReview)
 }
+
+@MainActor
+@Test("R10/R18: a cancelled recovery scan stays saved until resumed or discarded back to its guide")
+func scanCoordinatorParkedRecoveryDiscard() async throws {
+  let directory = try storeDirectory()
+  defer { try? FileManager.default.removeItem(at: directory) }
+  let real = SessionStore(directory: directory)
+  let recovery = try #require(try savingRecoverySession().pendingSave)
+  try await real.save(recovery, palette: archivePalette(), lease: real.currentLease())
+  let bytes = try Data(contentsOf: directory.appendingPathComponent("guide.json"))
+  let camera = RecordingScanCamera()
+  let controller = SessionController(
+    storage: real, solver: SolverService(), playback: RecordingPlayback(), camera: camera)
+  await controller.load()
+  try #require(await controller.startScan(purpose: .recovery) == .accepted)
+  await controller.waitForEffects()
+  #expect(controller.sendScan(.cancel) == .accepted)
+  // Parked: nothing but resume, discard or deletion may act on the retained guide.
+  #expect(controller.scanWorkflow?.phase == .home && controller.pendingScan != nil)
+  #expect(controller.send(.compare(.uncertain)) == .rejected(.unavailableEvent))
+  #expect(controller.send(.resume) == .accepted && controller.scanWorkflow?.phase == .pausedCapture)
+  #expect(controller.sendScan(.cancel) == .accepted && controller.scanWorkflow?.phase == .home)
+  #expect(controller.discardDraft(confirmed: true) == .accepted)
+  await controller.waitForEffects()
+  #expect(controller.discardStatus == .idle && controller.scanWorkflow == nil)
+  #expect(controller.pendingScan == nil && controller.session.phase == .recovery)
+  #expect(try Data(contentsOf: directory.appendingPathComponent("guide.json")) == bytes)
+  #expect(try await real.restore().pendingScan == nil)
+}
