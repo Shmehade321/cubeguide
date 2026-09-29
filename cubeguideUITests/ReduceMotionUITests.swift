@@ -211,7 +211,7 @@ final class ReduceMotionUITests: XCTestCase {
   @MainActor private func tap(_ element: XCUIElement) {
     let ready = XCTNSPredicateExpectation(
       predicate: NSPredicate(format: "exists == true AND hittable == true AND enabled == true"), object: element)
-    XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 10), .completed)
+    XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: uiReadinessTimeout), .completed)
     element.tap()
   }
 
