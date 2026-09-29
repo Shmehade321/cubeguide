@@ -24,9 +24,13 @@ public enum ViewfinderCrop {
     let hiddenY = (image.height * scale - preview.height) / 2
     let gridX = (preview.width - gridSide) / 2
     let gridY = (preview.height - gridSide) / 2
+    // A grid touching the preview edge maps to 0 or 1 up to rounding; keep it in bounds.
+    func unit(_ value: Double) -> Double {
+      value < 0 && value > -1e-9 ? 0 : value > 1 && value < 1 + 1e-9 ? 1 : value
+    }
     func point(_ x: Double, _ y: Double) throws -> ImagePoint {
       try ImagePoint(
-        x: (x + hiddenX) / scale / image.width, y: (y + hiddenY) / scale / image.height)
+        x: unit((x + hiddenX) / scale / image.width), y: unit((y + hiddenY) / scale / image.height))
     }
     return try [
       point(gridX, gridY), point(gridX + gridSide, gridY),

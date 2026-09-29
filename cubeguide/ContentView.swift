@@ -22,6 +22,7 @@ struct ContentView: View {
   @State private var showingScanIntroduction = false
   @State private var discardingScan = false
   @State private var thermalNotice = false
+  @State private var awaitingCompletionFeedback = false
   @Environment(\.accessibilityDifferentiateWithoutColor) private var differentiate
   @Environment(\.scenePhase) private var scenePhase
 
@@ -118,7 +119,8 @@ struct ContentView: View {
                 [
                   .deleting, .deletionError, .manualStartError, .draftStorageError,
                   .completionStorageError, .recoveryStorageError,
-                ].contains(controller.session.phase))
+                ].contains(controller.session.phase)
+                  || controller.scanWorkflow?.phase == .home)
           }
         }
       }
@@ -185,11 +187,17 @@ struct ContentView: View {
     }
     .onChange(of: controller.scanWorkflow?.phase) { _, _ in updateIdleTimer() }
     .onChange(of: controller.session.preview) { _, _ in updateIdleTimer() }
-    .onChange(of: controller.session.phase) { old, new in
-      if old == .savingCompletion && new == .completed {
-        HapticFeedback.success(
-          enabled: controller.preferences.haptics,
-          effectsEnabled: controller.preferences.effects)
+    .onChange(of: controller.session.phase) { _, new in
+      // SwiftUI may coalesce a fast save, so the saving phase itself might never be observed.
+      if new == .savingCompletion {
+        awaitingCompletionFeedback = true
+      } else if awaitingCompletionFeedback {
+        awaitingCompletionFeedback = false
+        if new == .completed {
+          HapticFeedback.success(
+            enabled: controller.preferences.haptics,
+            effectsEnabled: controller.preferences.effects)
+        }
       }
     }
     .onReceive(
@@ -616,10 +624,15 @@ struct ContentView: View {
 
   private func confirmCompletion() {
     // An ignored duplicate tap gets no feedback; success follows the durable save.
-    if case .rejected = controller.send(.confirmCompletion) {
+    switch controller.send(.confirmCompletion) {
+    case .accepted:
+      awaitingCompletionFeedback = true
+    case .rejected:
       HapticFeedback.warning(
         enabled: controller.preferences.haptics,
         effectsEnabled: controller.preferences.effects)
+    case .ignored:
+      break
     }
   }
 

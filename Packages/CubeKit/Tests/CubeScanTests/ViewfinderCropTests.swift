@@ -52,3 +52,15 @@ func viewfinderCropRejectsInvalidGeometry() {
       image: .init(width: 1440, height: 1920))
   }
 }
+
+@Test("R02: a grid touching the preview edge maps to the image edge despite rounding")
+func viewfinderCropEdgeGrid() throws {
+  // 312×360 over 1080×1920 computes the left edge as -9.1e-17 without clamping.
+  for (preview, image) in [((312.0, 360.0), (1080.0, 1920.0)), ((300.0, 400.0), (3024.0, 4032.0))] {
+    let corners = try ViewfinderCrop.corners(
+      preview: .init(width: preview.0, height: preview.1), gridSide: min(preview.0, preview.1),
+      image: .init(width: image.0, height: image.1))
+    #expect(corners.allSatisfy { (0...1).contains($0.x) && (0...1).contains($0.y) })
+    #expect(abs(corners[1].x - 1) < 1e-9 && abs(corners[0].x) < 1e-9)
+  }
+}

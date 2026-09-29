@@ -16,7 +16,6 @@ struct ScanFlowView: View {
   @State private var cropError: String?
   @State private var isReprocessing = false
   @State private var cropTask: Task<Void, Never>?
-  @State private var previewTurns = 0
   @State private var acceptError: String?
   @Environment(\.openURL) private var openURL
 
@@ -78,7 +77,7 @@ struct ScanFlowView: View {
           if let image = camera.frozenImage {
             CropEditor(image: image, corners: $cropCorners) { updateCrop() }
               .frame(minHeight: 300)
-              .rotationEffect(.degrees(Double(previewTurns * 90)))
+              .rotationEffect(.degrees(Double(workflow?.review?.correctionTurns ?? 0) * 90))
               .accessibilityIdentifier("scan.cropEditor")
           }
           Text("Drag the four handles to the face corners. Readings are provisional until all six centers are known.")
@@ -98,9 +97,7 @@ struct ScanFlowView: View {
             choosingCenter = true
           }.accessibilityIdentifier("scan.center")
           Button("Rotate preview 90°", systemImage: "rotate.right") {
-            if controller.sendScan(.editReview(.rotate(.clockwise))) == .accepted {
-              previewTurns = (previewTurns + 1) % 4
-            }
+            controller.sendScan(.editReview(.rotate(.clockwise)))
           }
           .accessibilityIdentifier("scan.rotatePreview")
           CTAButton("Use this face", identifier: "scan.acceptFace", kind: .primary) {
@@ -213,6 +210,7 @@ struct ScanFlowView: View {
       resetReview()
     }
     .onAppear { if workflow?.review != nil { resetReview() } }
+    .onChange(of: workflow?.review) { _, _ in acceptError = nil }
     .onDisappear { cropTask?.cancel() }
   }
 
@@ -232,7 +230,6 @@ struct ScanFlowView: View {
     cropCorners = corners.map { CGPoint(x: $0.x, y: $0.y) }
     cropError = nil
     acceptError = nil
-    previewTurns = 0
   }
 
   private var pauseExplanation: String {
@@ -370,14 +367,15 @@ struct ScanFlowView: View {
     Text(
       "Automatic color confidence is not yet calibrated. Confirm every non-center sticker before accepting the scan."
     )
-    let related = relatedCells
+    let current = classification
+    let related = relatedCells(current)
     ForEach(ScanDraft.captureOrder, id: \.rawValue) { face in
-      scanFace(face, related: related).disabled(saving)
+      scanFace(face, classification: current, related: related).disabled(saving)
     }
     if saving {
       ProgressView("Saving your correction…").frame(maxWidth: .infinity, alignment: .leading)
     }
-    if let classification {
+    if let classification = current {
       let remaining = classification.stickers.filter(\.needsReview).count
       Text(
         remaining == 0
@@ -415,7 +413,7 @@ struct ScanFlowView: View {
   }
 
   /// Stickers related to the current legality diagnostic; a mark is not a guessed repair.
-  private var relatedCells: Set<Int> {
+  private func relatedCells(_ classification: ScanClassification?) -> Set<Int> {
     guard controller.scanValidationIssues != nil,
       let faces = try? classification?.canonicalFacelets()
     else { return [] }
@@ -423,7 +421,9 @@ struct ScanFlowView: View {
   }
 
   @ViewBuilder
-  private func scanFace(_ face: Face, related: Set<Int>) -> some View {
+  private func scanFace(
+    _ face: Face, classification: ScanClassification?, related: Set<Int>
+  ) -> some View {
     VStack(alignment: .leading, spacing: 8) {
       HStack {
         Text(face.title).font(.headline)
