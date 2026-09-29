@@ -7,6 +7,12 @@ import Testing
 
 @testable import cubeguide
 
+/// Upper bound for one asynchronous storage effect in these composition tests. It only guards
+/// against a hang: the suites run in parallel, and long synchronous main-actor tests can hold the
+/// main actor for many seconds on a hosted simulator, delaying the effect's completion without
+/// anything being wrong. No test here asserts how quickly storage completes.
+private let storageEffectLimit: Duration = .seconds(60)
+
 @MainActor
 @Test(
   "R18: installed app executes fixture capture and scan-save commands without claiming camera qualification"
@@ -33,7 +39,7 @@ func appScanStorage() async throws {
     playback: CompositionPlayback(), camera: camera)
   await controller.load()
   #expect(await controller.startScan(purpose: .newCube) == .accepted)
-  var deadline = ContinuousClock.now + .seconds(5)
+  var deadline = ContinuousClock.now + storageEffectLimit
   while controller.scanWorkflow?.phase == .saving, ContinuousClock.now < deadline {
     try await Task.sleep(for: .milliseconds(10))
   }
@@ -41,7 +47,7 @@ func appScanStorage() async throws {
   #expect(controller.sendScan(.capture) == .accepted)
   #expect(controller.scanWorkflow?.phase == .faceReview)
   #expect(controller.sendScan(.accept) == .accepted)
-  deadline = ContinuousClock.now + .seconds(5)
+  deadline = ContinuousClock.now + storageEffectLimit
   while controller.scanWorkflow?.phase == .saving, ContinuousClock.now < deadline {
     try await Task.sleep(for: .milliseconds(10))
   }
@@ -54,7 +60,7 @@ func appScanStorage() async throws {
   #expect(resumed.scanWorkflow?.phase == .pausedCapture && !resumed.isCameraReady)
   let centers = try CenterPalette([.green, .white, .orange, .blue, .yellow, .red])
   #expect(controller.switchScanToManual(confirmedCenters: centers, confirmed: true) == .accepted)
-  deadline = ContinuousClock.now + .seconds(5)
+  deadline = ContinuousClock.now + storageEffectLimit
   while controller.manualFallbackStatus == .saving, ContinuousClock.now < deadline {
     try await Task.sleep(for: .milliseconds(10))
   }
@@ -62,17 +68,18 @@ func appScanStorage() async throws {
   #expect(controller.session.draft?.missingCount == 48 && controller.pendingScan == nil)
   #expect(try await reopened.restoreSession().session.draft == controller.session.draft)
   #expect(controller.discardDraft(confirmed: true) == .accepted)
-  deadline = ContinuousClock.now + .seconds(5)
+  deadline = ContinuousClock.now + storageEffectLimit
   while controller.discardStatus == .saving, ContinuousClock.now < deadline {
     try await Task.sleep(for: .milliseconds(10))
   }
-  #expect(controller.discardStatus == .idle && controller.scanWorkflow == nil)
+  #expect(controller.discardStatus == .idle)
+  #expect(controller.scanWorkflow == nil)
   let discarded = try await reopened.restoreSession()
   #expect(discarded.pendingScan == nil && !discarded.session.hasWork)
   #expect(discarded.session.latestInputRevision > scan.draft.revision)
   #expect(controller.send(.deleteLocalData(confirmed: true)) == .accepted)
   // Wait for the actual app's asynchronous storage effect, with a bounded timeout.
-  deadline = ContinuousClock.now + .seconds(5)
+  deadline = ContinuousClock.now + storageEffectLimit
   while controller.session.phase == .deleting, ContinuousClock.now < deadline {
     try await Task.sleep(for: .milliseconds(10))
   }
@@ -197,21 +204,21 @@ func appSessionCoordinator() async throws {
   let controller = dependencies.makeSessionController(playback: playback)
   await controller.load()
   #expect(controller.send(.startManual(replacing: false)) == .accepted)
-  let startDeadline = ContinuousClock.now.advanced(by: .seconds(10))
+  let startDeadline = ContinuousClock.now.advanced(by: storageEffectLimit)
   while controller.session.phase == .startingManual && ContinuousClock.now < startDeadline {
     try await Task.sleep(for: .milliseconds(5))
   }
   #expect(controller.session.phase == .editing)
   let palette = try CenterPalette([.green, .white, .orange, .blue, .yellow, .red])
   #expect(controller.send(.editDraft(.centers(palette))) == .accepted)
-  let saveDeadline = ContinuousClock.now.advanced(by: .seconds(10))
+  let saveDeadline = ContinuousClock.now.advanced(by: storageEffectLimit)
   while controller.session.phase == .savingDraft && ContinuousClock.now < saveDeadline {
     try await Task.sleep(for: .milliseconds(5))
   }
   #expect(controller.session.phase == .editing)
   #expect(try await dependencies.sessionStore.loadDraft() == controller.session.draft)
   #expect(controller.send(.deleteLocalData(confirmed: true)) == .accepted)
-  let deleteDeadline = ContinuousClock.now.advanced(by: .seconds(10))
+  let deleteDeadline = ContinuousClock.now.advanced(by: storageEffectLimit)
   while controller.session.phase == .deleting && ContinuousClock.now < deleteDeadline {
     try await Task.sleep(for: .milliseconds(5))
   }
@@ -243,7 +250,7 @@ func appEnteredCompletion() async throws {
   #expect(controller.send(.validateDraft) == .accepted)
   #expect(controller.session.phase == .alreadySolved)
   #expect(controller.send(.confirmCompletion) == .accepted)
-  let deadline = ContinuousClock.now.advanced(by: .seconds(10))
+  let deadline = ContinuousClock.now.advanced(by: storageEffectLimit)
   while controller.session.phase == .savingCompletion && ContinuousClock.now < deadline {
     try await Task.sleep(for: .milliseconds(5))
   }
@@ -254,7 +261,7 @@ func appEnteredCompletion() async throws {
   #expect(
     relaunched.session.phase == .completed && relaunched.session.completion == .enteredColorsSolved)
   #expect(relaunched.send(.mismatch) == .accepted)
-  let recoveryDeadline = ContinuousClock.now.advanced(by: .seconds(10))
+  let recoveryDeadline = ContinuousClock.now.advanced(by: storageEffectLimit)
   while relaunched.session.phase == .savingRecovery && ContinuousClock.now < recoveryDeadline {
     try await Task.sleep(for: .milliseconds(5))
   }

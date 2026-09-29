@@ -1,3 +1,4 @@
+import Combine
 import CubeCore
 import CubeScan
 import CubeSession
@@ -19,6 +20,9 @@ struct ContentView: View {
   @State private var showingHelp = false
   @State private var showingSettings = false
   @State private var showingScanIntroduction = false
+  @State private var discardingScan = false
+  @State private var thermalNotice = false
+  @State private var awaitingCompletionFeedback = false
   @Environment(\.accessibilityDifferentiateWithoutColor) private var differentiate
   @Environment(\.scenePhase) private var scenePhase
 
@@ -39,151 +43,275 @@ struct ContentView: View {
     self.isPractice = isPractice
   }
 
+  // Hosted Xcode 26.3 (Swift 6.2) cannot type-check this screen as one expression in reasonable
+  // time, so the body is composed from separately checked properties and event handlers.
   var body: some View {
-    NavigationStack {
-      Group {
-        if controller.loadStatus == .idle || controller.loadStatus == .loading {
-          ProgressView("Opening saved cube…")
-        } else if controller.loadStatus == .failed {
-          failure("Couldn't open your saved cube") { Task { await controller.load() } }
-        } else if controller.manualFallbackStatus == .saving {
-          ProgressView("Saving manual entry…")
-        } else if controller.manualFallbackStatus == .failed {
-          failure("Couldn't save manual entry") { controller.retryManualFallback() }
-        } else if showingScanIntroduction {
-          ScanIntroductionView(
-            start: {
-              showingScanIntroduction = false
-              Task {
-                await controller.startScan(
-                  purpose: .newCube,
-                  replacing: controller.session.hasWork
-                )
-              }
-            },
-            enterManually: {
-              showingScanIntroduction = false
-              reviewingInput = false
-              controller.send(.startManual(replacing: controller.session.hasWork))
-            },
-            cancel: { showingScanIntroduction = false }
-          )
-        } else if controller.scanWorkflow != nil, let camera {
-          ScanFlowView(controller: controller, camera: camera)
-        } else if let scan = controller.pendingScan {
-          CenterAssignmentView(initial: scan.draft.confirmedCenters) { palette in
-            controller.switchScanToManual(confirmedCenters: palette, confirmed: true)
-          }
-        } else {
-          sessionContent
-        }
+    presentedContent
+      .task { await controller.load() }
+      .onChange(of: scenePhase) { _, phase in scenePhaseChanged(phase) }
+      .onChange(of: controller.scanWorkflow?.phase) { _, _ in updateIdleTimer() }
+      .onChange(of: controller.session.preview) { _, _ in updateIdleTimer() }
+      .onChange(of: controller.session.phase) { _, new in sessionPhaseChanged(new) }
+      .onReceive(thermalStateChanges) { _ in thermalStateChanged() }
+      .onReceive(orientationChanges) { _ in orientationChanged() }
+      .onReceive(memoryWarnings) { _ in memoryWarningReceived() }
+      .onAppear { appeared() }
+      .onDisappear { disappeared() }
+  }
+
+  private var presentedContent: some View {
+    NavigationStack { navigationContent }
+      .fullScreenCover(isPresented: $showingPractice) {
+        PracticeView(preferences: controller.preferences)
       }
-      .navigationTitle(
-        isPractice
-          ? "Practice"
-          : controller.session.phase == .home
-            ? "CubeGuide" : (controller.session.plan == nil ? "Enter colors" : "Your cube")
-      )
-      .navigationBarTitleDisplayMode(
-        controller.session.phase == .home && !showingScanIntroduction ? .large : .inline)
-      .toolbar(showingScanIntroduction ? .hidden : .visible, for: .navigationBar)
-      .toolbar {
-        if controller.loadStatus == .ready, controller.session.phase != .home {
-          ToolbarItemGroup(placement: .topBarTrailing) {
-            if !isPractice {
-              Button("Settings", systemImage: "gearshape") {
-                controller.pauseForAuxiliaryNavigation()
-                showingSettings = true
-              }.accessibilityIdentifier("navigation.settings")
-            }
-            Button("Help", systemImage: "questionmark.circle", action: openHelp)
-              .accessibilityIdentifier("navigation.help")
-          }
-          ToolbarItem(placement: .topBarLeading) {
-            Button("Home", action: goHome)
-              .accessibilityIdentifier("editor.home")
-              .disabled(
-                [.deleting, .deletionError, .manualStartError, .draftStorageError].contains(
-                  controller.session.phase))
-          }
-        }
-      }
+      .sheet(isPresented: $showingHelp) { HelpView() }
+      .sheet(isPresented: $showingSettings) { SettingsView(controller: controller) }
+  }
+
+  private var navigationContent: some View {
+    titledContent
       .alert("Replace your saved cube?", isPresented: $replacing) {
-        Button("Keep current", role: .cancel) {}.accessibilityIdentifier("replacement.keep")
-        Button("Replace current", role: .destructive) {
-          reviewingInput = false
-          controller.send(.startManual(replacing: true))
-        }
-        .accessibilityIdentifier("replacement.confirm")
+        manualReplacementActions
       } message: {
         Text(
           "Your current cube and guide will no longer be active. Start again only if you want to enter a different cube."
         )
       }
       .alert("Replace your saved cube?", isPresented: $replacingWithScan) {
-        Button("Keep current", role: .cancel) {}.accessibilityIdentifier("scanReplacement.keep")
-        Button("Replace current", role: .destructive) {
-          showingScanIntroduction = true
-        }
-        .accessibilityIdentifier("scanReplacement.confirm")
+        scanReplacementActions
       } message: {
         Text("Your current cube and guide stay saved until you confirm and start the new scan.")
       }
       .alert("Delete all local data?", isPresented: $deleting) {
-        Button("Cancel", role: .cancel) {}
-        Button("Delete local data", role: .destructive) {
-          controller.send(.deleteLocalData(confirmed: true))
-        }
-        .accessibilityIdentifier("delete.confirm")
+        deletionActions
       } message: {
         Text("This removes your saved colors and guide and resets all preferences on this device.")
       }
-    }
-    .fullScreenCover(isPresented: $showingPractice) {
-      PracticeView(preferences: controller.preferences)
-    }
-    .sheet(isPresented: $showingHelp) { HelpView() }
-    .sheet(isPresented: $showingSettings) { SettingsView(controller: controller) }
-    .task { await controller.load() }
-    .onChange(of: scenePhase) { _, phase in
-      if phase != .active { controller.send(.background) }
-      updateIdleTimer()
-    }
-    .onChange(of: controller.scanWorkflow?.phase) { _, _ in updateIdleTimer() }
-    .onChange(of: controller.session.preview) { _, _ in updateIdleTimer() }
-    .onReceive(NotificationCenter.default.publisher(for: ProcessInfo.thermalStateDidChangeNotification)) {
-      _ in
-      guard [.serious, .critical].contains(ProcessInfo.processInfo.thermalState) else { return }
-      if controller.scanWorkflow != nil {
-        controller.sendScan(.interrupt(.thermal))
-      } else {
-        controller.send(.background)
+      .alert("Your iPhone is too warm", isPresented: $thermalNotice) {
+        Button("OK", role: .cancel) {}
+      } message: {
+        Text(
+          "Solving stopped so the iPhone can cool down. Your colors are saved. When it has cooled, tap Solve to try again."
+        )
       }
-      updateIdleTimer()
+  }
+
+  private var titledContent: some View {
+    root
+      .navigationTitle(navigationTitle)
+      .navigationBarTitleDisplayMode(titleDisplayMode)
+      .toolbar(showingScanIntroduction ? .hidden : .visible, for: .navigationBar)
+      .toolbar { toolbarItems }
+  }
+
+  @ViewBuilder private var root: some View {
+    if controller.loadStatus == .idle || controller.loadStatus == .loading {
+      ProgressView("Opening saved cube…")
+    } else if controller.loadStatus == .failed {
+      failure("Couldn't open your saved cube") { Task { await controller.load() } }
+    } else if controller.session.phase == .deleting || controller.session.phase == .deletionError {
+      sessionContent
+    } else if controller.manualFallbackStatus == .saving {
+      ProgressView("Saving manual entry…")
+    } else if controller.manualFallbackStatus == .failed {
+      failure("Couldn't save manual entry") { controller.retryManualFallback() }
+    } else if showingScanIntroduction {
+      scanIntroduction
+    } else {
+      scanOrSessionContent
     }
-    .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) {
-      _ in
-      if controller.scanWorkflow?.phase == .freezing {
-        controller.sendScan(.interrupt(.orientationChanged))
+  }
+
+  private var scanIntroduction: some View {
+    ScanIntroductionView(
+      start: {
+        showingScanIntroduction = false
+        Task {
+          await controller.startScan(
+            purpose: .newCube,
+            replacing: controller.session.hasWork
+          )
+        }
+      },
+      enterManually: {
+        showingScanIntroduction = false
+        reviewingInput = false
+        controller.send(.startManual(replacing: controller.session.hasWork))
+      },
+      cancel: { showingScanIntroduction = false }
+    )
+  }
+
+  @ViewBuilder private var scanOrSessionContent: some View {
+    if controller.discardStatus == .saving {
+      ProgressView("Discarding scan…")
+    } else if controller.discardStatus == .failed {
+      failure("Couldn't discard the scan") { controller.retryDraftDiscard() }
+    } else if let workflow = controller.scanWorkflow, workflow.phase != .home, let camera {
+      ScanFlowView(controller: controller, camera: camera)
+    } else if controller.scanWorkflow != nil, camera != nil {
+      // A cancelled scan stays saved; it must be resumed or explicitly discarded.
+      parkedScan
+    } else if let scan = controller.pendingScan {
+      CenterAssignmentView(initial: scan.draft.confirmedCenters) { palette in
+        controller.switchScanToManual(confirmedCenters: palette, confirmed: true)
+      }
+    } else {
+      sessionContent
+    }
+  }
+
+  private var navigationTitle: LocalizedStringKey {
+    if isPractice { return "Practice" }
+    if controller.session.phase == .home { return "CubeGuide" }
+    return controller.session.plan == nil ? "Enter colors" : "Your cube"
+  }
+
+  private var titleDisplayMode: NavigationBarItem.TitleDisplayMode {
+    controller.session.phase == .home && !showingScanIntroduction ? .large : .inline
+  }
+
+  @ToolbarContentBuilder private var toolbarItems: some ToolbarContent {
+    if controller.loadStatus == .ready, controller.session.phase != .home {
+      ToolbarItemGroup(placement: .topBarTrailing) {
+        if !isPractice {
+          Button("Settings", systemImage: "gearshape") {
+            controller.pauseForAuxiliaryNavigation()
+            showingSettings = true
+          }.accessibilityIdentifier("navigation.settings")
+        }
+        Button("Help", systemImage: "questionmark.circle", action: openHelp)
+          .accessibilityIdentifier("navigation.help")
+      }
+      ToolbarItem(placement: .topBarLeading) {
+        Button("Home", action: goHome)
+          .accessibilityIdentifier("editor.home")
+          .disabled(homeDisabled)
       }
     }
-    .onReceive(NotificationCenter.default.publisher(for: UIApplication.didReceiveMemoryWarningNotification)) {
-      _ in
-      if controller.scanWorkflow != nil {
-        controller.sendScan(.interrupt(.cameraUnavailable))
-      } else {
-        controller.send(.background)
+  }
+
+  private var homeDisabled: Bool {
+    if controller.scanWorkflow?.phase == .home { return true }
+    switch controller.session.phase {
+    case .deleting, .deletionError, .manualStartError, .draftStorageError,
+      .completionStorageError, .recoveryStorageError:
+      return true
+    default:
+      return false
+    }
+  }
+
+  @ViewBuilder private var manualReplacementActions: some View {
+    Button("Keep current", role: .cancel) {}.accessibilityIdentifier("replacement.keep")
+    Button("Replace current", role: .destructive) {
+      reviewingInput = false
+      controller.send(.startManual(replacing: true))
+    }
+    .accessibilityIdentifier("replacement.confirm")
+  }
+
+  @ViewBuilder private var scanReplacementActions: some View {
+    Button("Keep current", role: .cancel) {}.accessibilityIdentifier("scanReplacement.keep")
+    Button("Replace current", role: .destructive) {
+      // New input starts only from Home; leaving a completed guide there keeps it saved
+      // until the new scan or entry actually replaces it.
+      if controller.session.phase != .home { controller.send(.cancel) }
+      showingScanIntroduction = true
+    }
+    .accessibilityIdentifier("scanReplacement.confirm")
+  }
+
+  @ViewBuilder private var deletionActions: some View {
+    Button("Cancel", role: .cancel) {}
+    Button("Delete local data", role: .destructive) {
+      controller.send(.deleteLocalData(confirmed: true))
+    }
+    .accessibilityIdentifier("delete.confirm")
+  }
+
+  private var thermalStateChanges:
+    Publishers.ReceiveOn<NotificationCenter.Publisher, DispatchQueue>
+  {
+    NotificationCenter.default.publisher(for: ProcessInfo.thermalStateDidChangeNotification)
+      .receive(on: DispatchQueue.main)
+  }
+
+  private var orientationChanges: NotificationCenter.Publisher {
+    NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)
+  }
+
+  private var memoryWarnings: NotificationCenter.Publisher {
+    NotificationCenter.default.publisher(for: UIApplication.didReceiveMemoryWarningNotification)
+  }
+
+  private func scenePhaseChanged(_ phase: ScenePhase) {
+    switch phase {
+    case .background:
+      controller.send(.background)
+    case .inactive:
+      // System alerts (including the camera permission prompt) and Control Center only make
+      // the scene inactive. Stop guide playback, but keep the scan and the physical-comparison
+      // requirement for real backgrounding; the capture session reports its own interruptions.
+      if controller.session.preview == .playing { controller.send(.pause) }
+    default:
+      break
+    }
+    updateIdleTimer()
+  }
+
+  private func sessionPhaseChanged(_ new: SessionPhase) {
+    // SwiftUI may coalesce a fast save, so the saving phase itself might never be observed.
+    if new == .savingCompletion {
+      awaitingCompletionFeedback = true
+    } else if awaitingCompletionFeedback {
+      awaitingCompletionFeedback = false
+      if new == .completed {
+        HapticFeedback.success(
+          enabled: controller.preferences.haptics,
+          effectsEnabled: controller.preferences.effects)
       }
-      updateIdleTimer()
     }
-    .onAppear {
-      UIDevice.current.beginGeneratingDeviceOrientationNotifications()
-      updateIdleTimer()
+  }
+
+  private func thermalStateChanged() {
+    let state = ProcessInfo.processInfo.thermalState
+    guard state == .serious || state == .critical else { return }
+    if controller.scanWorkflow != nil {
+      controller.sendScan(.interrupt(.thermal))
+    } else {
+      let wasSolving = controller.session.phase == .solving
+      controller.send(.background)
+      if wasSolving && controller.session.phase == .offer { thermalNotice = true }
     }
-    .onDisappear {
-      UIDevice.current.endGeneratingDeviceOrientationNotifications()
-      UIApplication.shared.isIdleTimerDisabled = false
+    updateIdleTimer()
+  }
+
+  private func orientationChanged() {
+    if controller.scanWorkflow?.phase == .freezing,
+      UIDevice.current.orientation.isValidInterfaceOrientation
+    {
+      controller.sendScan(.interrupt(.orientationChanged))
     }
+  }
+
+  private func memoryWarningReceived() {
+    if controller.scanWorkflow != nil {
+      controller.sendScan(.interrupt(.cameraUnavailable))
+    } else if controller.session.preview == .playing {
+      controller.send(.pause)
+    }
+    updateIdleTimer()
+  }
+
+  private func appeared() {
+    UIDevice.current.beginGeneratingDeviceOrientationNotifications()
+    updateIdleTimer()
+  }
+
+  private func disappeared() {
+    UIDevice.current.endGeneratingDeviceOrientationNotifications()
+    UIApplication.shared.isIdleTimerDisabled = false
   }
 
   private func updateIdleTimer() {
@@ -405,8 +533,10 @@ struct ContentView: View {
           CTAButton("Enter colors again", identifier: "recovery.manual", kind: .primary) {
             replacingAfterRecovery = true
           }
-          CTAButton("Scan cube again", identifier: "recovery.scan", kind: .secondary) {
-            Task { await controller.startScan(purpose: .recovery) }
+          if canScan {
+            CTAButton("Scan cube again", identifier: "recovery.scan", kind: .secondary) {
+              Task { await controller.startScan(purpose: .recovery) }
+            }
           }
           CTAButton("Keep guide and compare again", identifier: "recovery.keep", kind: .secondary) {
             controller.send(.cancel)
@@ -441,8 +571,10 @@ struct ContentView: View {
             "Yes, my cube is solved", identifier: "completion.confirmPhysical", kind: .primary,
             action: confirmCompletion
           )
-          CTAButton("Check with camera", identifier: "completion.scan", kind: .secondary) {
-            Task { await controller.startScan(purpose: .verification) }
+          if canScan {
+            CTAButton("Check with camera", identifier: "completion.scan", kind: .secondary) {
+              Task { await controller.startScan(purpose: .verification) }
+            }
           }
           CTAButton("Still different", identifier: "completion.mismatch", kind: .secondary) {
             controller.send(.mismatch)
@@ -461,7 +593,7 @@ struct ContentView: View {
             Text(completionTitle)
           }
           .font(.title3.bold())
-          if controller.session.completion != .scanVerified {
+          if canScan && controller.session.completion != .scanVerified {
             CTAButton("Check with camera", identifier: "completion.scan", kind: .secondary) {
               Task { await controller.startScan(purpose: .verification) }
             }
@@ -469,10 +601,13 @@ struct ContentView: View {
           CTAButton("Home", identifier: "completion.home", kind: .secondary) {
             controller.send(.cancel)
           }
-          CTAButton(
-            "Start another", symbol: "plus", identifier: "completion.startAnother", kind: .primary
-          ) {
-            replacingWithScan = true
+          if canScan {
+            CTAButton(
+              "Start another", symbol: "plus", identifier: "completion.startAnother",
+              kind: .primary
+            ) {
+              replacingWithScan = true
+            }
           }
         }.card()
       }
@@ -501,6 +636,51 @@ struct ContentView: View {
     }
   }
 
+  private var parkedScan: some View {
+    ScreenScaffold {
+      VStack(alignment: .leading, spacing: 12) {
+        HStack(spacing: 8) {
+          Image(systemName: "camera.viewfinder").accessibilityHidden(true)
+          Text("Scan paused")
+        }
+        .font(.title3.bold())
+        Text(
+          "The faces you accepted are saved on this iPhone. Resume to keep scanning, or discard this scan to start over."
+        )
+        .foregroundStyle(.secondary)
+        CTAButton("Resume scan", symbol: "camera", identifier: "scan.resumeSaved", kind: .primary) {
+          controller.send(.resume)
+        }
+        CTAButton(
+          "Discard scan", identifier: "scan.discard", kind: .secondary, role: .destructive
+        ) {
+          discardingScan = true
+        }
+      }.card()
+      VStack(spacing: 0) {
+        MenuRow("Settings", symbol: "gearshape", identifier: "scan.parked.settings") {
+          controller.pauseForAuxiliaryNavigation()
+          showingSettings = true
+        }
+        Divider().padding(.leading, 40)
+        MenuRow(
+          "Help", symbol: "questionmark.circle", identifier: "scan.parked.help", action: openHelp)
+      }.card()
+    }
+    .alert("Discard this scan?", isPresented: $discardingScan) {
+      Button("Keep scan", role: .cancel) {}.accessibilityIdentifier("scan.discard.keep")
+      Button("Discard scan", role: .destructive) {
+        controller.discardDraft(confirmed: true)
+      }
+      .accessibilityIdentifier("scan.discard.confirm")
+    } message: {
+      Text("The faces captured so far will be removed. A saved guide, if any, stays unchanged.")
+    }
+  }
+
+  /// Practice and test hosts have no camera; never offer an action that cannot start.
+  private var canScan: Bool { camera != nil }
+
   private func openHelp() {
     controller.pauseForAuxiliaryNavigation()
     showingHelp = true
@@ -516,15 +696,16 @@ struct ContentView: View {
   }
 
   private func confirmCompletion() {
-    let result = controller.send(.confirmCompletion)
-    if result == .accepted {
-      HapticFeedback.success(
-        enabled: controller.preferences.haptics,
-        effectsEnabled: controller.preferences.effects)
-    } else {
+    // An ignored duplicate tap gets no feedback; success follows the durable save.
+    switch controller.send(.confirmCompletion) {
+    case .accepted:
+      awaitingCompletionFeedback = true
+    case .rejected:
       HapticFeedback.warning(
         enabled: controller.preferences.haptics,
         effectsEnabled: controller.preferences.effects)
+    case .ignored:
+      break
     }
   }
 
@@ -539,7 +720,7 @@ struct ContentView: View {
     controller.send(.cancel)
     // Cancellation first preserves a safe resume/offer state. Exit that state without
     // acknowledging an action or granting physical alignment on a later resume.
-    if [.resumeCheck, .offer].contains(controller.session.phase) {
+    if [.resumeCheck, .offer, .expectedSolved].contains(controller.session.phase) {
       controller.send(.cancel)
     }
   }

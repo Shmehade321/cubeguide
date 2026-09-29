@@ -4,11 +4,28 @@ on:
   push:
     branches: [main, 'codex/**']
   workflow_dispatch:
+# Jobs only read the repository; artifact upload uses the runtime token.
+permissions:
+  contents: read
+# A newer push supersedes an older run of the same PR or branch.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 jobs:
-  foundation:
+  package:
+    # Package, storage, solver and table qualification need no app project or simulator,
+    # so they run on the newest Xcode the hosted image provides.
+    name: Package, solver and tables
     runs-on: macos-15
+    timeout-minutes: 75
+    env:
+      ARTIFACT_DIR: Artifacts/ci-package
     steps:
       - uses: actions/checkout@v4
+        with:
+          # verify-tables.sh checks the generator source against the commit recorded in the
+          # table manifest, which a shallow checkout does not contain.
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -16,13 +33,57 @@ jobs:
         with:
           distribution: temurin
           java-version: '11'
-      - name: Install pinned test-only oracle dependency
-        run: python3 -m pip install -r Tools/TableValidator/requirements.txt
-      - name: Record available toolchains and runtimes
+      - name: Select the newest installed Xcode
         run: |
+          xcode=$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)
+          sudo xcode-select -s "$xcode/Contents/Developer"
           xcodebuild -version
           swift --version
-          xcrun simctl list devices available
+      - name: Install pinned test-only oracle dependency
+        run: python3 -m pip install -r Tools/TableValidator/requirements.txt
+      - name: Tooling tests
+        run: |
+          python3 -m unittest discover -s Tests/Infrastructure -v
+          python3 -m unittest discover -s Tools/TableValidator -v
+          python3 -m unittest discover -s Tools/Corpus -v
+          python3 -m unittest discover -s Tools/ReferenceSolver -v
+      - name: Package tests
+        run: Scripts/test-package.sh
+      - name: Storage crash qualification
+        run: Scripts/test-storage-crashes.sh
+      - name: PR solver corpus with independent replay and pinned reference
+        run: Scripts/test-solver.sh
+      - name: Independently reproduce and validate every solver table
+        run: Scripts/verify-tables.sh
+      - name: Retain results on success or failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-evidence
+          path: Artifacts/
+          if-no-files-found: error
+  app:
+    name: App and UI tests (iOS 18.5 simulator)
+    # macos-15 provides the required iOS 18.5 runtime. The project keeps the Xcode 16 file format
+    # (objectVersion 77, its preferredProjectObjectVersion), so the newest hosted Xcode opens it.
+    # CUBEGUIDE_APP_RUNNER may name another runner, e.g. a self-hosted Mac with a newer Xcode.
+    runs-on: ${{ vars.CUBEGUIDE_APP_RUNNER || 'macos-15' }}
+    timeout-minutes: 120
+    env:
+      CUBEGUIDE_APP_STAGE_ONLY: 1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Select the newest installed Xcode
+        run: |
+          xcode=$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)
+          sudo xcode-select -s "$xcode/Contents/Developer"
+          xcodebuild -version
+          swift --version
+      - name: Record available simulators
+        run: xcrun simctl list devices available
       - name: Resolve required minimum-family runtime
         run: |
           python3 - <<'PY'
@@ -34,14 +95,12 @@ jobs:
           with open(os.environ['GITHUB_ENV'],'a') as f:
               f.write('SIMULATOR_UDID='+candidates[0]['udid']+'\n')
           PY
-      - name: Run current implemented regression suite
+      - name: Run the app and UI test plan (host stages run in the package job)
         run: Scripts/test-pr.sh
-      - name: Independently reproduce and validate every solver table
-        run: Scripts/verify-tables.sh
       - name: Retain results on success or failure
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: verification-evidence
+          name: app-evidence
           path: Artifacts/
           if-no-files-found: error

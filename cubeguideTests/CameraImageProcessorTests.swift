@@ -32,8 +32,9 @@ func cameraCaptureAttemptGuardRejectsStaleCallbacks() throws {
 func cameraCaptureRotation() {
   #expect(CaptureRotation.angle(for: .portrait) == 90)
   #expect(CaptureRotation.angle(for: .portraitUpsideDown) == 270)
-  #expect(CaptureRotation.angle(for: .landscapeLeft) == 0)
-  #expect(CaptureRotation.angle(for: .landscapeRight) == 180)
+  // UIInterfaceOrientation.landscapeRight (home button right) is the back camera's native 0°.
+  #expect(CaptureRotation.angle(for: .landscapeRight) == 0)
+  #expect(CaptureRotation.angle(for: .landscapeLeft) == 180)
   #expect(CaptureRotation.angle(for: .unknown) == 90)
 }
 
@@ -108,4 +109,46 @@ func cameraImageProcessorRecordsSourceOrientation() throws {
     #expect(result.face.metadata.sourceOrientation == expected)
     #expect(result.face.metadata.sourceMirrored == expectedMirrored)
   }
+}
+
+@MainActor
+@Test("Camera processing keeps the photo's top row and left column as sticker row 0 and column 0")
+func cameraImageProcessorPreservesImageOrientation() throws {
+  let format = UIGraphicsImageRendererFormat()
+  format.scale = 1
+  format.opaque = true
+  // Distinct bands: red encodes the image row, green encodes the image column.
+  let levels: [CGFloat] = [0.9, 0.5, 0.1]
+  let image = UIGraphicsImageRenderer(size: CGSize(width: 900, height: 900), format: format)
+    .image { context in
+      for row in 0..<3 {
+        for column in 0..<3 {
+          UIColor(red: levels[row], green: levels[column], blue: 0.3, alpha: 1).setFill()
+          context.fill(CGRect(x: column * 300, y: row * 300, width: 300, height: 300))
+        }
+      }
+    }
+  let measurements = try CameraImageProcessor.process(image, slot: .front).face.measurements
+  for row in 0..<3 {
+    for column in 0..<3 {
+      let display = measurements[row * 3 + column].display
+      #expect(abs(display.red - Double(levels[row])) < 0.08, "row \(row), column \(column)")
+      #expect(abs(display.green - Double(levels[column])) < 0.08, "row \(row), column \(column)")
+    }
+  }
+}
+
+@MainActor
+@Test("Camera default crop for a capture is the on-screen grid, square in image pixels")
+func cameraViewfinderCrop() {
+  let layout = ViewfinderLayout(preview: CGSize(width: 398, height: 360), gridSide: 276)
+  let corners = CameraImageProcessor.corners(
+    for: layout, imageSize: CGSize(width: 3024, height: 4032))
+  #expect(corners.count == 4)
+  let width = (corners[1].x - corners[0].x) * 3024
+  let height = (corners[3].y - corners[0].y) * 4032
+  #expect(abs(width - height) < 1e-6)
+  #expect(
+    CameraImageProcessor.corners(for: nil, imageSize: CGSize(width: 3024, height: 4032))
+      == CameraImageProcessor.defaultCorners())
 }

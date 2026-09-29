@@ -115,15 +115,18 @@ struct GuideFlowView: View {
             CTAButton(
               acknowledgement(action), identifier: "guide.acknowledge", kind: .primary
             ) {
-              let result = controller.send(.acknowledge(action.id))
-              if result == .accepted {
+              // A duplicate tap is ignored silently rather than reported as a mistake.
+              switch controller.send(.acknowledge(action.id)) {
+              case .accepted:
                 HapticFeedback.light(
                   enabled: controller.preferences.haptics,
                   effectsEnabled: controller.preferences.effects)
-              } else {
+              case .rejected:
                 HapticFeedback.warning(
                   enabled: controller.preferences.haptics,
                   effectsEnabled: controller.preferences.effects)
+              case .ignored:
+                break
               }
             }
             .disabled(controller.session.preview != .finished)

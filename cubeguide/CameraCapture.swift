@@ -19,6 +19,8 @@ final class CameraCapture: NSObject, ScanCamera {
   private var frozenData: Data?
   private(set) var frozenImage: UIImage?
   private(set) var qualityHints: [String] = []
+  /// The on-screen capture grid; a frozen face's default crop is exactly this grid.
+  @ObservationIgnored var viewfinder: ViewfinderLayout?
 
   override convenience init() {
     self.init(sessionWorker: CameraSessionWorker())
@@ -68,7 +70,9 @@ final class CameraCapture: NSObject, ScanCamera {
       }
       do {
         try await sessionWorker.start()
-        guard !Task.isCancelled, cameraEvent != nil else {
+        // stop() already stopped the worker; a newer start() owns the running session.
+        guard !Task.isCancelled else { return }
+        guard cameraEvent != nil else {
           sessionWorker.stop()
           return
         }
@@ -88,6 +92,7 @@ final class CameraCapture: NSObject, ScanCamera {
     completion: @escaping @MainActor @Sendable (ScanCameraResult) -> Void
   ) {
     let token = attemptGuard.begin(id)
+    let layout = viewfinder
     let proxy = PhotoDelegate { [weak self] data in
       guard let self else { return }
       guard self.attemptGuard.matches(id, token: token), let data else {
@@ -100,7 +105,7 @@ final class CameraCapture: NSObject, ScanCamera {
       self.processingTask = Task { [weak self] in
         let result = await Task.detached(priority: .userInitiated) {
           try Task.checkCancellation()
-          return try CameraImageProcessor.process(data, slot: slot)
+          return try CameraImageProcessor.process(data, slot: slot, viewfinder: layout)
         }.result
         guard let self, !Task.isCancelled,
           self.attemptGuard.complete(id, token: token)
@@ -256,7 +261,11 @@ private final class CameraSessionWorker: CameraSessionControlling, @unchecked Se
     session.addInput(input)
     session.addOutput(output)
     output.maxPhotoQualityPrioritization = .quality
-    try device.lockForConfiguration()
+    // The input and output are attached now, so this session is configured even if the optional
+    // focus/exposure preferences cannot be applied; failing here would leave a half-configured
+    // session that rejects every later attempt to add the same input.
+    configured = true
+    guard (try? device.lockForConfiguration()) != nil else { return }
     defer { device.unlockForConfiguration() }
     if device.isFocusModeSupported(.continuousAutoFocus) {
       device.focusMode = .continuousAutoFocus
@@ -265,7 +274,6 @@ private final class CameraSessionWorker: CameraSessionControlling, @unchecked Se
       device.exposureMode = .continuousAutoExposure
     }
     device.isSubjectAreaChangeMonitoringEnabled = true
-    configured = true
   }
 }
 
@@ -274,8 +282,8 @@ enum CaptureRotation {
     switch orientation {
     case .portrait: 90
     case .portraitUpsideDown: 270
-    case .landscapeLeft: 0
-    case .landscapeRight: 180
+    case .landscapeRight: 0
+    case .landscapeLeft: 180
     default: 90
     }
   }
@@ -318,6 +326,29 @@ enum CameraImageProcessor {
     return try processSource(source, slot: slot, corners: corners)
   }
 
+  /// A new capture starts from the grid the user aligned the face with.
+  nonisolated static func process(
+    _ data: Data, slot: Face, viewfinder: ViewfinderLayout?
+  ) throws -> Result {
+    guard let source = UIImage(data: data) else { throw CameraError.invalidImage }
+    return try processSource(
+      source, slot: slot, corners: corners(for: viewfinder, imageSize: source.size))
+  }
+
+  /// Normalized crops depend only on the aspect ratio, so the upright source size suffices.
+  nonisolated static func corners(for viewfinder: ViewfinderLayout?, imageSize: CGSize)
+    -> [ImagePoint]
+  {
+    guard let viewfinder,
+      let corners = try? ViewfinderCrop.corners(
+        preview: .init(
+          width: Double(viewfinder.preview.width), height: Double(viewfinder.preview.height)),
+        gridSide: Double(viewfinder.gridSide),
+        image: .init(width: Double(imageSize.width), height: Double(imageSize.height)))
+    else { return defaultCorners() }
+    return corners
+  }
+
   nonisolated static func defaultCorners() -> [ImagePoint] {
     // Fail closed if ImagePoint's bounds ever change instead of crashing camera startup.
     [
@@ -352,22 +383,29 @@ enum CameraImageProcessor {
     let format = UIGraphicsImageRendererFormat()
     format.scale = 1
     format.opaque = true
+    format.preferredRange = .standard
     let image = UIGraphicsImageRenderer(size: size, format: format).image { _ in
       source.draw(in: CGRect(origin: .zero, size: size))
     }
-    guard let cgImage = image.cgImage else { throw CameraError.invalidImage }
+    guard let cgImage = image.cgImage, let sRGB = CGColorSpace(name: CGColorSpace.sRGB) else {
+      throw CameraError.invalidImage
+    }
     let width = cgImage.width
     let height = cgImage.height
     var rgba = Array(repeating: UInt8.zero, count: width * height * 4)
-    guard
-      let context = CGContext(
-        data: &rgba, width: width, height: height, bitsPerComponent: 8,
-        bytesPerRow: width * 4, space: CGColorSpaceCreateDeviceRGB(),
-        bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
-    else { throw CameraError.invalidImage }
-    context.translateBy(x: 0, y: CGFloat(height))
-    context.scaleBy(x: 1, y: -1)
-    context.draw(cgImage, in: CGRect(x: 0, y: 0, width: width, height: height))
+    // A plain bitmap context already stores the image's top row first, which is the row order
+    // SRGBImage, the crop corners and the sampler use. Flipping here would read faces upside down.
+    let drawn = rgba.withUnsafeMutableBytes { buffer -> Bool in
+      guard
+        let context = CGContext(
+          data: buffer.baseAddress, width: width, height: height, bitsPerComponent: 8,
+          bytesPerRow: width * 4, space: sRGB,
+          bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
+      else { return false }
+      context.draw(cgImage, in: CGRect(x: 0, y: 0, width: width, height: height))
+      return true
+    }
+    guard drawn else { throw CameraError.invalidImage }
     var rgb: [UInt8] = []
     rgb.reserveCapacity(width * height * 3)
     for offset in stride(from: 0, to: rgba.count, by: 4) {
@@ -390,6 +428,11 @@ enum CameraImageProcessor {
       face: ScanFace(slot: slot, measurements: measurements, metadata: metadata),
       quality: CameraQuality.assess(rgb))
   }
+}
+
+struct ViewfinderLayout: Equatable, Sendable {
+  let preview: CGSize
+  let gridSide: CGFloat
 }
 
 struct CameraQualityAssessment: Equatable, Sendable {

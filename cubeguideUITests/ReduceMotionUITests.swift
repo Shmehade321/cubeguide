@@ -73,8 +73,17 @@ final class ReduceMotionUITests: XCTestCase {
     XCTAssertTrue(app.staticTexts["Static expected after this action"].waitForExistence(timeout: 10))
     XCTAssertEqual(app.staticTexts["guide.progress"].label, progress)
     capture(app, "Reduce Motion expected after")
-    revealAndTap(app.buttons["guide.replay"], in: app)
-    revealAndTap(app.buttons["guide.pause"], in: app)
+    // A static replay lasts under two seconds (0.5 s hold plus the 1.2 s normal turn), while one
+    // accessibility query on a hosted simulator can take several seconds. Pause is tapped straight
+    // after Replay; if the replay had already finished, Pause was disabled and nothing changed, so
+    // replay again. The pause itself must still take effect ("Continue preview").
+    var paused = false
+    for _ in 0..<8 where !paused {
+      revealAndTap(app.buttons["guide.replay"], in: app)
+      app.buttons["guide.pause"].tap()
+      paused = app.buttons["guide.play"].label == "Continue preview"
+    }
+    XCTAssertTrue(paused, "Pause must stop a static replay")
     XCTAssertEqual(app.staticTexts["guide.progress"].label, progress)
     XCUIDevice.shared.press(.home)
     app.activate()
@@ -158,10 +167,12 @@ final class ReduceMotionUITests: XCTestCase {
     let original = toggle.value as? String == "1"
     let expected = enabled ? "1" : "0"
     if toggle.value as? String != expected {
+      // Tapped by coordinate, so wait until the Motion page has finished its push transition.
+      XCTAssertTrue(toggle.waitUntilSettled(), "Reduce Motion switch must settle: \(toggle)")
       toggle.coordinate(withNormalizedOffset: CGVector(dx: 0.92, dy: 0.5)).tap()
     }
     let value = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", expected), object: toggle)
-    XCTAssertEqual(XCTWaiter.wait(for: [value], timeout: 5), .completed)
+    XCTAssertEqual(XCTWaiter.wait(for: [value], timeout: uiReadinessTimeout), .completed)
     return original
   }
 
@@ -211,7 +222,7 @@ final class ReduceMotionUITests: XCTestCase {
   @MainActor private func tap(_ element: XCUIElement) {
     let ready = XCTNSPredicateExpectation(
       predicate: NSPredicate(format: "exists == true AND hittable == true AND enabled == true"), object: element)
-    XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 10), .completed)
+    XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: uiReadinessTimeout), .completed)
     element.tap()
   }
 

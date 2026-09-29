@@ -22,6 +22,9 @@ NIGHTLY_KINDS = {
     'images': {'camera-report'}, 'lifecycle': {'lifecycle-report'},
 }
 DEVICE_KINDS = {'camera-report', 'device-report', 'accessibility-report', 'lifecycle-report'}
+# R19/R20 are evidenced by the archive itself, so they cannot gate building that archive.
+ARCHIVE_REQUIREMENTS = {'R19', 'R20'}
+EVIDENCE_PREFIX = 'docs/evidence/'
 ALL_KINDS = set().union(*RELEASE_KINDS.values(), *NIGHTLY_KINDS.values())
 
 
@@ -78,10 +81,54 @@ def validate_artifact(artifact, identifier, commit, root, allowed_kinds=ALL_KIND
     return errors
 
 
+def required_requirements(tier):
+    if tier == 'nightly':
+        return set(NIGHTLY_KINDS)
+    required = {f'R{i:02}' for i in range(1, 21)}
+    return required - ARCHIVE_REQUIREMENTS if tier == 'release-pre-archive' else required
+
+
+def candidate_commit(rows, head, changed_since):
+    """Return the one source commit the ledger qualifies and any reason it cannot be used.
+
+    A committed ledger cannot name its own commit, so it may qualify an ancestor of HEAD
+    provided every later change is evidence. `changed_since(commit)` returns the paths changed
+    from that commit to HEAD, or None when the commit is not an ancestor of HEAD.
+    """
+    commits = {row.get('commit') for row in rows if isinstance(row, dict)}
+    if not commits:
+        return head, []
+    if len(commits) != 1:
+        return None, ['Evidence ledger rows must all name one candidate commit']
+    (commit,) = commits
+    if commit == head:
+        return commit, []
+    changed = changed_since(commit) if isinstance(commit, str) and commit else None
+    if changed is None:
+        return None, [f'Qualified commit {commit!r} is not an ancestor of HEAD']
+    outside = sorted(path for path in changed if not path.startswith(EVIDENCE_PREFIX))
+    if outside:
+        return None, ['Source changed after the qualified commit: ' + ', '.join(outside)]
+    return commit, []
+
+
+def changed_paths(root, commit):
+    """Paths changed from `commit` to HEAD, or None when `commit` is not an ancestor of HEAD."""
+    ancestor = subprocess.run(['git', 'merge-base', '--is-ancestor', commit, 'HEAD'],
+                              cwd=root, capture_output=True)
+    if ancestor.returncode != 0:
+        return None
+    # Without rename detection a moved source file reports both paths; NUL-separated output
+    # keeps paths with spaces intact.
+    output = subprocess.check_output(
+        ['git', 'diff', '--no-renames', '--name-only', '-z', commit, 'HEAD'], cwd=root)
+    return [path.decode() for path in output.split(b'\0') if path]
+
+
 def validate(rows, required, commit, root, tier='release'):
     errors, seen = [], set()
     root = root.resolve()
-    kind_map = RELEASE_KINDS if tier == 'release' else NIGHTLY_KINDS
+    kind_map = NIGHTLY_KINDS if tier == 'nightly' else RELEASE_KINDS
     for row in rows:
         identifier = row.get('requirementID') if isinstance(row, dict) else None
         if identifier in seen or identifier not in required:
@@ -106,21 +153,29 @@ def validate(rows, required, commit, root, tier='release'):
 
 if __name__ == '__main__':
     root = pathlib.Path(__file__).resolve().parents[1]
-    if len(sys.argv) != 2 or sys.argv[1] not in ('nightly', 'release'):
-        sys.exit('Usage: check-qualification.py nightly|release')
+    tiers = ('nightly', 'release', 'release-pre-archive')
+    if len(sys.argv) != 2 or sys.argv[1] not in tiers:
+        sys.exit('Usage: check-qualification.py nightly|release|release-pre-archive')
     tier = sys.argv[1]
-    evidence = root / 'docs/evidence' / f'{tier}.json'
+    ledger_tier = 'nightly' if tier == 'nightly' else 'release'
+    evidence = root / 'docs/evidence' / f'{ledger_tier}.json'
     if not evidence.is_file():
-        sys.exit(f'Blocked: missing {tier} qualification evidence at {evidence}')
-    required = ({f'R{i:02}' for i in range(1, 21)} if tier == 'release'
-                else set(NIGHTLY_KINDS))
-    commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=root, text=True).strip()
+        sys.exit(f'Blocked: missing {ledger_tier} qualification evidence at {evidence}')
+    required = required_requirements(tier)
+    head = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=root, text=True).strip()
     if subprocess.check_output(['git', 'status', '--porcelain'], cwd=root, text=True).strip():
         sys.exit('Qualification requires a clean committed source tree')
     document = json.loads(evidence.read_text())
-    if document.get('schemaVersion') != 1 or document.get('tier') != tier:
+    if document.get('schemaVersion') != 1 or document.get('tier') != ledger_tier:
         sys.exit('Evidence ledger schema or tier is invalid')
-    errors = validate(document.get('requirements', []), required, commit, root, tier)
+    # Only the archive-evidenced rows are set aside before archiving; unknown IDs still fail.
+    rows = [row for row in document.get('requirements', [])
+            if tier != 'release-pre-archive' or not isinstance(row, dict)
+            or row.get('requirementID') not in ARCHIVE_REQUIREMENTS]
+
+    commit, errors = candidate_commit(rows, head, lambda commit: changed_paths(root, commit))
+    if commit is not None:
+        errors = validate(rows, required, commit, root, tier)
     if errors:
         sys.exit('\n'.join(errors))
-    print('Typed evidence checks passed for the exact candidate commit.')
+    print(f'Typed evidence checks passed for qualified source commit {commit}.')

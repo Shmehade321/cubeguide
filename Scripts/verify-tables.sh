@@ -6,6 +6,11 @@ artifact_dir=$(mktemp -d Artifacts/table-check.XXXXXX)
 resource_dir=Packages/CubeKit/Sources/CubeSolver3/Resources/Tables
 generator_commit=$(python3 -c 'import json; print(json.load(open("Packages/CubeKit/Sources/CubeSolver3/Resources/Tables/manifest.json"))["sourceCommit"])')
 # A matching hash is not source provenance. Verify the generating source against its named commit.
+# A shallow checkout lacks that commit; say so instead of reporting a false source difference.
+if ! git cat-file -e "$generator_commit^{commit}" 2>/dev/null; then
+  echo "Generator commit $generator_commit is not in this checkout; fetch full history (git fetch --unshallow, or actions/checkout fetch-depth: 0)." >&2
+  exit 1
+fi
 if ! git diff --quiet "$generator_commit" -- Packages/CubeKit/Sources/CubeTableTools Packages/CubeKit/Sources/TableGenerator Packages/CubeKit/Sources/CubeSolver3/Coordinates.swift Packages/CubeKit/Sources/CubeSolver3/Cubies.swift Packages/CubeKit/Sources/CubeSolver3/SolverMoves.swift Packages/CubeKit/Sources/CubeSolver3/Tables.swift; then
   echo 'Generator source differs from resource manifest; commit and regenerate resources.' >&2
   exit 1

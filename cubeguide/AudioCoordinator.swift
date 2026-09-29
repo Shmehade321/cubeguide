@@ -157,15 +157,21 @@ final class AudioCoordinator: NSObject, InstructionAudio, AVAudioPlayerDelegate 
     interruptionHandler = handler
   }
 
+  // The callback holds the finished player until the check, so a replacement cannot reuse its
+  // identity; AVAudioPlayer is only compared by reference on the main actor.
   nonisolated func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
-    Task { @MainActor in self.complete() }
+    nonisolated(unsafe) let finished = player
+    Task { @MainActor in self.complete(finished) }
   }
 
   nonisolated func audioPlayerDecodeErrorDidOccur(_ player: AVAudioPlayer, error: (any Error)?) {
-    Task { @MainActor in self.complete() }
+    nonisolated(unsafe) let finished = player
+    Task { @MainActor in self.complete(finished) }
   }
 
-  private func complete() {
+  /// A late callback from a replaced player must not end the phrase playing now.
+  private func complete(_ finished: AVAudioPlayer? = nil) {
+    if let finished, player !== finished { return }
     player = nil
     let callback = completion
     completion = nil
@@ -222,6 +228,9 @@ private final class EffectAudio: NSObject, AVAudioPlayerDelegate {
   }
 
   nonisolated func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
-    Task { @MainActor in self.player = nil }
+    nonisolated(unsafe) let finished = player
+    Task { @MainActor in
+      if self.player === finished { self.player = nil }
+    }
   }
 }

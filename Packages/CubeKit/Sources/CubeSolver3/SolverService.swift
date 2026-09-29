@@ -22,6 +22,9 @@ public actor SolverService {
     let cancellation: SolverCancellation
   }
   private var active: Active?
+  /// One mutable search at a time in the process (the real app and practice share it); tables
+  /// stay immutable per job. A queued search starts its deadline only when it begins running.
+  private static let workQueue = DispatchQueue(label: "cubeguide.solver", qos: .userInitiated)
 
   public init() {
     runner = { SolverRuntime.run(cube: $0, tables: $1, budget: $2, cancellation: $3) }
@@ -51,8 +54,13 @@ public actor SolverService {
     let cancellation = SolverCancellation()
     let tables = cachedTables
     let runner = self.runner
+    let queue = Self.workQueue
+    // A search may compute for up to a minute. It runs on its own queue so it never occupies a
+    // cooperative-pool thread that actors and UI continuations need; the task only awaits it.
     let task = Task.detached(priority: .userInitiated) {
-      runner(cube, tables, budget, cancellation)
+      await withCheckedContinuation { continuation in
+        queue.async { continuation.resume(returning: runner(cube, tables, budget, cancellation)) }
+      }
     }
     active = Active(id: id, task: task, cancellation: cancellation)
     let result = await withTaskCancellationHandler {

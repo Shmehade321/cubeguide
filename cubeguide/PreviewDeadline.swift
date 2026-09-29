@@ -10,7 +10,7 @@ final class PreviewDeadline: PreviewDeadlineScheduler {
     let token = UUID()
     generation = token
     task = Task { [weak self] in
-      do { try await Task.sleep(for: max(.zero, delay), clock: .continuous) }
+      do { try await Task.sleep(for: max(Duration.zero, delay), clock: .continuous) }
       catch { return }
       guard !Task.isCancelled, let self, self.generation == token else { return }
       self.generation = nil

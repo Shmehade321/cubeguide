@@ -32,6 +32,13 @@ public struct ManualDraft: Equatable, Sendable, Codable {
     }
     self.init(palette: confirmedCenters, cells: cells, revision: revision)
   }
+  /// Every color the user reviewed and accepted from a complete, legal scan, so a later
+  /// correction starts from that input rather than from empty entry.
+  init(acceptedScan facelets: Facelets, palette: CenterPalette, revision: UInt64) {
+    self.init(
+      palette: palette, cells: facelets.faces.map { palette.colors[Int($0.rawValue)] },
+      revision: revision)
+  }
   private init(palette: CenterPalette, cells: [CubeColor?], revision: UInt64) {
     self.palette = palette
     self.cells = cells

@@ -88,19 +88,22 @@ final class FoundationUITests: XCTestCase {
     tapReady(settings)
     let narration = app.switches["settings.narration"]
     XCTAssertEqual(narration.value as? String, "1")
+    // The switch is tapped by coordinate, so wait until the sheet has stopped moving it.
+    XCTAssertTrue(narration.waitUntilSettled(), "Narration switch must settle: \(narration)")
     narration.coordinate(withNormalizedOffset: CGVector(dx: 0.92, dy: 0.5)).tap()
     let saved = NSPredicate(format: "value == %@ AND enabled == true", "0")
     expectation(for: saved, evaluatedWith: narration)
-    waitForExpectations(timeout: 5)
+    waitForExpectations(timeout: uiReadinessTimeout)
     for (identifier, expected) in [
       ("settings.effects", "1"), ("settings.haptics", "0"), ("settings.labels", "0"),
     ] {
       let control = app.switches[identifier]
+      XCTAssertTrue(control.waitUntilSettled(), "\(identifier) must settle: \(control)")
       control.coordinate(withNormalizedOffset: CGVector(dx: 0.92, dy: 0.5)).tap()
       expectation(
         for: NSPredicate(format: "value == %@ AND enabled == true", expected),
         evaluatedWith: control)
-      waitForExpectations(timeout: 5)
+      waitForExpectations(timeout: uiReadinessTimeout)
     }
     tapReady(app.buttons["settings.speed"])
     tapReady(app.buttons["Fast"])
@@ -181,7 +184,7 @@ final class FoundationUITests: XCTestCase {
     app.sheets.buttons.matching(identifier: "sticker.blue").firstMatch.tap()
     let changed = NSPredicate(format: "label CONTAINS %@", "Blue")
     expectation(for: changed, evaluatedWith: sticker)
-    waitForExpectations(timeout: 5)
+    waitForExpectations(timeout: uiReadinessTimeout)
     XCTAssertTrue(app.staticTexts["47 stickers left"].exists)
     tapReady(app.buttons["navigation.help"])
     tapReady(app.buttons["help.topic.manual"])
@@ -191,7 +194,7 @@ final class FoundationUITests: XCTestCase {
     app.buttons["rotate.U"].tap()
     let rotated = app.buttons["cell.U.0.2"]
     expectation(for: changed, evaluatedWith: rotated)
-    waitForExpectations(timeout: 5)
+    waitForExpectations(timeout: uiReadinessTimeout)
     XCTAssertTrue(sticker.label.contains("Empty"))
     rotated.tap()
     app.sheets.buttons.matching(identifier: "sticker.clear").firstMatch.tap()
@@ -199,7 +202,7 @@ final class FoundationUITests: XCTestCase {
     sticker.tap()
     app.sheets.buttons.matching(identifier: "sticker.blue").firstMatch.tap()
     expectation(for: changed, evaluatedWith: sticker)
-    waitForExpectations(timeout: 5)
+    waitForExpectations(timeout: uiReadinessTimeout)
     let screenshot = XCTAttachment(screenshot: app.screenshot())
     screenshot.name = "Manual editor"
     screenshot.lifetime = .keepAlways
@@ -283,17 +286,17 @@ final class FoundationUITests: XCTestCase {
           let cell = app.buttons["cell.\(face).\(row).\(column)"]
           let ready = NSPredicate(format: "exists == true AND hittable == true AND enabled == true")
           expectation(for: ready, evaluatedWith: cell)
-          waitForExpectations(timeout: 5)
+          waitForExpectations(timeout: uiReadinessTimeout)
           cell.tap()
           let choice = app.sheets.buttons.matching(identifier: "sticker.\(color.lowercased())")
             .firstMatch
           expectation(for: ready, evaluatedWith: choice)
-          waitForExpectations(timeout: 5)
+          waitForExpectations(timeout: uiReadinessTimeout)
           choice.tap()
           expectation(
             for: NSPredicate(format: "label CONTAINS %@ AND enabled == true", color),
             evaluatedWith: cell)
-          waitForExpectations(timeout: 5)
+          waitForExpectations(timeout: uiReadinessTimeout)
         }
       }
       tapReady(app.buttons["face.done"])
@@ -385,17 +388,17 @@ final class FoundationUITests: XCTestCase {
           let cell = app.buttons["cell.\(face).\(row).\(column)"]
           let ready = NSPredicate(format: "exists == true AND hittable == true AND enabled == true")
           expectation(for: ready, evaluatedWith: cell)
-          waitForExpectations(timeout: 5)
+          waitForExpectations(timeout: uiReadinessTimeout)
           cell.tap()
           let choice = app.sheets.buttons.matching(identifier: "sticker.\(color.lowercased())")
             .firstMatch
           expectation(for: ready, evaluatedWith: choice)
-          waitForExpectations(timeout: 5)
+          waitForExpectations(timeout: uiReadinessTimeout)
           choice.tap()
           expectation(
             for: NSPredicate(format: "label CONTAINS %@ AND enabled == true", color),
             evaluatedWith: cell)
-          waitForExpectations(timeout: 5)
+          waitForExpectations(timeout: uiReadinessTimeout)
         }
       }
       tapReady(app.buttons["face.done"])
@@ -474,18 +477,8 @@ final class FoundationUITests: XCTestCase {
     let ready = XCTNSPredicateExpectation(
       predicate: NSPredicate(format: "exists == true AND hittable == true AND enabled == true"),
       object: element)
-    let result = XCTWaiter.wait(for: [ready], timeout: 5)
-    if result != .completed {
-      let app = XCUIApplication()
-      let screenshot = XCTAttachment(screenshot: app.screenshot())
-      screenshot.name = "Unavailable control screenshot"
-      screenshot.lifetime = .keepAlways
-      add(screenshot)
-      let hierarchy = XCTAttachment(string: app.debugDescription)
-      hierarchy.name = "Unavailable control accessibility hierarchy"
-      hierarchy.lifetime = .keepAlways
-      add(hierarchy)
-    }
+    let result = XCTWaiter.wait(for: [ready], timeout: uiReadinessTimeout)
+    if result != .completed { attachUnavailableControl(XCUIApplication()) }
     XCTAssertEqual(result, .completed, "Control must exist, be hittable and enabled: \(element)")
     guard result == .completed else { return }
     element.tap()

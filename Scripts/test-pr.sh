@@ -1,6 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 cd "$(dirname "$0")/.."
+# Require an explicit installed simulator before the long host stages; never substitute one.
+: "${SIMULATOR_UDID:?Set SIMULATOR_UDID to an installed qualification simulator}"
 export ARTIFACT_DIR=${ARTIFACT_DIR:-Artifacts/pr-$(date +%Y%m%d-%H%M%S)}
 mkdir -p "$ARTIFACT_DIR"
 xcodebuild -version > "$ARTIFACT_DIR/toolchain.txt"
@@ -13,15 +15,16 @@ files={name:hashlib.sha256(pathlib.Path(name).read_bytes()).hexdigest() for name
 json.dump({'head':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
            'status':subprocess.check_output(['git','status','--porcelain'],text=True),'files':files},open(sys.argv[1],'w'),indent=2)
 PY_SOURCES
-Scripts/run-logged.sh "$ARTIFACT_DIR/infrastructure.log" python3 -m unittest discover -s Tests/Infrastructure -v
-Scripts/run-logged.sh "$ARTIFACT_DIR/table-oracle-tests.log" python3 -m unittest discover -s Tools/TableValidator -v
-Scripts/run-logged.sh "$ARTIFACT_DIR/corpus-tests.log" python3 -m unittest discover -s Tools/Corpus -v
-Scripts/run-logged.sh "$ARTIFACT_DIR/reference-tests.log" python3 -m unittest discover -s Tools/ReferenceSolver -v
-Scripts/test-package.sh
-Scripts/test-storage-crashes.sh
-Scripts/test-solver.sh
-# Require an explicit installed simulator; never substitute a different OS silently.
-: "${SIMULATOR_UDID:?Set SIMULATOR_UDID to an installed qualification simulator}"
+# CI runs the host stages in a separate job; local and qualification runs keep them all.
+if [ "${CUBEGUIDE_APP_STAGE_ONLY:-0}" != 1 ]; then
+  Scripts/run-logged.sh "$ARTIFACT_DIR/infrastructure.log" python3 -m unittest discover -s Tests/Infrastructure -v
+  Scripts/run-logged.sh "$ARTIFACT_DIR/table-oracle-tests.log" python3 -m unittest discover -s Tools/TableValidator -v
+  Scripts/run-logged.sh "$ARTIFACT_DIR/corpus-tests.log" python3 -m unittest discover -s Tools/Corpus -v
+  Scripts/run-logged.sh "$ARTIFACT_DIR/reference-tests.log" python3 -m unittest discover -s Tools/ReferenceSolver -v
+  Scripts/test-package.sh
+  Scripts/test-storage-crashes.sh
+  Scripts/test-solver.sh
+fi
 xcrun simctl list devices available -j > "$ARTIFACT_DIR/simulators.json"
 python3 - "$SIMULATOR_UDID" "$ARTIFACT_DIR/simulators.json" <<'PY'
 import json,sys

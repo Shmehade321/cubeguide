@@ -281,7 +281,10 @@ public final class SessionController {
       return send(.confirmScanVerified)
     }
 
-    session = Session(reviewingScanRevision: revision - 1)
+    session = Session(
+      reviewingScan: ManualDraft(
+        acceptedScan: faces, palette: classification.palette, revision: revision - 1),
+      revision: revision - 1)
     let validated = send(.validate(cube.facelets))
     guard validated == .accepted else { return validated }
     if session.phase == .alreadySolved { return send(.confirmScanVerified) }
@@ -353,7 +356,11 @@ public final class SessionController {
       guard scanStart == token, generation == expectedGeneration, !Task.isCancelled else {
         return .ignored
       }
-      guard restored.pendingScan == nil else { throw SessionStoreError.conflictingRecords }
+      // No scan workflow is open here, so a retained scan record was already accepted and left.
+      // Only a confirmed new-cube replacement may supersede it; never overwrite it silently.
+      if restored.pendingScan != nil, !(purpose == .newCube && replacing) {
+        throw SessionStoreError.conflictingRecords
+      }
       if purpose == .verification, restored.session.guideProgress?.isComplete != true {
         throw SessionStoreError.conflictingRecords
       }

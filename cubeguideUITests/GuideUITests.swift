@@ -39,8 +39,8 @@ final class GuideUITests: XCTestCase {
     for visible in [false, true] {
       tap(app.buttons["home.settings"])
       let control = app.switches["settings.labels"]
-      let ready = NSPredicate(format: "exists == true AND hittable == true AND enabled == true")
-      XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: ready, object: control)], timeout: 10), .completed)
+      // The switch is tapped by coordinate, so wait until the sheet has stopped moving it.
+      XCTAssertTrue(control.waitUntilSettled(), "Labels switch must settle: \(control)")
       let wanted = visible ? "1" : "0"
       if control.value as? String != wanted {
         control.coordinate(withNormalizedOffset: CGVector(dx: 0.92, dy: 0.5)).tap()
