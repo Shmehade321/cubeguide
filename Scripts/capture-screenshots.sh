@@ -37,7 +37,9 @@ capture() {
   mkdir -p "$dir"
   xcrun simctl boot "$udid" 2>/dev/null || true
   if ! xcrun simctl bootstatus "$udid" -b; then
-    echo "Simulator $udid did not boot for $slot"; return 1
+    echo "Simulator $udid did not boot for $slot"
+    xcrun simctl shutdown "$udid" 2>/dev/null || true
+    return 1
   fi
   if ! xcodebuild -project cubeguide.xcodeproj -scheme CubeGuideScreenshots \
     -destination "platform=iOS Simulator,id=$udid" \

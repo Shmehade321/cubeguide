@@ -4,6 +4,9 @@ on:
   push:
     branches: [main, 'codex/**']
   workflow_dispatch:
+# Jobs only read the repository; artifact upload uses the runtime token.
+permissions:
+  contents: read
 # A newer push supersedes an older run of the same PR or branch.
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -107,4 +110,4 @@ jobs:
         with:
           name: app-evidence
           path: Artifacts/
-          if-no-files-found: warn
+          if-no-files-found: error
