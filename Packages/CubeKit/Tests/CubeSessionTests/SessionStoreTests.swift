@@ -190,7 +190,7 @@ func storeDeleteDuringWrite() async throws {
     if boundary == .beforeReplace {
       entered.signal()
       // Bounded: this blocks a cooperative thread, so a lost signal must fail rather than hang.
-      _ = release.wait(timeout: .now() + 30)
+      guard release.wait(timeout: .now() + 30) == .success else { throw CancellationError() }
     }
   }
   let request = try #require(try preparingSession().pendingSave)

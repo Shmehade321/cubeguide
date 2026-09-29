@@ -72,7 +72,7 @@ PY
     h=$(sips -g pixelHeight "$png" | tail -1 | awk '{print $2}')
     echo "$slot $shot: ${w}x${h} (expect ${width}x${height})"
     if [ "$w" != "$width" ] || [ "$h" != "$height" ]; then failures=1; continue; fi
-    cp "$png" "$dir/$shot-$slot.png"
+    if ! cp "$png" "$dir/$shot-$slot.png"; then echo "Could not copy $shot on $slot"; failures=1; fi
   done
   xcrun simctl shutdown "$udid" 2>/dev/null || true
   return $failures

@@ -61,19 +61,17 @@ jobs:
           if-no-files-found: error
   app:
     name: App and UI tests (iOS 18.5 simulator)
-    runs-on: macos-15
-    timeout-minutes: 120
+    # Set the repository variable CUBEGUIDE_APP_RUNNER to a runner label that provides Xcode 27
+    # and the iOS 18.5 runtime. Until then this job fails, naming what is missing.
+    runs-on: ${{ vars.CUBEGUIDE_APP_RUNNER || 'macos-15' }}
+    timeout-minutes: 90
+    env:
+      CUBEGUIDE_APP_STAGE_ONLY: 1
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '11'
       - name: Select Xcode 27 or later
         # cubeguide.xcodeproj uses the Xcode 27 project format (objectVersion 110). Fail with the
         # reason instead of letting an older xcodebuild fail late or substituting a toolchain.
@@ -88,8 +86,6 @@ jobs:
           sudo xcode-select -s "$xcode/Contents/Developer"
           xcodebuild -version
           swift --version
-      - name: Install pinned test-only oracle dependency
-        run: python3 -m pip install -r Tools/TableValidator/requirements.txt
       - name: Record available simulators
         run: xcrun simctl list devices available
       - name: Resolve required minimum-family runtime
@@ -103,7 +99,7 @@ jobs:
           with open(os.environ['GITHUB_ENV'],'a') as f:
               f.write('SIMULATOR_UDID='+candidates[0]['udid']+'\n')
           PY
-      - name: Run current implemented regression suite
+      - name: Run the app and UI test plan (host stages run in the package job)
         run: Scripts/test-pr.sh
       - name: Retain results on success or failure
         if: always()

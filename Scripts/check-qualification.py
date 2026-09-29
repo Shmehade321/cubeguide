@@ -112,6 +112,19 @@ def candidate_commit(rows, head, changed_since):
     return commit, []
 
 
+def changed_paths(root, commit):
+    """Paths changed from `commit` to HEAD, or None when `commit` is not an ancestor of HEAD."""
+    ancestor = subprocess.run(['git', 'merge-base', '--is-ancestor', commit, 'HEAD'],
+                              cwd=root, capture_output=True)
+    if ancestor.returncode != 0:
+        return None
+    # Without rename detection a moved source file reports both paths; NUL-separated output
+    # keeps paths with spaces intact.
+    output = subprocess.check_output(
+        ['git', 'diff', '--no-renames', '--name-only', '-z', commit, 'HEAD'], cwd=root)
+    return [path.decode() for path in output.split(b'\0') if path]
+
+
 def validate(rows, required, commit, root, tier='release'):
     errors, seen = [], set()
     root = root.resolve()
@@ -155,19 +168,12 @@ if __name__ == '__main__':
     document = json.loads(evidence.read_text())
     if document.get('schemaVersion') != 1 or document.get('tier') != ledger_tier:
         sys.exit('Evidence ledger schema or tier is invalid')
+    # Only the archive-evidenced rows are set aside before archiving; unknown IDs still fail.
     rows = [row for row in document.get('requirements', [])
-            if not isinstance(row, dict) or row.get('requirementID') in required
-            or tier != 'release-pre-archive']
+            if tier != 'release-pre-archive' or not isinstance(row, dict)
+            or row.get('requirementID') not in ARCHIVE_REQUIREMENTS]
 
-    def changed_since(commit):
-        ancestor = subprocess.run(['git', 'merge-base', '--is-ancestor', commit, 'HEAD'],
-                                  cwd=root, capture_output=True)
-        if ancestor.returncode != 0:
-            return None
-        return subprocess.check_output(['git', 'diff', '--name-only', commit, 'HEAD'],
-                                       cwd=root, text=True).split()
-
-    commit, errors = candidate_commit(rows, head, changed_since)
+    commit, errors = candidate_commit(rows, head, lambda commit: changed_paths(root, commit))
     if commit is not None:
         errors = validate(rows, required, commit, root, tier)
     if errors:
