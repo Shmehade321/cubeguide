@@ -79,15 +79,7 @@ private struct StaticDraftCube: View {
     let scale = min(size.width / 6.5, size.height / 5.8)
     for placement in CubeGeometry.stickers.prefix(27) {
       guard let source = sourceSticker(for: placement) else { continue }
-      let normal: SIMD3<Float> = StaticCubeDrawing.vector(CubeGeometry.axis(for: placement.normal))
-      let top: SIMD3<Float> = StaticCubeDrawing.vector(CubeGeometry.axis(for: placement.top))
-      let right: SIMD3<Float> = simd_cross(top, normal) * 0.46
-      let up: SIMD3<Float> = top * 0.46
-      let center: SIMD3<Float> = StaticCubeDrawing.vector(placement.position) + normal * 0.5
-      let corners: [SIMD3<Float>] = [
-        center - right + up, center + right + up, center + right - up, center - right - up,
-      ]
-      let points: [CGPoint] = corners.map { corner in
+      let points: [CGPoint] = StaticCubeDrawing.corners(of: placement).map { corner in
         let projected = StaticCubeDrawing.project(corner)
         return CGPoint(
           x: size.width / 2 + projected.x * scale, y: size.height / 2 + projected.y * scale)

@@ -412,6 +412,22 @@ struct ScanFlowView: View {
     }
   }
 
+  private func stickerLabel(
+    _ face: Face, index: Int, sticker: ClassifiedSticker?, flagged: Bool
+  ) -> String {
+    let color = sticker?.color.title ?? "unknown"
+    let state: String
+    if index == 4 {
+      state = "center"
+    } else if sticker?.source == .manual {
+      state = "confirmed"
+    } else {
+      state = "needs review"
+    }
+    let check = flagged ? ", check this sticker" : ""
+    return "\(face.title) face, row \(index / 3 + 1), column \(index % 3 + 1), \(color), \(state)\(check)"
+  }
+
   /// Stickers related to the current legality diagnostic; a mark is not a guessed repair.
   private func relatedCells(_ classification: ScanClassification?) -> Set<Int> {
     guard controller.scanValidationIssues != nil,
@@ -453,11 +469,7 @@ struct ScanFlowView: View {
           }
           .buttonStyle(.bordered)
           .disabled(index == 4)
-          .accessibilityLabel(
-            "\(face.title) face, row \(index / 3 + 1), column \(index % 3 + 1), \(sticker?.color.title ?? "unknown")"
-              + (index == 4
-                ? ", center" : sticker?.source == .manual ? ", confirmed" : ", needs review")
-              + (flagged ? ", check this sticker" : ""))
+          .accessibilityLabel(stickerLabel(face, index: index, sticker: sticker, flagged: flagged))
           .accessibilityIdentifier("scan.sticker.\(face.code).\(index)")
         }
       }
@@ -473,44 +485,53 @@ private struct CropEditor: View {
   @Binding var corners: [CGPoint]
   let commit: () -> Void
 
+  // The editor is composed from separate functions so Swift 6.2 can type-check each part.
   var body: some View {
-    GeometryReader { proxy in
-      let rect = fittedRect(in: proxy.size)
-      ZStack(alignment: .topLeading) {
-        Image(uiImage: image).resizable().scaledToFit()
-          .frame(width: proxy.size.width, height: proxy.size.height)
-        Path { path in
-          guard corners.count == 4 else { return }
-          path.move(to: point(corners[0], in: rect))
-          for corner in corners.dropFirst() { path.addLine(to: point(corner, in: rect)) }
-          path.closeSubpath()
-        }
-        .stroke(.yellow, style: StrokeStyle(lineWidth: 3, lineJoin: .round))
-        ForEach(corners.indices, id: \.self) { index in
-          let location = point(corners[index], in: rect)
-          // Hit area and gesture precede .position, which expands to the whole editor; drag
-          // locations are read in the editor's space, where `rect` is measured.
-          Circle().fill(.yellow).overlay(Circle().stroke(.black, lineWidth: 2))
-            .frame(width: 34, height: 34)
-            .contentShape(Rectangle().inset(by: -10))
-            .gesture(
-              DragGesture(minimumDistance: 0, coordinateSpace: .named(Self.space))
-                .onChanged { value in
-                  corners[index] = normalized(value.location, in: rect)
-                }
-                .onEnded { _ in commit() })
-            .accessibilityLabel("\(cornerName(index)) crop corner")
-            .accessibilityHint("Drag to the matching corner of the cube face")
-            .accessibilityAction(named: "Move left") { moveCorner(index, dx: -0.02, dy: 0) }
-            .accessibilityAction(named: "Move right") { moveCorner(index, dx: 0.02, dy: 0) }
-            .accessibilityAction(named: "Move up") { moveCorner(index, dx: 0, dy: -0.02) }
-            .accessibilityAction(named: "Move down") { moveCorner(index, dx: 0, dy: 0.02) }
-            .position(location)
-        }
-      }
-      .coordinateSpace(.named(Self.space))
-      .clipShape(RoundedRectangle(cornerRadius: 16))
+    GeometryReader { proxy in editor(in: proxy.size) }
+  }
+
+  private func editor(in size: CGSize) -> some View {
+    let rect = fittedRect(in: size)
+    return ZStack(alignment: .topLeading) {
+      Image(uiImage: image).resizable().scaledToFit()
+        .frame(width: size.width, height: size.height)
+      outline(in: rect)
+      ForEach(corners.indices, id: \.self) { index in handle(index, in: rect) }
     }
+    .coordinateSpace(.named(Self.space))
+    .clipShape(RoundedRectangle(cornerRadius: 16))
+  }
+
+  private func outline(in rect: CGRect) -> some View {
+    Path { path in
+      guard corners.count == 4 else { return }
+      path.move(to: point(corners[0], in: rect))
+      for corner in corners.dropFirst() { path.addLine(to: point(corner, in: rect)) }
+      path.closeSubpath()
+    }
+    .stroke(.yellow, style: StrokeStyle(lineWidth: 3, lineJoin: .round))
+  }
+
+  private func handle(_ index: Int, in rect: CGRect) -> some View {
+    // Hit area and gesture precede .position, which expands to the whole editor; drag
+    // locations are read in the editor's space, where `rect` is measured.
+    Circle().fill(.yellow).overlay(Circle().stroke(.black, lineWidth: 2))
+      .frame(width: 34, height: 34)
+      .contentShape(Rectangle().inset(by: -10))
+      .gesture(drag(index, in: rect))
+      .accessibilityLabel("\(cornerName(index)) crop corner")
+      .accessibilityHint("Drag to the matching corner of the cube face")
+      .accessibilityAction(named: "Move left") { moveCorner(index, dx: -0.02, dy: 0) }
+      .accessibilityAction(named: "Move right") { moveCorner(index, dx: 0.02, dy: 0) }
+      .accessibilityAction(named: "Move up") { moveCorner(index, dx: 0, dy: -0.02) }
+      .accessibilityAction(named: "Move down") { moveCorner(index, dx: 0, dy: 0.02) }
+      .position(point(corners[index], in: rect))
+  }
+
+  private func drag(_ index: Int, in rect: CGRect) -> some Gesture {
+    DragGesture(minimumDistance: 0, coordinateSpace: .named(Self.space))
+      .onChanged { value in corners[index] = normalized(value.location, in: rect) }
+      .onEnded { _ in commit() }
   }
 
   private func fittedRect(in available: CGSize) -> CGRect {

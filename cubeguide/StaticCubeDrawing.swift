@@ -15,17 +15,22 @@ struct StaticCubeDrawing {
   init(state: Facelets, pose: CubeOrientation, palette: CenterPalette) {
     let viewed = pose.viewing(state)
     stickers = CubeGeometry.stickers.prefix(27).map { placement in
-      let normal = Self.vector(CubeGeometry.axis(for: placement.normal))
-      let top = Self.vector(CubeGeometry.axis(for: placement.top))
-      let right = simd_cross(top, normal)
-      let center = Self.vector(placement.position) + normal * 0.5
-      let corners = [center - right * 0.46 + top * 0.46,
-        center + right * 0.46 + top * 0.46,
-        center + right * 0.46 - top * 0.46,
-        center - right * 0.46 - top * 0.46]
-      return StaticCubeSticker(index: placement.index,
-        color: palette.colors[Int(viewed[placement.index].rawValue)], corners: corners)
+      StaticCubeSticker(
+        index: placement.index,
+        color: palette.colors[Int(viewed[placement.index].rawValue)],
+        corners: Self.corners(of: placement))
     }
+  }
+
+  /// A sticker's outline: its cubie face inset to 92%, with explicit types so Swift 6.2 can
+  /// type-check it in reasonable time.
+  static func corners(of placement: CubeStickerPlacement) -> [SIMD3<Float>] {
+    let normal: SIMD3<Float> = vector(CubeGeometry.axis(for: placement.normal))
+    let top: SIMD3<Float> = vector(CubeGeometry.axis(for: placement.top))
+    let right: SIMD3<Float> = simd_cross(top, normal) * 0.46
+    let up: SIMD3<Float> = top * 0.46
+    let center: SIMD3<Float> = vector(placement.position) + normal * 0.5
+    return [center - right + up, center + right + up, center + right - up, center - right - up]
   }
 
   static func project(_ point: SIMD3<Float>) -> CGPoint {
