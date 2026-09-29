@@ -261,7 +261,11 @@ private final class CameraSessionWorker: CameraSessionControlling, @unchecked Se
     session.addInput(input)
     session.addOutput(output)
     output.maxPhotoQualityPrioritization = .quality
-    try device.lockForConfiguration()
+    // The input and output are attached now, so this session is configured even if the optional
+    // focus/exposure preferences cannot be applied; failing here would leave a half-configured
+    // session that rejects every later attempt to add the same input.
+    configured = true
+    guard (try? device.lockForConfiguration()) != nil else { return }
     defer { device.unlockForConfiguration() }
     if device.isFocusModeSupported(.continuousAutoFocus) {
       device.focusMode = .continuousAutoFocus
@@ -270,7 +274,6 @@ private final class CameraSessionWorker: CameraSessionControlling, @unchecked Se
       device.exposureMode = .continuousAutoExposure
     }
     device.isSubjectAreaChangeMonitoringEnabled = true
-    configured = true
   }
 }
 

@@ -1,6 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 cd "$(dirname "$0")/.."
+# Require an explicit installed simulator before the long host stages; never substitute one.
+: "${SIMULATOR_UDID:?Set SIMULATOR_UDID to an installed qualification simulator}"
 export ARTIFACT_DIR=${ARTIFACT_DIR:-Artifacts/pr-$(date +%Y%m%d-%H%M%S)}
 mkdir -p "$ARTIFACT_DIR"
 xcodebuild -version > "$ARTIFACT_DIR/toolchain.txt"
@@ -20,8 +22,6 @@ Scripts/run-logged.sh "$ARTIFACT_DIR/reference-tests.log" python3 -m unittest di
 Scripts/test-package.sh
 Scripts/test-storage-crashes.sh
 Scripts/test-solver.sh
-# Require an explicit installed simulator; never substitute a different OS silently.
-: "${SIMULATOR_UDID:?Set SIMULATOR_UDID to an installed qualification simulator}"
 xcrun simctl list devices available -j > "$ARTIFACT_DIR/simulators.json"
 python3 - "$SIMULATOR_UDID" "$ARTIFACT_DIR/simulators.json" <<'PY'
 import json,sys
