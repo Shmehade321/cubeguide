@@ -154,3 +154,27 @@ func editAcceptedScanAfterDeclining() async throws {
   #expect(controller.session.phase == .editing)
   #expect(try controller.session.draft?.canonicalFacelets() == state)
 }
+
+@MainActor
+@Test("R02/S01: a declined accepted scan can be replaced by a new scan only after confirmation")
+func replaceDeclinedAcceptedScan() async throws {
+  let state = Facelets.solved.applying([Move(face: .front, turns: .clockwise)])
+  let store = SessionStore()
+  let scan = try acceptedScan(state)
+  try await store.saveScanDraft(scan, lease: store.currentLease())
+  let controller = SessionController(
+    storage: store, solver: SolverService(), camera: RecordingScanCamera())
+  await controller.load()
+  #expect(
+    controller.acceptReviewedScan(
+      try scan.draft.classify(using: acceptancePolicy), confirmed: true) == .accepted)
+  #expect(controller.send(.consent(false)) == .accepted && controller.session.hasWork)
+  #expect(
+    await controller.startScan(purpose: .newCube) == .rejected(.replacementRequired))
+  #expect(await controller.startScan(purpose: .newCube, replacing: true) == .accepted)
+  await controller.waitForEffects()
+  #expect(controller.lastError == nil && controller.scanWorkflow?.phase == .scanning)
+  let replacement = try #require(controller.pendingScan)
+  #expect(replacement.draft.acceptedCount == 0 && replacement.draft.revision > scan.draft.revision)
+  #expect(try await store.restore().pendingScan == replacement)
+}
