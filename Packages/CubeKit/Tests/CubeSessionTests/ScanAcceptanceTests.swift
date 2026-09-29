@@ -107,3 +107,50 @@ func acceptScrambledScan() async throws {
   #expect(controller.session.phase == .guide && controller.session.plan?.original == state)
   #expect(try await store.restore().pendingScan == nil)
 }
+
+@MainActor
+@Test("R03/R05: editing an accepted scan keeps every reviewed color instead of restarting entry")
+func editAcceptedScanKeepsReviewedColors() async throws {
+  let state = Facelets.solved.applying([Move(face: .right, turns: .clockwise)])
+  let store = SessionStore()
+  let scan = try acceptedScan(state)
+  try await store.saveScanDraft(scan, lease: store.currentLease())
+  let controller = SessionController(storage: store, solver: SolverService())
+  await controller.load()
+  #expect(
+    controller.acceptReviewedScan(
+      try scan.draft.classify(using: acceptancePolicy), confirmed: true) == .accepted)
+  #expect(controller.session.phase == .offer)
+  #expect(controller.send(.edit) == .accepted)
+  await controller.waitForEffects()
+  #expect(controller.session.phase == .editing)
+  let draft = try #require(controller.session.draft)
+  #expect(draft.missingCount == 0 && draft.palette == acceptancePalette)
+  #expect(try draft.canonicalFacelets() == state)
+  #expect(controller.session.durableDraft == draft && controller.palette == acceptancePalette)
+  // The reviewed colors, not the superseded scan measurements, are what a relaunch resumes.
+  let restored = try await store.restore()
+  #expect(restored.pendingScan == nil)
+  #expect(try restored.session.draft?.canonicalFacelets() == state)
+  #expect(controller.send(.validateDraft) == .accepted && controller.session.phase == .offer)
+}
+
+@MainActor
+@Test("R03: a declined accepted scan can still be edited with its reviewed colors after Home")
+func editAcceptedScanAfterDeclining() async throws {
+  let state = Facelets.solved.applying([Move(face: .up, turns: .half)])
+  let store = SessionStore()
+  let scan = try acceptedScan(state)
+  try await store.saveScanDraft(scan, lease: store.currentLease())
+  let controller = SessionController(storage: store, solver: SolverService())
+  await controller.load()
+  #expect(
+    controller.acceptReviewedScan(
+      try scan.draft.classify(using: acceptancePolicy), confirmed: true) == .accepted)
+  #expect(controller.send(.consent(false)) == .accepted && controller.session.phase == .home)
+  #expect(controller.send(.resume) == .accepted && controller.session.phase == .offer)
+  #expect(controller.send(.edit) == .accepted)
+  await controller.waitForEffects()
+  #expect(controller.session.phase == .editing)
+  #expect(try controller.session.draft?.canonicalFacelets() == state)
+}

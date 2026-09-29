@@ -74,6 +74,8 @@ public struct Session: Equatable, Sendable {
   public fileprivate(set) var pendingDeletion: DeletionID?
   public fileprivate(set) var draft: ManualDraft?
   public fileprivate(set) var durableDraft: ManualDraft?
+  /// Accepted scan colors that become an editable draft only if the user chooses to edit.
+  fileprivate var reviewedScan: ManualDraft?
   public fileprivate(set) var pendingDraftSave: DraftSaveRequest?
   fileprivate var exitAfterDraftSave = false
   public fileprivate(set) var confirmedCube: LegalCube?
@@ -93,10 +95,11 @@ public struct Session: Equatable, Sendable {
   fileprivate var interruptedSave = false
   fileprivate var failedSaveKind: GuideSaveKind?
   public init(revision: UInt64 = 0) { self.revision = revision }
-  init(reviewingScanRevision revision: UInt64) {
+  init(reviewingScan colors: ManualDraft, revision: UInt64) {
     self.init(revision: revision)
     phase = .editing
     hasWork = true
+    reviewedScan = colors
   }
   init(rebasingCompleted source: Session, to revision: UInt64) throws {
     guard revision > source.latestInputRevision, let progress = source.guideProgress,
@@ -579,6 +582,12 @@ public enum SessionReducer {
       next.guideProgress = nil
       next.solveFailure = nil
       next.usedExtendedAttempt = false
+      if session.draft == nil, let reviewed = session.reviewedScan {
+        // Correcting an accepted scan starts from its reviewed colors, saved before editing.
+        next.reviewedScan = nil
+        next.draft = reviewed.rebased(to: next.revision)
+        beginDraftSave()
+      }
     case .resume:
       guard session.phase == .home, session.hasWork else { return rejected() }
       if session.completion != nil {

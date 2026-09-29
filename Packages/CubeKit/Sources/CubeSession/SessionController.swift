@@ -281,7 +281,10 @@ public final class SessionController {
       return send(.confirmScanVerified)
     }
 
-    session = Session(reviewingScanRevision: revision - 1)
+    session = Session(
+      reviewingScan: ManualDraft(
+        acceptedScan: faces, palette: classification.palette, revision: revision - 1),
+      revision: revision - 1)
     let validated = send(.validate(cube.facelets))
     guard validated == .accepted else { return validated }
     if session.phase == .alreadySolved { return send(.confirmScanVerified) }
