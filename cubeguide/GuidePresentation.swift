@@ -200,6 +200,8 @@ final class GuidePresentation: GuidePlayback {
   }
   func stop() {
     narrationGeneration &+= 1
+    // Stopping returns the preview to its before-state, so the next play narrates again.
+    animationStartedForAction = nil
     narration.stop()
     player?.stop()
     staticPlayer?.stop()

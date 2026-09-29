@@ -1,4 +1,5 @@
 import CubeCore
+import CubeScan
 import SwiftUI
 
 enum HelpDiagramModel {
@@ -17,7 +18,8 @@ struct CaptureSequenceIllustration: View {
     VStack(alignment: .leading, spacing: 10) {
       Text("Six faces, one unchanged cube").font(.headline)
       LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 8) {
-        ForEach(Array(Face.allCases.enumerated()), id: \.element.rawValue) { index, face in
+        ForEach(Array(ScanDraft.captureOrder.enumerated()), id: \.element.rawValue) {
+          index, face in
           VStack(spacing: 4) {
             RoundedRectangle(cornerRadius: 6)
               .fill(.tint.opacity(0.16))

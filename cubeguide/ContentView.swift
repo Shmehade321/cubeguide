@@ -1,3 +1,4 @@
+import Combine
 import CubeCore
 import CubeScan
 import CubeSession
@@ -20,6 +21,7 @@ struct ContentView: View {
   @State private var showingSettings = false
   @State private var showingScanIntroduction = false
   @State private var discardingScan = false
+  @State private var thermalNotice = false
   @Environment(\.accessibilityDifferentiateWithoutColor) private var differentiate
   @Environment(\.scenePhase) private var scenePhase
 
@@ -47,6 +49,8 @@ struct ContentView: View {
           ProgressView("Opening saved cube…")
         } else if controller.loadStatus == .failed {
           failure("Couldn't open your saved cube") { Task { await controller.load() } }
+        } else if [.deleting, .deletionError].contains(controller.session.phase) {
+          sessionContent
         } else if controller.manualFallbackStatus == .saving {
           ProgressView("Saving manual entry…")
         } else if controller.manualFallbackStatus == .failed {
@@ -111,8 +115,10 @@ struct ContentView: View {
             Button("Home", action: goHome)
               .accessibilityIdentifier("editor.home")
               .disabled(
-                [.deleting, .deletionError, .manualStartError, .draftStorageError].contains(
-                  controller.session.phase))
+                [
+                  .deleting, .deletionError, .manualStartError, .draftStorageError,
+                  .completionStorageError, .recoveryStorageError,
+                ].contains(controller.session.phase))
           }
         }
       }
@@ -149,6 +155,13 @@ struct ContentView: View {
       } message: {
         Text("This removes your saved colors and guide and resets all preferences on this device.")
       }
+      .alert("Your iPhone is too warm", isPresented: $thermalNotice) {
+        Button("OK", role: .cancel) {}
+      } message: {
+        Text(
+          "Solving stopped so the iPhone can cool down. Your colors are saved. When it has cooled, tap Solve to try again."
+        )
+      }
     }
     .fullScreenCover(isPresented: $showingPractice) {
       PracticeView(preferences: controller.preferences)
@@ -172,19 +185,32 @@ struct ContentView: View {
     }
     .onChange(of: controller.scanWorkflow?.phase) { _, _ in updateIdleTimer() }
     .onChange(of: controller.session.preview) { _, _ in updateIdleTimer() }
-    .onReceive(NotificationCenter.default.publisher(for: ProcessInfo.thermalStateDidChangeNotification)) {
-      _ in
+    .onChange(of: controller.session.phase) { old, new in
+      if old == .savingCompletion && new == .completed {
+        HapticFeedback.success(
+          enabled: controller.preferences.haptics,
+          effectsEnabled: controller.preferences.effects)
+      }
+    }
+    .onReceive(
+      NotificationCenter.default.publisher(for: ProcessInfo.thermalStateDidChangeNotification)
+        .receive(on: DispatchQueue.main)
+    ) { _ in
       guard [.serious, .critical].contains(ProcessInfo.processInfo.thermalState) else { return }
       if controller.scanWorkflow != nil {
         controller.sendScan(.interrupt(.thermal))
       } else {
+        let wasSolving = controller.session.phase == .solving
         controller.send(.background)
+        if wasSolving && controller.session.phase == .offer { thermalNotice = true }
       }
       updateIdleTimer()
     }
     .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) {
       _ in
-      if controller.scanWorkflow?.phase == .freezing {
+      if controller.scanWorkflow?.phase == .freezing,
+        UIDevice.current.orientation.isValidInterfaceOrientation
+      {
         controller.sendScan(.interrupt(.orientationChanged))
       }
     }
@@ -192,8 +218,8 @@ struct ContentView: View {
       _ in
       if controller.scanWorkflow != nil {
         controller.sendScan(.interrupt(.cameraUnavailable))
-      } else {
-        controller.send(.background)
+      } else if controller.session.preview == .playing {
+        controller.send(.pause)
       }
       updateIdleTimer()
     }
@@ -589,12 +615,8 @@ struct ContentView: View {
   }
 
   private func confirmCompletion() {
-    let result = controller.send(.confirmCompletion)
-    if result == .accepted {
-      HapticFeedback.success(
-        enabled: controller.preferences.haptics,
-        effectsEnabled: controller.preferences.effects)
-    } else {
+    // An ignored duplicate tap gets no feedback; success follows the durable save.
+    if case .rejected = controller.send(.confirmCompletion) {
       HapticFeedback.warning(
         enabled: controller.preferences.haptics,
         effectsEnabled: controller.preferences.effects)
@@ -612,7 +634,7 @@ struct ContentView: View {
     controller.send(.cancel)
     // Cancellation first preserves a safe resume/offer state. Exit that state without
     // acknowledging an action or granting physical alignment on a later resume.
-    if [.resumeCheck, .offer].contains(controller.session.phase) {
+    if [.resumeCheck, .offer, .expectedSolved].contains(controller.session.phase) {
       controller.send(.cancel)
     }
   }
