@@ -292,3 +292,34 @@ func unconfirmedCompletionMayLeaveHome() throws {
   #expect(resumed.session.phase == .expectedSolved)
   #expect(resumed.session.completion == nil)
 }
+
+@MainActor
+@Test(
+  "R15: starting another cube leaves a completed guide for Home first and keeps it until replaced")
+func completedGuideStartsAnotherFromHome() async throws {
+  let directory = try storeDirectory()
+  defer { try? FileManager.default.removeItem(at: directory) }
+  let store = SessionStore(directory: directory)
+  try await store.saveDraft(
+    try filledDraft(.solved, palette: archivePalette()), lease: store.currentLease())
+  let camera = RecordingScanCamera()
+  let controller = SessionController(
+    storage: store, solver: CubeSolver3.SolverService(), playback: RecordingPlayback(),
+    camera: camera)
+  await controller.load()
+  #expect(controller.send(.validateDraft) == .accepted)
+  #expect(controller.send(.confirmCompletion) == .accepted)
+  await controller.waitForEffects()
+  try #require(controller.session.phase == .completed)
+  // New input never starts over a visible result; the completion screen must go Home first.
+  #expect(
+    await controller.startScan(purpose: .newCube, replacing: true) == .rejected(.unavailableEvent))
+  #expect(controller.send(.startManual(replacing: true)) == .rejected(.unavailableEvent))
+  #expect(controller.send(.cancel) == .accepted)
+  #expect(controller.session.phase == .home && controller.session.completion == .enteredColorsSolved)
+  #expect(await controller.startScan(purpose: .newCube, replacing: true) == .accepted)
+  await controller.waitForEffects()
+  #expect(controller.scanWorkflow != nil && camera.starts == [.front])
+  let restored = try await store.restore()
+  #expect(restored.session.completion == .enteredColorsSolved && restored.pendingScan != nil)
+}

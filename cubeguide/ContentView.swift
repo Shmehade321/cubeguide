@@ -123,6 +123,9 @@ struct ContentView: View {
       .alert("Replace your saved cube?", isPresented: $replacingWithScan) {
         Button("Keep current", role: .cancel) {}.accessibilityIdentifier("scanReplacement.keep")
         Button("Replace current", role: .destructive) {
+          // New input starts only from Home; leaving a completed guide there keeps it saved
+          // until the new scan or entry actually replaces it.
+          if controller.session.phase != .home { controller.send(.cancel) }
           showingScanIntroduction = true
         }
         .accessibilityIdentifier("scanReplacement.confirm")
@@ -405,8 +408,10 @@ struct ContentView: View {
           CTAButton("Enter colors again", identifier: "recovery.manual", kind: .primary) {
             replacingAfterRecovery = true
           }
-          CTAButton("Scan cube again", identifier: "recovery.scan", kind: .secondary) {
-            Task { await controller.startScan(purpose: .recovery) }
+          if canScan {
+            CTAButton("Scan cube again", identifier: "recovery.scan", kind: .secondary) {
+              Task { await controller.startScan(purpose: .recovery) }
+            }
           }
           CTAButton("Keep guide and compare again", identifier: "recovery.keep", kind: .secondary) {
             controller.send(.cancel)
@@ -441,8 +446,10 @@ struct ContentView: View {
             "Yes, my cube is solved", identifier: "completion.confirmPhysical", kind: .primary,
             action: confirmCompletion
           )
-          CTAButton("Check with camera", identifier: "completion.scan", kind: .secondary) {
-            Task { await controller.startScan(purpose: .verification) }
+          if canScan {
+            CTAButton("Check with camera", identifier: "completion.scan", kind: .secondary) {
+              Task { await controller.startScan(purpose: .verification) }
+            }
           }
           CTAButton("Still different", identifier: "completion.mismatch", kind: .secondary) {
             controller.send(.mismatch)
@@ -461,7 +468,7 @@ struct ContentView: View {
             Text(completionTitle)
           }
           .font(.title3.bold())
-          if controller.session.completion != .scanVerified {
+          if canScan && controller.session.completion != .scanVerified {
             CTAButton("Check with camera", identifier: "completion.scan", kind: .secondary) {
               Task { await controller.startScan(purpose: .verification) }
             }
@@ -469,10 +476,13 @@ struct ContentView: View {
           CTAButton("Home", identifier: "completion.home", kind: .secondary) {
             controller.send(.cancel)
           }
-          CTAButton(
-            "Start another", symbol: "plus", identifier: "completion.startAnother", kind: .primary
-          ) {
-            replacingWithScan = true
+          if canScan {
+            CTAButton(
+              "Start another", symbol: "plus", identifier: "completion.startAnother",
+              kind: .primary
+            ) {
+              replacingWithScan = true
+            }
           }
         }.card()
       }
@@ -500,6 +510,9 @@ struct ContentView: View {
           differentiateWithoutColor: differentiate))
     }
   }
+
+  /// Practice and test hosts have no camera; never offer an action that cannot start.
+  private var canScan: Bool { camera != nil }
 
   private func openHelp() {
     controller.pauseForAuxiliaryNavigation()
