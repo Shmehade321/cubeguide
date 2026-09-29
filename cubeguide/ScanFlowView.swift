@@ -17,6 +17,7 @@ struct ScanFlowView: View {
   @State private var isReprocessing = false
   @State private var cropTask: Task<Void, Never>?
   @State private var previewTurns = 0
+  @State private var acceptError: String?
   @Environment(\.openURL) private var openURL
 
   private struct StickerCell: Hashable {
@@ -44,7 +45,16 @@ struct ScanFlowView: View {
             .foregroundStyle(.secondary)
           CameraPreview(session: camera.session)
             .frame(height: 360).clipShape(RoundedRectangle(cornerRadius: 16))
-            .overlay { viewfinderGrid.padding(42) }
+            .overlay {
+              GeometryReader { proxy in
+                let side = Self.gridSide(for: proxy.size)
+                viewfinderGrid
+                  .frame(width: side, height: side)
+                  .position(x: proxy.size.width / 2, y: proxy.size.height / 2)
+                  .onAppear { recordViewfinder(proxy.size) }
+                  .onChange(of: proxy.size) { _, size in recordViewfinder(size) }
+              }
+            }
             .accessibilityHidden(true)
           CTAButton(
             "Capture face", symbol: "camera.circle.fill", identifier: "scan.capture", kind: .primary
@@ -94,12 +104,29 @@ struct ScanFlowView: View {
           }
           .accessibilityIdentifier("scan.rotatePreview")
           CTAButton("Use this face", identifier: "scan.acceptFace", kind: .primary) {
-            controller.sendScan(.accept)
+            acceptError = nil
+            if case .rejected(let reason) = controller.sendScan(.accept) {
+              acceptError =
+                reason == .observation(.duplicateCenter)
+                ? "Another face already uses this center color. Choose this face's own center color, or recapture the other face."
+                : "This face couldn't be used. Check its center color, or retake it."
+              HapticFeedback.warning(
+                enabled: controller.preferences.haptics,
+                effectsEnabled: controller.preferences.effects)
+            }
           }
           .disabled(workflow?.review?.centerName == nil || isReprocessing)
+          if let acceptError {
+            Label(acceptError, systemImage: "exclamationmark.triangle")
+              .foregroundStyle(.orange)
+              .accessibilityIdentifier("scan.acceptError")
+          }
           CTAButton("Retake", identifier: "scan.retake", kind: .secondary) {
             controller.sendScan(.retake)
           }
+        case .saving where controller.pendingScan.map({ $0.draft.nextSlot == nil }) == true:
+          // A correction to the complete scan: keep the grid (and scroll position) in place.
+          editingReview(saving: true)
         case .saving:
           ProgressView("Saving scan…")
         case .storageError:
@@ -122,53 +149,13 @@ struct ScanFlowView: View {
             }
           }
         case .editing:
-          Text("Review all six faces").font(.title.bold())
-          Text(
-            "Automatic color confidence is not yet calibrated. Confirm every non-center sticker before accepting the scan."
-          )
-          let related = relatedCells
-          ForEach(ScanDraft.captureOrder, id: \.rawValue) { face in
-            scanFace(face, related: related)
-          }
-          if let classification {
-            let remaining = classification.stickers.filter(\.needsReview).count
-            Text(
-              remaining == 0
-                ? "All stickers have been reviewed." : "\(remaining) stickers still need review."
-            )
-            .foregroundStyle(remaining == 0 ? .green : .secondary)
-            CTAButton(
-              "Accept reviewed scan", identifier: "scan.acceptReviewed", kind: .primary
-            ) {
-              let result = controller.acceptReviewedScan(classification, confirmed: true)
-              if case .rejected = result {
-                HapticFeedback.warning(
-                  enabled: controller.preferences.haptics,
-                  effectsEnabled: controller.preferences.effects)
-              }
-            }
-            .disabled(remaining != 0)
-            if let issues = controller.scanValidationIssues {
-              VStack(alignment: .leading, spacing: 6) {
-                Label("These colors can't be a real cube", systemImage: "exclamationmark.triangle")
-                  .font(.headline)
-                ForEach(Array(issues.items.enumerated()), id: \.offset) { _, issue in
-                  Text(validationMessage(issue, palette: classification.palette))
-                }
-                Text(
-                  "Check the stickers marked Check and each face's orientation, or recapture a face. No colors were changed automatically."
-                )
-                .foregroundStyle(.secondary)
-              }
-              .frame(maxWidth: .infinity, alignment: .leading)
-              .accessibilityElement(children: .combine)
-              .accessibilityIdentifier("scan.validationIssues")
-            }
-          }
+          editingReview(saving: false)
         default:
           ProgressView("Preparing camera…")
         }
-        if controller.pendingScan != nil {
+        if controller.pendingScan != nil, workflow?.phase != .freezing,
+          workflow?.phase != .faceReview
+        {
           Button("Enter colors manually") {
             if let palette = controller.pendingScan?.draft.confirmedCenters {
               controller.switchScanToManual(confirmedCenters: palette, confirmed: true)
@@ -223,11 +210,29 @@ struct ScanFlowView: View {
     }
     .onChange(of: workflow?.review?.slot) { _, slot in
       guard slot != nil else { return }
-      cropCorners = CameraImageProcessor.defaultCorners().map { CGPoint(x: $0.x, y: $0.y) }
-      cropError = nil
-      previewTurns = 0
+      resetReview()
     }
+    .onAppear { if workflow?.review != nil { resetReview() } }
     .onDisappear { cropTask?.cancel() }
+  }
+
+  private static func gridSide(for size: CGSize) -> CGFloat {
+    max(1, min(size.width, size.height) - 84)
+  }
+
+  private func recordViewfinder(_ size: CGSize) {
+    camera.viewfinder = ViewfinderLayout(preview: size, gridSide: Self.gridSide(for: size))
+  }
+
+  private func resetReview() {
+    cropTask?.cancel()
+    cropTask = nil
+    isReprocessing = false
+    let corners = workflow?.review?.metadata.corners ?? CameraImageProcessor.defaultCorners()
+    cropCorners = corners.map { CGPoint(x: $0.x, y: $0.y) }
+    cropError = nil
+    acceptError = nil
+    previewTurns = 0
   }
 
   private var pauseExplanation: String {
@@ -359,6 +364,56 @@ struct ScanFlowView: View {
     return try? draft.classify(using: policy)
   }
 
+  @ViewBuilder
+  private func editingReview(saving: Bool) -> some View {
+    Text("Review all six faces").font(.title.bold())
+    Text(
+      "Automatic color confidence is not yet calibrated. Confirm every non-center sticker before accepting the scan."
+    )
+    let related = relatedCells
+    ForEach(ScanDraft.captureOrder, id: \.rawValue) { face in
+      scanFace(face, related: related).disabled(saving)
+    }
+    if saving {
+      ProgressView("Saving your correction…").frame(maxWidth: .infinity, alignment: .leading)
+    }
+    if let classification {
+      let remaining = classification.stickers.filter(\.needsReview).count
+      Text(
+        remaining == 0
+          ? "All stickers have been reviewed." : "\(remaining) stickers still need review."
+      )
+      .foregroundStyle(remaining == 0 ? .green : .secondary)
+      CTAButton(
+        "Accept reviewed scan", identifier: "scan.acceptReviewed", kind: .primary
+      ) {
+        let result = controller.acceptReviewedScan(classification, confirmed: true)
+        if case .rejected = result {
+          HapticFeedback.warning(
+            enabled: controller.preferences.haptics,
+            effectsEnabled: controller.preferences.effects)
+        }
+      }
+      .disabled(remaining != 0 || saving)
+      if let issues = controller.scanValidationIssues {
+        VStack(alignment: .leading, spacing: 6) {
+          Label("These colors can't be a real cube", systemImage: "exclamationmark.triangle")
+            .font(.headline)
+          ForEach(Array(issues.items.enumerated()), id: \.offset) { _, issue in
+            Text(validationMessage(issue, palette: classification.palette))
+          }
+          Text(
+            "Check the stickers marked Check and each face's orientation, or recapture a face. No colors were changed automatically."
+          )
+          .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("scan.validationIssues")
+      }
+    }
+  }
+
   /// Stickers related to the current legality diagnostic; a mark is not a guessed repair.
   private var relatedCells: Set<Int> {
     guard controller.scanValidationIssues != nil,
@@ -398,6 +453,11 @@ struct ScanFlowView: View {
           }
           .buttonStyle(.bordered)
           .disabled(index == 4)
+          .accessibilityLabel(
+            "\(face.title) face, row \(index / 3 + 1), column \(index % 3 + 1), \(sticker?.color.title ?? "unknown")"
+              + (index == 4
+                ? ", center" : sticker?.source == .manual ? ", confirmed" : ", needs review")
+              + (flagged ? ", check this sticker" : ""))
           .accessibilityIdentifier("scan.sticker.\(face.code).\(index)")
         }
       }
@@ -408,6 +468,7 @@ struct ScanFlowView: View {
 }
 
 private struct CropEditor: View {
+  private static let space = "cropEditor"
   let image: UIImage
   @Binding var corners: [CGPoint]
   let commit: () -> Void
@@ -427,12 +488,13 @@ private struct CropEditor: View {
         .stroke(.yellow, style: StrokeStyle(lineWidth: 3, lineJoin: .round))
         ForEach(corners.indices, id: \.self) { index in
           let location = point(corners[index], in: rect)
+          // Hit area and gesture precede .position, which expands to the whole editor; drag
+          // locations are read in the editor's space, where `rect` is measured.
           Circle().fill(.yellow).overlay(Circle().stroke(.black, lineWidth: 2))
             .frame(width: 34, height: 34)
-            .position(location)
             .contentShape(Rectangle().inset(by: -10))
             .gesture(
-              DragGesture(minimumDistance: 0)
+              DragGesture(minimumDistance: 0, coordinateSpace: .named(Self.space))
                 .onChanged { value in
                   corners[index] = normalized(value.location, in: rect)
                 }
@@ -443,8 +505,10 @@ private struct CropEditor: View {
             .accessibilityAction(named: "Move right") { moveCorner(index, dx: 0.02, dy: 0) }
             .accessibilityAction(named: "Move up") { moveCorner(index, dx: 0, dy: -0.02) }
             .accessibilityAction(named: "Move down") { moveCorner(index, dx: 0, dy: 0.02) }
+            .position(location)
         }
       }
+      .coordinateSpace(.named(Self.space))
       .clipShape(RoundedRectangle(cornerRadius: 16))
     }
   }
