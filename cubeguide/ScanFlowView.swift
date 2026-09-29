@@ -126,8 +126,9 @@ struct ScanFlowView: View {
           Text(
             "Automatic color confidence is not yet calibrated. Confirm every non-center sticker before accepting the scan."
           )
+          let related = relatedCells
           ForEach(ScanDraft.captureOrder, id: \.rawValue) { face in
-            scanFace(face)
+            scanFace(face, related: related)
           }
           if let classification {
             let remaining = classification.stickers.filter(\.needsReview).count
@@ -147,6 +148,22 @@ struct ScanFlowView: View {
               }
             }
             .disabled(remaining != 0)
+            if let issues = controller.scanValidationIssues {
+              VStack(alignment: .leading, spacing: 6) {
+                Label("These colors can't be a real cube", systemImage: "exclamationmark.triangle")
+                  .font(.headline)
+                ForEach(Array(issues.items.enumerated()), id: \.offset) { _, issue in
+                  Text(validationMessage(issue, palette: classification.palette))
+                }
+                Text(
+                  "Check the stickers marked Check and each face's orientation, or recapture a face. No colors were changed automatically."
+                )
+                .foregroundStyle(.secondary)
+              }
+              .frame(maxWidth: .infinity, alignment: .leading)
+              .accessibilityElement(children: .combine)
+              .accessibilityIdentifier("scan.validationIssues")
+            }
           }
         default:
           ProgressView("Preparing camera…")
@@ -342,8 +359,16 @@ struct ScanFlowView: View {
     return try? draft.classify(using: policy)
   }
 
+  /// Stickers related to the current legality diagnostic; a mark is not a guessed repair.
+  private var relatedCells: Set<Int> {
+    guard controller.scanValidationIssues != nil,
+      let faces = try? classification?.canonicalFacelets()
+    else { return [] }
+    return Set(CubeValidation.reviewCells(in: faces))
+  }
+
   @ViewBuilder
-  private func scanFace(_ face: Face) -> some View {
+  private func scanFace(_ face: Face, related: Set<Int>) -> some View {
     VStack(alignment: .leading, spacing: 8) {
       HStack {
         Text(face.title).font(.headline)
@@ -354,13 +379,16 @@ struct ScanFlowView: View {
       LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 8) {
         ForEach(0..<9, id: \.self) { index in
           let sticker = classification?.stickers[Int(face.rawValue) * 9 + index]
+          let flagged = related.contains(Int(face.rawValue) * 9 + index)
           Button {
             if index != 4 { editingSticker = StickerCell(face: face, index: index) }
           } label: {
             VStack(spacing: 3) {
               Text(sticker?.color.title ?? "Unknown")
                 .font(.caption.bold()).lineLimit(1).minimumScaleFactor(0.7)
-              if index == 4 {
+              if flagged {
+                Label("Check", systemImage: "exclamationmark.triangle").font(.caption2)
+              } else if index == 4 {
                 Text("Center").font(.caption2)
               } else {
                 Text(sticker?.source == .manual ? "Confirmed" : "Review").font(.caption2)
