@@ -88,6 +88,8 @@ final class FoundationUITests: XCTestCase {
     tapReady(settings)
     let narration = app.switches["settings.narration"]
     XCTAssertEqual(narration.value as? String, "1")
+    // The switch is tapped by coordinate, so wait until the sheet has stopped moving it.
+    XCTAssertTrue(narration.waitUntilSettled(), "Narration switch must settle: \(narration)")
     narration.coordinate(withNormalizedOffset: CGVector(dx: 0.92, dy: 0.5)).tap()
     let saved = NSPredicate(format: "value == %@ AND enabled == true", "0")
     expectation(for: saved, evaluatedWith: narration)
@@ -96,6 +98,7 @@ final class FoundationUITests: XCTestCase {
       ("settings.effects", "1"), ("settings.haptics", "0"), ("settings.labels", "0"),
     ] {
       let control = app.switches[identifier]
+      XCTAssertTrue(control.waitUntilSettled(), "\(identifier) must settle: \(control)")
       control.coordinate(withNormalizedOffset: CGVector(dx: 0.92, dy: 0.5)).tap()
       expectation(
         for: NSPredicate(format: "value == %@ AND enabled == true", expected),

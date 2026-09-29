@@ -20,3 +20,23 @@ extension XCTestCase {
     add(hierarchy)
   }
 }
+
+extension XCUIElement {
+  /// Waits until the element is hittable, enabled and its frame is unchanged between two reads, so a
+  /// coordinate tap computed from that frame lands on the element, for example only after a
+  /// sheet or navigation push has finished moving it. Returns whether it settled in time.
+  @MainActor func waitUntilSettled() -> Bool {
+    var previous: CGRect?
+    let settled = NSPredicate { _, _ in
+      guard self.exists, self.isHittable, self.isEnabled else {
+        previous = nil
+        return false
+      }
+      let frame = self.frame
+      defer { previous = frame }
+      return frame == previous
+    }
+    let expectation = XCTNSPredicateExpectation(predicate: settled, object: nil)
+    return XCTWaiter.wait(for: [expectation], timeout: uiReadinessTimeout) == .completed
+  }
+}
