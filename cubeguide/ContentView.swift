@@ -65,7 +65,8 @@ struct ContentView: View {
               showingScanIntroduction = false
               reviewingInput = false
               controller.send(.startManual(replacing: controller.session.hasWork))
-            }
+            },
+            cancel: { showingScanIntroduction = false }
           )
         } else if controller.scanWorkflow != nil, let camera {
           ScanFlowView(controller: controller, camera: camera)
@@ -83,7 +84,9 @@ struct ContentView: View {
           : controller.session.phase == .home
             ? "CubeGuide" : (controller.session.plan == nil ? "Enter colors" : "Your cube")
       )
-      .navigationBarTitleDisplayMode(controller.session.phase == .home ? .large : .inline)
+      .navigationBarTitleDisplayMode(
+        controller.session.phase == .home && !showingScanIntroduction ? .large : .inline)
+      .toolbar(showingScanIntroduction ? .hidden : .visible, for: .navigationBar)
       .toolbar {
         if controller.loadStatus == .ready, controller.session.phase != .home {
           ToolbarItemGroup(placement: .topBarTrailing) {
@@ -201,44 +204,72 @@ struct ContentView: View {
           }
         }.padding()
       } else {
-        VStack(alignment: .leading, spacing: 24) {
-          Text("Start with your cube").font(.largeTitle.bold())
-          Text(
-            "Enter the colors on all six faces. Your confirmed entries are saved on this iPhone.")
-          Button("Enter colors", systemImage: "square.grid.3x3") {
-            if controller.session.hasWork {
-              replacing = true
-            } else {
-              reviewingInput = false
-              controller.send(.startManual(replacing: false))
+        ScreenScaffold {
+          VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 12) {
+              ZStack {
+                RoundedRectangle(cornerRadius: 14).fill(.tint.opacity(0.14))
+                Image(systemName: "cube").font(.system(size: 30)).foregroundStyle(.tint)
+              }
+              .frame(width: 56, height: 56)
+              .accessibilityHidden(true)
+              VStack(alignment: .leading, spacing: 4) {
+                Text("Start with your cube").font(.title2.bold())
+                Text(
+                  "Enter the colors on all six faces. Your confirmed entries are saved on this iPhone."
+                )
+                .font(.subheadline).foregroundStyle(.secondary)
+              }
             }
-          }
-          .buttonStyle(.borderedProminent).controlSize(.large)
-          .accessibilityIdentifier("home.enterColors")
-          Button("Scan cube", systemImage: "camera.viewfinder") {
-            if controller.session.hasWork { replacingWithScan = true }
-            else { showingScanIntroduction = true }
-          }
-          .buttonStyle(.bordered).controlSize(.large)
-          .accessibilityIdentifier("home.scan")
-          if controller.session.hasWork {
-            Button("Resume saved cube", systemImage: "arrow.clockwise") { controller.send(.resume) }
-              .buttonStyle(.bordered).controlSize(.large).accessibilityIdentifier("home.resume")
-            Button("Delete local data", role: .destructive) { deleting = true }
-              .accessibilityIdentifier("home.delete")
-          }
-          Button("Practice with an example", systemImage: "cube") {
-            controller.pauseForAuxiliaryNavigation()
-            showingPractice = true
-          }.accessibilityIdentifier("home.practice")
-          Button("Settings", systemImage: "gearshape") {
-            controller.pauseForAuxiliaryNavigation()
-            showingSettings = true
-          }.accessibilityIdentifier("home.settings")
-          Button("Help", systemImage: "questionmark.circle", action: openHelp)
-            .accessibilityIdentifier("home.help")
-          Spacer()
-        }.padding()
+            CTAButton(
+              "Scan cube", symbol: "camera.viewfinder", identifier: "home.scan", kind: .primary
+            ) {
+              if controller.session.hasWork { replacingWithScan = true }
+              else { showingScanIntroduction = true }
+            }
+            CTAButton(
+              "Enter colors", symbol: "square.grid.3x3", identifier: "home.enterColors",
+              kind: .secondary
+            ) {
+              if controller.session.hasWork {
+                replacing = true
+              } else {
+                reviewingInput = false
+                controller.send(.startManual(replacing: false))
+              }
+            }
+            if controller.session.hasWork {
+              CTAButton(
+                "Resume saved cube", symbol: "arrow.clockwise", identifier: "home.resume",
+                kind: .secondary
+              ) {
+                controller.send(.resume)
+              }
+            }
+          }.card()
+          VStack(spacing: 0) {
+            MenuRow("Practice with an example", symbol: "cube", identifier: "home.practice") {
+              controller.pauseForAuxiliaryNavigation()
+              showingPractice = true
+            }
+            Divider().padding(.leading, 40)
+            MenuRow("Settings", symbol: "gearshape", identifier: "home.settings") {
+              controller.pauseForAuxiliaryNavigation()
+              showingSettings = true
+            }
+            Divider().padding(.leading, 40)
+            MenuRow("Help", symbol: "questionmark.circle", identifier: "home.help", action: openHelp)
+            if controller.session.hasWork {
+              Divider().padding(.leading, 40)
+              MenuRow(
+                "Delete local data", symbol: "exclamationmark.triangle", identifier: "home.delete",
+                role: .destructive
+              ) {
+                deleting = true
+              }
+            }
+          }.card()
+        }
       }
     case .editing, .savingDraft:
       if let draft = controller.session.draft {
@@ -256,72 +287,103 @@ struct ContentView: View {
         CenterAssignmentView(initial: nil) { controller.send(.editDraft(.centers($0))) }
       }
     case .invalid:
-      VStack(spacing: 20) {
-        Text("Check your entered colors").font(.title.bold())
-        ForEach(
-          Array((controller.session.validationIssues?.items ?? []).enumerated()), id: \.offset
-        ) { _, issue in
-          Text(validationMessage(issue, palette: controller.palette))
-        }
-        Text(
-          "Compare your entries with the physical cube. No colors have been changed automatically.")
-        Text(
-          relatedCells.isEmpty
-            ? "This check cannot identify a specific faulty sticker. Review all entered faces."
-            : "Choose Edit colors to see related stickers marked. A mark does not mean that sticker is wrong; compare all faces for missing or extra colors."
-        )
-        Button("Edit colors") {
-          reviewingInput = true
-          controller.send(.edit)
-        }
-        .buttonStyle(.borderedProminent).accessibilityIdentifier("validation.edit")
-      }.padding()
+      ScreenScaffold {
+        VStack(alignment: .leading, spacing: 12) {
+          HStack(spacing: 8) {
+            Image(systemName: "exclamationmark.triangle").accessibilityHidden(true)
+            Text("Check your entered colors")
+          }
+          .font(.title3.bold())
+          ForEach(
+            Array((controller.session.validationIssues?.items ?? []).enumerated()), id: \.offset
+          ) { _, issue in
+            Text(validationMessage(issue, palette: controller.palette))
+          }
+          Text(
+            "Compare your entries with the physical cube. No colors have been changed automatically."
+          )
+          .foregroundStyle(.secondary)
+          Text(
+            relatedCells.isEmpty
+              ? "This check cannot identify a specific faulty sticker. Review all entered faces."
+              : "Choose Edit colors to see related stickers marked. A mark does not mean that sticker is wrong; compare all faces for missing or extra colors."
+          )
+          .foregroundStyle(.secondary)
+          CTAButton("Edit colors", identifier: "validation.edit", kind: .primary) {
+            reviewingInput = true
+            controller.send(.edit)
+          }
+        }.card()
+      }
     case .alreadySolved:
-      ScrollView {
-        VStack(spacing: 20) {
+      ScreenScaffold {
+        VStack(alignment: .leading, spacing: 12) {
           completionArtwork
-          Text("Your entered colors are solved").font(.title.bold())
+          Text("Your entered colors are solved").font(.title3.bold())
           Text("This checks the colors you entered. Compare them with your physical cube.")
-          Button("Done", action: confirmCompletion)
-            .buttonStyle(.borderedProminent).accessibilityIdentifier("completion.save")
-          Button("Edit colors") { controller.send(.edit) }.accessibilityIdentifier(
-            "validation.edit")
-        }.padding()
+            .foregroundStyle(.secondary)
+          CTAButton("Done", identifier: "completion.save", kind: .primary, action: confirmCompletion)
+          CTAButton("Edit colors", identifier: "validation.edit", kind: .secondary) {
+            controller.send(.edit)
+          }
+        }.card()
       }
     case .offer:
-      VStack(spacing: 20) {
-        Text("Ready to solve?").font(.title.bold())
-        Text(
-          "Your entered colors describe a possible scrambled cube. Check that they match your cube before continuing."
-        )
-        Button("Solve") { controller.send(.consent(true)) }
-          .buttonStyle(.borderedProminent).accessibilityIdentifier("solve.consent")
-        Button("Not now") { controller.send(.consent(false)) }.accessibilityIdentifier(
-          "solve.decline")
-        Button("Edit colors") { controller.send(.edit) }.accessibilityIdentifier("validation.edit")
-      }.padding()
+      ScreenScaffold {
+        VStack(alignment: .leading, spacing: 12) {
+          HStack(spacing: 8) {
+            Image(systemName: "checkmark.circle").accessibilityHidden(true)
+            Text("Ready to solve?")
+          }
+          .font(.title3.bold())
+          Text(
+            "Your entered colors describe a possible scrambled cube. Check that they match your cube before continuing."
+          )
+          .foregroundStyle(.secondary)
+          CTAButton("Solve", identifier: "solve.consent", kind: .primary) {
+            controller.send(.consent(true))
+          }
+          CTAButton("Not now", identifier: "solve.decline", kind: .secondary) {
+            controller.send(.consent(false))
+          }
+          CTAButton("Edit colors", identifier: "validation.edit", kind: .secondary) {
+            controller.send(.edit)
+          }
+        }.card()
+      }
     case .solving:
       CalculationView { controller.send(.cancel) }
     case .solveError:
-      VStack(spacing: 20) {
-        Text(
-          controller.session.solveFailure == .timedOut
-            ? "Calculation timed out" : "Couldn't prepare a solution"
-        )
-        .font(.title.bold())
-        if controller.session.solveFailure == .timedOut && !controller.session.usedExtendedAttempt {
-          Text("You can allow one longer attempt, up to 60 seconds.")
-          Button("Try longer") { controller.send(.retryLonger) }.accessibilityIdentifier(
-            "solve.retryLonger")
-        } else if case .resourceFailure = controller.session.solveFailure {
-          Text(
-            "The bundled solver resources couldn't be read. Close and restart the app. No download is required."
-          )
-        } else {
-          Text("Your colors are saved. Check your entries or return Home.")
-        }
-        Button("Edit colors") { controller.send(.edit) }.accessibilityIdentifier("validation.edit")
-      }.padding()
+      ScreenScaffold {
+        VStack(alignment: .leading, spacing: 12) {
+          HStack(spacing: 8) {
+            Image(systemName: "exclamationmark.triangle").accessibilityHidden(true)
+            Text(
+              controller.session.solveFailure == .timedOut
+                ? "Calculation timed out" : "Couldn't prepare a solution")
+          }
+          .font(.title3.bold())
+          if controller.session.solveFailure == .timedOut && !controller.session.usedExtendedAttempt
+          {
+            Text("You can allow one longer attempt, up to 60 seconds.")
+              .foregroundStyle(.secondary)
+            CTAButton("Try longer", identifier: "solve.retryLonger", kind: .primary) {
+              controller.send(.retryLonger)
+            }
+          } else if case .resourceFailure = controller.session.solveFailure {
+            Text(
+              "The bundled solver resources couldn't be read. Close and restart the app. No download is required."
+            )
+            .foregroundStyle(.secondary)
+          } else {
+            Text("Your colors are saved. Check your entries or return Home.")
+              .foregroundStyle(.secondary)
+          }
+          CTAButton("Edit colors", identifier: "validation.edit", kind: .secondary) {
+            controller.send(.edit)
+          }
+        }.card()
+      }
     case .preparingAction, .guide, .resumeCheck, .savingAcknowledgement, .storageError:
       if let presentation {
         GuideFlowView(controller: controller, presentation: presentation)
@@ -329,20 +391,27 @@ struct ContentView: View {
         ContentUnavailableView("Guide unavailable", systemImage: "cube")
       }
     case .recovery:
-      ScrollView {
-        VStack(spacing: 20) {
-          Text("Let's check your cube").font(.title.bold())
+      ScreenScaffold {
+        VStack(alignment: .leading, spacing: 12) {
+          HStack(spacing: 8) {
+            Image(systemName: "questionmark.circle").accessibilityHidden(true)
+            Text("Let's check your cube")
+          }
+          .font(.title3.bold())
           Text(
             "Your saved guide is paused. Enter every face again if your cube no longer matches it. Starting over replaces the saved guide only after you confirm."
           )
-          Button("Enter colors again") { replacingAfterRecovery = true }
-            .buttonStyle(.borderedProminent).accessibilityIdentifier("recovery.manual")
-          Button("Scan cube again") {
+          .foregroundStyle(.secondary)
+          CTAButton("Enter colors again", identifier: "recovery.manual", kind: .primary) {
+            replacingAfterRecovery = true
+          }
+          CTAButton("Scan cube again", identifier: "recovery.scan", kind: .secondary) {
             Task { await controller.startScan(purpose: .recovery) }
-          }.accessibilityIdentifier("recovery.scan")
-          Button("Keep guide and compare again") { controller.send(.cancel) }
-            .accessibilityIdentifier("recovery.keep")
-        }.padding()
+          }
+          CTAButton("Keep guide and compare again", identifier: "recovery.keep", kind: .secondary) {
+            controller.send(.cancel)
+          }
+        }.card()
       }
       .alert("Replace your saved guide?", isPresented: $replacingAfterRecovery) {
         Button("Keep current", role: .cancel) {}.accessibilityIdentifier(
@@ -360,40 +429,52 @@ struct ContentView: View {
     case .recoveryStorageError:
       failure("Couldn't save recovery") { controller.send(.retryRecoverySave) }
     case .expectedSolved:
-      ScrollView {
-        VStack(spacing: 20) {
+      ScreenScaffold {
+        VStack(alignment: .leading, spacing: 12) {
           completionArtwork
-          Text("The guide is finished. Check that your cube is solved.").font(.title.bold())
+          Text("The guide is finished. Check that your cube is solved.").font(.title3.bold())
           Text(
             "Look at all six physical faces. This is the expected result of the moves you acknowledged; the camera has not checked your cube."
           )
-          Button("Yes, my cube is solved", action: confirmCompletion)
-            .buttonStyle(.borderedProminent).accessibilityIdentifier("completion.confirmPhysical")
-          Button("Check with camera") {
+          .foregroundStyle(.secondary)
+          CTAButton(
+            "Yes, my cube is solved", identifier: "completion.confirmPhysical", kind: .primary,
+            action: confirmCompletion
+          )
+          CTAButton("Check with camera", identifier: "completion.scan", kind: .secondary) {
             Task { await controller.startScan(purpose: .verification) }
-          }.accessibilityIdentifier("completion.scan")
-          Button("Still different") { controller.send(.mismatch) }
-            .accessibilityIdentifier("completion.mismatch")
-        }.padding()
+          }
+          CTAButton("Still different", identifier: "completion.mismatch", kind: .secondary) {
+            controller.send(.mismatch)
+          }
+        }.card()
       }
     case .savingCompletion: ProgressView("Saving completion…")
     case .completionStorageError:
       failure("Couldn't save completion") { controller.send(.retryCompletionSave) }
     case .completed:
-      ScrollView {
-        VStack(spacing: 20) {
+      ScreenScaffold {
+        VStack(alignment: .leading, spacing: 12) {
           completionArtwork
-          Text(completionTitle)
-            .font(.title.bold())
-          if controller.session.completion != .scanVerified {
-            Button("Check with camera") {
-              Task { await controller.startScan(purpose: .verification) }
-            }.accessibilityIdentifier("completion.scan")
+          HStack(spacing: 8) {
+            Image(systemName: "checkmark.circle.fill").accessibilityHidden(true)
+            Text(completionTitle)
           }
-          Button("Home") { controller.send(.cancel) }.accessibilityIdentifier("completion.home")
-          Button("Start another", systemImage: "plus") { replacingWithScan = true }
-            .accessibilityIdentifier("completion.startAnother")
-        }.padding()
+          .font(.title3.bold())
+          if controller.session.completion != .scanVerified {
+            CTAButton("Check with camera", identifier: "completion.scan", kind: .secondary) {
+              Task { await controller.startScan(purpose: .verification) }
+            }
+          }
+          CTAButton("Home", identifier: "completion.home", kind: .secondary) {
+            controller.send(.cancel)
+          }
+          CTAButton(
+            "Start another", symbol: "plus", identifier: "completion.startAnother", kind: .primary
+          ) {
+            replacingWithScan = true
+          }
+        }.card()
       }
     case .startingManual: ProgressView("Starting your cube…")
     case .deleting: ProgressView("Deleting saved cube…")
@@ -464,16 +545,20 @@ struct ContentView: View {
   }
 
   private func failure(_ title: String, retry: @escaping () -> Void) -> some View {
-    VStack(spacing: 20) {
-      ContentUnavailableView(
-        title, systemImage: "exclamationmark.triangle",
-        description: Text(
-          "The operation couldn't be confirmed. Try again, or delete the saved cube to start fresh."
-        ))
-      Button("Try again", action: retry).buttonStyle(.borderedProminent)
-      Button("Help", action: openHelp).accessibilityIdentifier("failure.help")
-      if !isPractice { Button("Delete local data", role: .destructive) { deleting = true } }
-    }.padding()
+    ScreenScaffold {
+      VStack(alignment: .leading, spacing: 12) {
+        ContentUnavailableView(
+          title, systemImage: "exclamationmark.triangle",
+          description: Text(
+            "The operation couldn't be confirmed. Try again, or delete the saved cube to start fresh."
+          ))
+        CTAButton("Try again", kind: .primary, action: retry)
+        CTAButton("Help", identifier: "failure.help", kind: .secondary, action: openHelp)
+        if !isPractice {
+          CTAButton("Delete local data", kind: .secondary, role: .destructive) { deleting = true }
+        }
+      }.card()
+    }
   }
 }
 

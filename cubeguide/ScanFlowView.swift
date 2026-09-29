@@ -46,7 +46,9 @@ struct ScanFlowView: View {
             .frame(height: 360).clipShape(RoundedRectangle(cornerRadius: 16))
             .overlay { viewfinderGrid.padding(42) }
             .accessibilityHidden(true)
-          Button("Capture face", systemImage: "camera.circle.fill") {
+          CTAButton(
+            "Capture face", symbol: "camera.circle.fill", identifier: "scan.capture", kind: .primary
+          ) {
             let result = controller.sendScan(.capture)
             if result == .accepted {
               HapticFeedback.light(
@@ -58,9 +60,7 @@ struct ScanFlowView: View {
                 effectsEnabled: controller.preferences.effects)
             }
           }
-          .buttonStyle(.borderedProminent).controlSize(.large)
           .disabled(!controller.isCameraReady)
-          .accessibilityIdentifier("scan.capture")
         case .freezing:
           ProgressView("Freezing this face…")
         case .faceReview:
@@ -83,7 +83,7 @@ struct ScanFlowView: View {
               .foregroundStyle(.orange)
               .accessibilityIdentifier("scan.qualityHint")
           }
-          faceReviewGrid
+          faceReviewGrid.card()
           Button(workflow?.review?.centerName?.title ?? "Choose center color") {
             choosingCenter = true
           }.accessibilityIdentifier("scan.center")
@@ -93,35 +93,33 @@ struct ScanFlowView: View {
             }
           }
           .accessibilityIdentifier("scan.rotatePreview")
-          Button("Use this face") { controller.sendScan(.accept) }
-            .buttonStyle(.borderedProminent)
-            .disabled(workflow?.review?.centerName == nil || isReprocessing)
-            .accessibilityIdentifier("scan.acceptFace")
-          Button("Retake") { controller.sendScan(.retake) }
-            .accessibilityIdentifier("scan.retake")
+          CTAButton("Use this face", identifier: "scan.acceptFace", kind: .primary) {
+            controller.sendScan(.accept)
+          }
+          .disabled(workflow?.review?.centerName == nil || isReprocessing)
+          CTAButton("Retake", identifier: "scan.retake", kind: .secondary) {
+            controller.sendScan(.retake)
+          }
         case .saving:
           ProgressView("Saving scan…")
         case .storageError:
           Text("Couldn't save this scan").font(.title.bold())
-          Button("Try again") { controller.sendScan(.retrySave) }
-            .buttonStyle(.borderedProminent)
+          CTAButton("Try again", kind: .primary) { controller.sendScan(.retrySave) }
         case .pausedCapture:
           if workflow?.pauseReason == .permissionDenied {
             Text("Camera access is off").font(.title.bold())
             Text("Allow camera access in Settings, or enter the cube colors manually.")
-            Button("Open Settings", systemImage: "gear") {
+            CTAButton(
+              "Open Settings", symbol: "gear", identifier: "scan.openSettings", kind: .primary
+            ) {
               if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
             }
-            .buttonStyle(.borderedProminent)
-            .accessibilityIdentifier("scan.openSettings")
           } else {
             Text("Scanning paused").font(.title.bold())
             Text(pauseExplanation)
-            Button("Continue with unchanged cube") {
+            CTAButton("Continue with unchanged cube", identifier: "scan.resume", kind: .primary) {
               controller.sendScan(.resume(confirmedUnchanged: true))
             }
-            .buttonStyle(.borderedProminent)
-            .accessibilityIdentifier("scan.resume")
           }
         case .editing:
           Text("Review all six faces").font(.title.bold())
@@ -138,7 +136,9 @@ struct ScanFlowView: View {
                 ? "All stickers have been reviewed." : "\(remaining) stickers still need review."
             )
             .foregroundStyle(remaining == 0 ? .green : .secondary)
-            Button("Accept reviewed scan") {
+            CTAButton(
+              "Accept reviewed scan", identifier: "scan.acceptReviewed", kind: .primary
+            ) {
               let result = controller.acceptReviewedScan(classification, confirmed: true)
               if case .rejected = result {
                 HapticFeedback.warning(
@@ -146,9 +146,7 @@ struct ScanFlowView: View {
                   effectsEnabled: controller.preferences.effects)
               }
             }
-            .buttonStyle(.borderedProminent)
             .disabled(remaining != 0)
-            .accessibilityIdentifier("scan.acceptReviewed")
           }
         default:
           ProgressView("Preparing camera…")

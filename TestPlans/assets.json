@@ -50,6 +50,11 @@
       "id": "E03",
       "path": "cubeguide/E03.m4a",
       "source": "Scripts/generate-audio-effects.py"
+    },
+    {
+      "id": "A08",
+      "path": "docs/evidence/a08/shots.json",
+      "source": "docs/graphics-provenance.md"
     }
   ]
 }

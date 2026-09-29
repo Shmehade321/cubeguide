@@ -3,12 +3,14 @@ import SwiftUI
 struct ScanIntroductionView: View {
   let start: () -> Void
   let enterManually: () -> Void
+  let cancel: () -> Void
 
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 20) {
         Text("Scan your cube")
           .font(.largeTitle.bold())
+          .accessibilityAddTraits(.isHeader)
         Text("Show all six faces without turning any layer.")
           .font(.title3)
         introStep(
@@ -25,14 +27,18 @@ struct ScanIntroductionView: View {
           identifier: "scan.intro.review")
         Label("Camera access is requested only after you start.", systemImage: "hand.raised")
           .foregroundStyle(.secondary)
-        Button("Start scanning", systemImage: "camera") {
+        CTAButton(
+          "Start scanning", symbol: "camera", identifier: "scan.start", kind: .primary
+        ) {
           start()
         }
-        .buttonStyle(.borderedProminent)
-        .controlSize(.large)
-        .accessibilityIdentifier("scan.start")
-        Button("Enter colors manually", action: enterManually)
-          .accessibilityIdentifier("scan.manualFallback")
+        CTAButton(
+          "Enter colors manually", identifier: "scan.manualFallback", kind: .secondary,
+          action: enterManually
+        )
+        Button("Not now", action: cancel)
+          .frame(maxWidth: .infinity, minHeight: 44)
+          .accessibilityIdentifier("scan.cancelIntro")
       }
       .frame(maxWidth: .infinity, alignment: .leading)
       .padding()

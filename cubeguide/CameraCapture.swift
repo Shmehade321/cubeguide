@@ -325,6 +325,22 @@ enum CameraImageProcessor {
     ].compactMap { try? ImagePoint(x: $0.0, y: $0.1) }
   }
 
+  nonisolated private static func recordedProvenance(for orientation: UIImage.Orientation)
+    -> (FrameOrientation, Bool)
+  {
+    switch orientation {
+    case .up: return (.up, false)
+    case .upMirrored: return (.up, true)
+    case .down: return (.down, false)
+    case .downMirrored: return (.down, true)
+    case .left: return (.left, false)
+    case .leftMirrored: return (.left, true)
+    case .right: return (.right, false)
+    case .rightMirrored: return (.right, true)
+    @unknown default: return (.up, false)
+    }
+  }
+
   nonisolated private static func processSource(
     _ source: UIImage, slot: Face, corners: [ImagePoint]
   ) throws -> Result {
@@ -363,8 +379,11 @@ enum CameraImageProcessor {
     let measurements = try FaceImageSampler.measurements(in: sampledImage, corners: corners)
     let tops: [Face] = [.back, .up, .up, .front, .up, .up]
     let pose = try CubeOrientation(front: slot, top: tops[Int(slot.rawValue)])
+    let (recordedOrientation, recordedMirroring) = recordedProvenance(
+      for: source.imageOrientation)
     let metadata = try CaptureMetadata(
-      width: width, height: height, sourceOrientation: .up, sourceMirrored: false,
+      width: width, height: height, sourceOrientation: recordedOrientation,
+      sourceMirrored: recordedMirroring,
       corners: corners, pose: pose, samplingVersion: "homography-srgb-d65-v1")
     return try Result(
       image: image,

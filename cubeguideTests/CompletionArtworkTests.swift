@@ -45,6 +45,24 @@ extension PresentationTests {
 }
 
 final class CompletionArtworkVisualTests: XCTestCase {
+  nonisolated static func distinctColors(in image: UIImage, grid: Int = 24) -> Set<String> {
+    guard let cg = image.cgImage, cg.bitsPerPixel == 32,
+      let provider = cg.dataProvider, let cfData = provider.data
+    else { return [] }
+    let data = cfData as Data
+    var colors = Set<String>()
+    for gy in 0..<grid {
+      for gx in 0..<grid {
+        let x = gx * cg.width / grid
+        let y = gy * cg.height / grid
+        let offset = y * cg.bytesPerRow + x * 4
+        guard offset + 3 < data.count else { continue }
+        colors.insert("\(data[offset]).\(data[offset + 1]).\(data[offset + 2])")
+      }
+    }
+    return colors
+  }
+
   @MainActor
   func testRenderedCompletionAppearance() async throws {
     XCTAssertFalse(UIAccessibility.isReduceMotionEnabled)
@@ -72,15 +90,29 @@ final class CompletionArtworkVisualTests: XCTestCase {
         if let rendered = view as? ARView { return rendered }
         return view.subviews.lazy.compactMap { renderedView(in: $0) }.first
       }
-      let rendered = try XCTUnwrap(renderedView(in: host.view))
-      XCTAssertEqual(rendered.scene.anchors.count, 1)
-      let image: UIImage? = await withCheckedContinuation { continuation in
-        rendered.snapshot(saveToHDR: false) { continuation.resume(returning: $0) }
+      if CubeRendererPolicy.requiresStaticRenderer() {
+        XCTAssertNil(renderedView(in: host.view),
+          "Static runtime must render the static completion, not ARView")
+        let snapshot = UIGraphicsImageRenderer(size: host.view.bounds.size).image { _ in
+          host.view.drawHierarchy(in: host.view.bounds, afterScreenUpdates: true)
+        }
+        XCTAssertGreaterThan(Self.distinctColors(in: snapshot).count, 4,
+          "Static completion must render non-trivial pixels through CompletionArtwork")
+        let attachment = XCTAttachment(image: snapshot)
+        attachment.name = "A07-static-entry-\(scheme)-custom-palette-yaw-left"
+        attachment.lifetime = .keepAlways
+        add(attachment)
+      } else {
+        let rendered = try XCTUnwrap(renderedView(in: host.view))
+        XCTAssertEqual(rendered.scene.anchors.count, 1)
+        let image: UIImage? = await withCheckedContinuation { continuation in
+          rendered.snapshot(saveToHDR: false) { continuation.resume(returning: $0) }
+        }
+        let attachment = XCTAttachment(image: try XCTUnwrap(image))
+        attachment.name = "A07-rendered-\(scheme)-custom-palette-yaw-left"
+        attachment.lifetime = .keepAlways
+        add(attachment)
       }
-      let attachment = XCTAttachment(image: try XCTUnwrap(image))
-      attachment.name = "A07-rendered-\(scheme)-custom-palette-yaw-left"
-      attachment.lifetime = .keepAlways
-      add(attachment)
       window.rootViewController = nil
     }
   }

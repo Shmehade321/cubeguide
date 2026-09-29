@@ -1,0 +1,9 @@
+{
+  "result": "passed",
+  "count": 100000,
+  "failures": [],
+  "corpusSHA256": "4a3a9142121d3ec6e131d163f36ae07eec03b7f5917cd62c87de7b8a4031fc28",
+  "referenceSHA256": "9c4314900d762e79f5a06507041eed4b8130464232fe59b760c393b87c50c05a",
+  "upstreamCommit": "4d183b9eff8119cac72bc50ef35a7d8990740e06",
+  "comparatorSHA256": "2049c0eb32d0239ed79cae4244913f73d518ae0b0c34d401844df87fb5155f1a"
+}

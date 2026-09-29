@@ -42,41 +42,68 @@ extension PresentationTests {
         window.rootViewController = nil
         previous?.makeKeyAndVisible()
       }
-      try #require(try await eventually { presentation.scene != nil })
-      let scene = try #require(presentation.scene)
-      try #require(try await eventually { scene.root.parent != nil })
-      func labels() -> Int {
-        scene.stickers.values.reduce(0) { total, sticker in
-          total + sticker.children.filter { $0.name.hasPrefix("label.") }.count
+      if CubeRendererPolicy.requiresStaticRenderer() {
+        try #require(try await eventually { presentation.staticPlayer != nil })
+        #expect(presentation.scene == nil)
+        #expect(presentation.reduceMotion)
+        controller.send(.confirmAlignment)
+        controller.send(.play)
+        await controller.waitForEffects()
+        #expect(controller.session.preview == .playing)
+        preferences.showColorLabels = true
+        #expect(controller.savePreferences(preferences) == .accepted)
+        await controller.waitForEffects()
+        #expect(controller.session.preview == .playing)
+        #expect(controller.preferences.showColorLabels)
+        preferences.showColorLabels = false
+        #expect(controller.savePreferences(preferences) == .accepted)
+        await controller.waitForEffects()
+        #expect(controller.session.preview == .playing)
+        #expect(!controller.preferences.showColorLabels)
+        controller.pauseForAuxiliaryNavigation()
+        preferences.showColorLabels = true
+        #expect(controller.savePreferences(preferences) == .accepted)
+        await controller.waitForEffects()
+        #expect(controller.session.preview == .paused)
+        #expect(controller.preferences.showColorLabels)
+        #expect(controller.session.guideProgress?.acknowledgedActions == 0)
+      } else {
+        try #require(try await eventually { presentation.scene != nil })
+        let scene = try #require(presentation.scene)
+        try #require(try await eventually { scene.root.parent != nil })
+        func labels() -> Int {
+          scene.stickers.values.reduce(0) { total, sticker in
+            total + sticker.children.filter { $0.name.hasPrefix("label.") }.count
+          }
         }
+        #expect(labels() == 0)
+        controller.send(.confirmAlignment)
+        controller.send(.play)
+        frames.time = .milliseconds(1100)
+        frames.callback?()
+        let transforms = scene.bodies.mapValues { $0.transformMatrix(relativeTo: scene.root) }
+        preferences.showColorLabels = true
+        #expect(controller.savePreferences(preferences) == .accepted)
+        await controller.waitForEffects()
+        let shown = try await eventually { labels() == 54 }
+        try #require(shown)
+        #expect(scene.bodies.mapValues { $0.transformMatrix(relativeTo: scene.root) } == transforms)
+        #expect(controller.session.preview == .playing)
+        #expect(controller.preferences.showColorLabels)
+        preferences.showColorLabels = false
+        #expect(controller.savePreferences(preferences) == .accepted)
+        await controller.waitForEffects()
+        try #require(try await eventually { labels() == 0 })
+        controller.pauseForAuxiliaryNavigation()
+        preferences.showColorLabels = true
+        #expect(controller.savePreferences(preferences) == .accepted)
+        await controller.waitForEffects()
+        let shownAfterPause = try await eventually { labels() == 54 }
+        try #require(shownAfterPause)
+        #expect(scene.bodies.mapValues { $0.transformMatrix(relativeTo: scene.root) } == transforms)
+        #expect(controller.session.preview == .paused)
+        #expect(controller.session.guideProgress?.acknowledgedActions == 0)
       }
-      #expect(labels() == 0)
-      controller.send(.confirmAlignment)
-      controller.send(.play)
-      frames.time = .milliseconds(1100)
-      frames.callback?()
-      let transforms = scene.bodies.mapValues { $0.transformMatrix(relativeTo: scene.root) }
-      preferences.showColorLabels = true
-      #expect(controller.savePreferences(preferences) == .accepted)
-      await controller.waitForEffects()
-      let shown = try await eventually { labels() == 54 }
-      try #require(shown)
-      #expect(scene.bodies.mapValues { $0.transformMatrix(relativeTo: scene.root) } == transforms)
-      #expect(controller.session.preview == .playing)
-      #expect(controller.preferences.showColorLabels)
-      preferences.showColorLabels = false
-      #expect(controller.savePreferences(preferences) == .accepted)
-      await controller.waitForEffects()
-      try #require(try await eventually { labels() == 0 })
-      controller.pauseForAuxiliaryNavigation()
-      preferences.showColorLabels = true
-      #expect(controller.savePreferences(preferences) == .accepted)
-      await controller.waitForEffects()
-      let shownAfterPause = try await eventually { labels() == 54 }
-      try #require(shownAfterPause)
-      #expect(scene.bodies.mapValues { $0.transformMatrix(relativeTo: scene.root) } == transforms)
-      #expect(controller.session.preview == .paused)
-      #expect(controller.session.guideProgress?.acknowledgedActions == 0)
     }
 
     @Test("R12: live label policy preserves preview transforms and never changes preferences or progress")

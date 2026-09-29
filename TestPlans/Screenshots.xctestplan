@@ -1,0 +1,30 @@
+{
+  "configurations": [
+    {
+      "id": "0F83892D-96D8-4D37-BBE4-1BC1C8199F90",
+      "name": "Screenshots",
+      "options": {}
+    }
+  ],
+  "defaultOptions": {
+    "codeCoverage": false,
+    "targetForVariableExpansion": {
+      "containerPath": "container:cubeguide.xcodeproj",
+      "identifier": "4F53CECE30607C9E00D417D4",
+      "name": "cubeguide"
+    }
+  },
+  "testTargets": [
+    {
+      "selectedTests": [
+        "ScreenshotTests/testCaptureStoreShots"
+      ],
+      "target": {
+        "containerPath": "container:cubeguide.xcodeproj",
+        "identifier": "4F53CEE530607CA100D417D4",
+        "name": "cubeguideUITests"
+      }
+    }
+  ],
+  "version": 1
+}

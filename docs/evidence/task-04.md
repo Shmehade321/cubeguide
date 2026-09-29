@@ -34,4 +34,14 @@ Final integrated regression and table regeneration passed. Hardware inventory cu
 - Pinned reference: all 10,000 PR and eight named cases agreed on expected validity; every accepted reference answer independently replayed to solved. Different solution strings are permitted.
 - `Scripts/verify-tables.sh` exited 0: two identical clean generations matched packaged resources; every transition and distance was independently validated. Full local evidence: `Artifacts/table-check.uH6ENz/`.
 
+## Nightly and release tiers — executed 21–22 September 2026
+
+Executed on working source identical to HEAD `989044f` for all of `Packages/` and `Tools/` (both trees clean; only app-UI/test/docs files differ in the worktree). Desktop Release runner, warm tables, 8 ordered isolated worker shards. Full corpora/results (large) remain in gitignored `Artifacts/nightly-solver-timing/` and `Artifacts/release-solver-timing/`; portable manifests, analyses and differentials are committed under `t04/`:
+
+- Nightly: 100,000/100,000 verified, 0 timeouts (`nightly-analysis.json`, `nightly-corpus.manifest.json`). Strata 50,000 direct + 12,500 each at lengths 20/40/80/200, seed 20260922, corpus SHA `4a3a9142…`. Warm desktop p95 0.050 s, p99 0.105 s, max 1.836 s.
+- Release: 1,000,000/1,000,000 verified, 0 timeouts (`release-analysis.json`, `release-corpus.manifest.json`). Strata 500,000 direct + 125,000 each at lengths 20/40/80/200, seed 3233685543, corpus SHA `c41f9f39…`. Warm desktop p95 0.061 s, p99 0.128 s, max 9.804 s (within the 60 s extended budget).
+- Pinned Java reference (`4d183b9`, `reference-java.txt` toolchain): 100,000/100,000 nightly and 1,000,000/1,000,000 release cases agreed on validity (`nightly-differential.json`, `release-differential.json`); every accepted reference answer independently replayed to solved. Same resource version `2267e655…` and analyzer `e745a429…` across all three tiers.
+
+These are desktop-runner correctness results, not phone qualification: the 1,000-state cold/warm device benchmarks, 250 ms cancellation check and whole-app memory measurement remain open. Per evidence-invalidation rules the tiers must rerun on the final candidate commit if solver code, tables or resources change.
+
 Portable summaries, corpus manifests, raw compressed PR inputs/results/reference answers, shallow results, red transcripts and mutation reports are committed under `t04/`. The full `.xcresult` remains in `Artifacts/t04-final-pr/`; reproduction commands and source identity are recorded. T04's physical performance exit remains open; the plan explicitly permits independent T05/UI work while hardware is unavailable. No claim of complete product qualification or public shipment is made.
