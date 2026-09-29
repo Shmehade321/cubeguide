@@ -14,7 +14,7 @@ struct SettingsView: View {
           Toggle("Narration", isOn: preference(\.narration)).accessibilityIdentifier("settings.narration")
           Toggle("Sound effects", isOn: preference(\.effects)).accessibilityIdentifier("settings.effects")
           Toggle("Haptics", isOn: preference(\.haptics)).accessibilityIdentifier("settings.haptics")
-        }.disabled(busy)
+        }.disabled(!controller.canSavePreferences)
         Section("Guidance") {
           Picker("Speed", selection: preference(\.speed)) {
             Text("Slow").tag(GuideSpeed.slow)
@@ -28,12 +28,19 @@ struct SettingsView: View {
           .disabled(differentiate)
           .accessibilityIdentifier("settings.labels")
           if differentiate { Text("Color labels stay on while Differentiate Without Color is enabled.") }
-        }.disabled(busy)
-        if controller.preferencesStatus == .saving { ProgressView("Saving settings…") }
+        }.disabled(!controller.canSavePreferences)
+        if controller.preferencesStatus == .saving {
+          ProgressView("Saving settings…")
+        } else if !controller.canSavePreferences {
+          Text("Settings can be changed once the current operation finishes.")
+            .foregroundStyle(.secondary)
+            .accessibilityIdentifier("settings.unavailable")
+        }
         if controller.preferencesStatus == .failed {
           Section {
             Text("The settings save couldn't be confirmed. Retry to apply your change.")
             Button("Retry save") { controller.retryPreferences() }
+              .disabled(!controller.canSavePreferences)
               .accessibilityIdentifier("settings.retry")
           }
         }
@@ -59,7 +66,6 @@ struct SettingsView: View {
       }
     }
   }
-  private var busy: Bool { controller.preferencesStatus == .saving }
   private func preference<Value>(_ key: WritableKeyPath<AppPreferences, Value>) -> Binding<Value> {
     Binding(get: { controller.preferences[keyPath: key] }, set: { value in
       var next = controller.preferences

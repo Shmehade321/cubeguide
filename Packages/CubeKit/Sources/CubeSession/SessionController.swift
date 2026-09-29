@@ -52,11 +52,14 @@ public final class SessionController {
   }
   public private(set) var preferences = AppPreferences()
   public private(set) var preferencesStatus: DraftDiscardStatus = .idle
+  /// The `savePreferences` guard, exposed so settings can disable instead of snapping back.
+  public var canSavePreferences: Bool {
+    loadStatus == .ready && preferencesStatus != .saving && !isStartingScan
+      && session.phase != .deleting && session.phase != .deletionError
+      && discardStatus == .idle && manualFallbackStatus == .idle
+  }
   @discardableResult public func savePreferences(_ value: AppPreferences) -> EventDisposition {
-    guard loadStatus == .ready, preferencesStatus != .saving, !isStartingScan,
-      session.phase != .deleting, session.phase != .deletionError,
-      discardStatus == .idle, manualFallbackStatus == .idle
-    else { return .rejected(.unavailableEvent) }
+    guard canSavePreferences else { return .rejected(.unavailableEvent) }
     preferencesStatus = .saving
     pendingPreferences = value
     preferencesError = nil

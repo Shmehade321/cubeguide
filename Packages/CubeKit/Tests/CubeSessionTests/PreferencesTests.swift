@@ -187,3 +187,150 @@ func preferencesDuringCaptureInterruption() async throws {
   await controller.waitForEffects()
   #expect(controller.preferencesStatus == .idle)
 }
+
+/// Settings controls enable from `canSavePreferences`, so it must predict the save outcome exactly.
+@MainActor private func expectPreferencesAvailable(
+  _ controller: SessionController, _ available: Bool,
+  sourceLocation: SourceLocation = #_sourceLocation
+) async {
+  #expect(controller.canSavePreferences == available, sourceLocation: sourceLocation)
+  var next = controller.preferences
+  next.haptics.toggle()
+  guard available else {
+    #expect(
+      controller.savePreferences(next) == .rejected(.unavailableEvent),
+      sourceLocation: sourceLocation)
+    return
+  }
+  #expect(controller.savePreferences(next) == .accepted, sourceLocation: sourceLocation)
+  await controller.waitForEffects()
+  #expect(controller.preferences == next, sourceLocation: sourceLocation)
+}
+
+@MainActor @Test("R18: settings availability tracks loading, an in-flight save and scan start")
+func preferencesAvailabilityLoadSaveAndScanStart() async throws {
+  let directory = try storeDirectory()
+  defer { try? FileManager.default.removeItem(at: directory) }
+  let restoreGate = ControllerGate()
+  let storage = ControlledStorage(SessionStore(directory: directory), restoreGate: restoreGate)
+  let controller = SessionController(
+    storage: storage, solver: SolverService(), camera: RecordingScanCamera())
+  await expectPreferencesAvailable(controller, false)
+  let loading = Task { await controller.load() }
+  await restoreGate.waitUntilEntered()
+  #expect(controller.loadStatus == .loading)
+  await expectPreferencesAvailable(controller, false)
+  await restoreGate.release()
+  await loading.value
+  await expectPreferencesAvailable(controller, true)
+
+  let preferencesGate = ControllerGate()
+  await storage.gatePreferences(preferencesGate)
+  #expect(controller.savePreferences(AppPreferences()) == .accepted)
+  await preferencesGate.waitUntilEntered()
+  #expect(controller.preferencesStatus == .saving)
+  await expectPreferencesAvailable(controller, false)
+  await preferencesGate.release()
+  await controller.waitForEffects()
+  await expectPreferencesAvailable(controller, true)
+
+  let scanGate = ControllerGate()
+  await storage.gateNextRestore(scanGate)
+  let starting = Task { await controller.startScan(purpose: .newCube) }
+  await scanGate.waitUntilEntered()
+  #expect(controller.isStartingScan)
+  await expectPreferencesAvailable(controller, false)
+  await scanGate.release()
+  #expect(await starting.value == .accepted)
+  await expectPreferencesAvailable(controller, true)
+}
+
+@MainActor @Test("R18: settings are unavailable after a failed load until deletion recovers it")
+func preferencesAvailabilityLoadFailure() async throws {
+  let directory = try storeDirectory()
+  defer { try? FileManager.default.removeItem(at: directory) }
+  try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+  try Data("corrupt".utf8).write(to: directory.appendingPathComponent("draft.json"))
+  let controller = SessionController(
+    storage: SessionStore(directory: directory), solver: SolverService())
+  await controller.load()
+  #expect(controller.loadStatus == .failed)
+  await expectPreferencesAvailable(controller, false)
+  #expect(controller.send(.deleteLocalData(confirmed: true)) == .accepted)
+  await controller.waitForEffects()
+  #expect(controller.loadStatus == .ready)
+  await expectPreferencesAvailable(controller, true)
+}
+
+@MainActor @Test("R18: settings stay unavailable through a draft discard and its failure")
+func preferencesAvailabilityDiscard() async throws {
+  let directory = try storeDirectory()
+  defer { try? FileManager.default.removeItem(at: directory) }
+  let real = SessionStore(directory: directory)
+  try await real.saveScanDraft(pendingScan(), lease: real.currentLease())
+  let storage = ControlledStorage(real)
+  let gate = ControllerGate()
+  await storage.configureDiscard(fail: true, gate: gate)
+  let controller = SessionController(storage: storage, solver: SolverService())
+  await controller.load()
+  #expect(controller.canSavePreferences)
+  #expect(controller.discardDraft(confirmed: true) == .accepted)
+  await gate.waitUntilEntered()
+  #expect(controller.discardStatus == .saving)
+  await expectPreferencesAvailable(controller, false)
+  await gate.release()
+  await controller.waitForEffects()
+  #expect(controller.discardStatus == .failed)
+  await expectPreferencesAvailable(controller, false)
+  #expect(controller.retryDraftDiscard() == .accepted)
+  await controller.waitForEffects()
+  #expect(controller.discardStatus == .idle && controller.scanWorkflow == nil)
+  await expectPreferencesAvailable(controller, true)
+}
+
+@MainActor @Test("R18: settings stay unavailable through a manual fallback save and its failure")
+func preferencesAvailabilityManualFallback() async throws {
+  let directory = try storeDirectory()
+  defer { try? FileManager.default.removeItem(at: directory) }
+  let real = SessionStore(directory: directory)
+  try await real.saveScanDraft(pendingScan(), lease: real.currentLease())
+  let gate = ControllerGate()
+  let controller = SessionController(
+    storage: ControlledStorage(real, draftGate: gate, failDraft: true), solver: SolverService())
+  await controller.load()
+  #expect(controller.canSavePreferences)
+  #expect(
+    controller.switchScanToManual(confirmedCenters: try archivePalette(), confirmed: true)
+      == .accepted)
+  await gate.waitUntilEntered()
+  #expect(controller.manualFallbackStatus == .saving)
+  await expectPreferencesAvailable(controller, false)
+  await gate.release()
+  await controller.waitForEffects()
+  #expect(controller.manualFallbackStatus == .failed)
+  await expectPreferencesAvailable(controller, false)
+  #expect(controller.retryManualFallback() == .accepted)
+  await controller.waitForEffects()
+  #expect(controller.manualFallbackStatus == .idle && controller.session.phase == .editing)
+  await expectPreferencesAvailable(controller, true)
+}
+
+@MainActor @Test("R18: settings stay unavailable while local data deletion is pending or failed")
+func preferencesAvailabilityDeletion() async throws {
+  let directory = try storeDirectory()
+  defer { try? FileManager.default.removeItem(at: directory) }
+  let controller = SessionController(
+    storage: ControlledStorage(SessionStore(directory: directory), failDelete: true),
+    solver: SolverService())
+  await controller.load()
+  #expect(controller.send(.deleteLocalData(confirmed: true)) == .accepted)
+  #expect(controller.session.phase == .deleting)
+  await expectPreferencesAvailable(controller, false)
+  await controller.waitForEffects()
+  #expect(controller.session.phase == .deletionError)
+  await expectPreferencesAvailable(controller, false)
+  #expect(controller.send(.retryDeletion) == .accepted)
+  await controller.waitForEffects()
+  #expect(controller.session.phase == .home)
+  await expectPreferencesAvailable(controller, true)
+}
