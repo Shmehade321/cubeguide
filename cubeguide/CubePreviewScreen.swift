@@ -71,40 +71,50 @@ private struct StaticDraftCube: View {
   let showColorLabels: Bool
 
   var body: some View {
-    Canvas { context, size in
-      for placement in CubeGeometry.stickers.prefix(27) {
-        guard let source = CubeGeometry.stickers.first(where: {
-          let viewed = $0.viewed(at: pose)
-          return viewed.position == placement.position && viewed.normal == placement.normal
-            && viewed.top == placement.top
-        }) else { continue }
-        let normal = StaticCubeDrawing.vector(CubeGeometry.axis(for: placement.normal))
-        let top = StaticCubeDrawing.vector(CubeGeometry.axis(for: placement.top))
-        let right = simd_cross(top, normal)
-        let center = StaticCubeDrawing.vector(placement.position) + normal * 0.5
-        let points = [center - right * 0.46 + top * 0.46,
-          center + right * 0.46 + top * 0.46,
-          center + right * 0.46 - top * 0.46,
-          center - right * 0.46 - top * 0.46].map { corner in
-            let projected = StaticCubeDrawing.project(corner)
-            let scale = min(size.width / 6.5, size.height / 5.8)
-            return CGPoint(x: size.width / 2 + projected.x * scale,
-              y: size.height / 2 + projected.y * scale)
-          }
-        var path = Path()
-        path.addLines(points)
-        path.closeSubpath()
-        let color = draft.cells[source.index]
-        context.fill(path, with: .color(color?.swatch ?? Color.secondary.opacity(0.35)))
-        context.stroke(path, with: .color(.primary), lineWidth: 1)
-        if showColorLabels || color == nil {
-          let center = CGPoint(x: points.map(\.x).reduce(0, +) / 4,
-            y: points.map(\.y).reduce(0, +) / 4)
-          let label = color.map { String($0.title.prefix(1)) } ?? "?"
-          context.draw(Text(label).font(.caption.bold())
-            .foregroundStyle(color == .blue || color == nil ? Color.white : Color.black), at: center)
-        }
+    Canvas { context, size in draw(in: &context, size: size) }
+  }
+
+  /// Drawing lives outside the view builder so each statement is type-checked on its own.
+  private func draw(in context: inout GraphicsContext, size: CGSize) {
+    let scale = min(size.width / 6.5, size.height / 5.8)
+    for placement in CubeGeometry.stickers.prefix(27) {
+      guard let source = sourceSticker(for: placement) else { continue }
+      let normal: SIMD3<Float> = StaticCubeDrawing.vector(CubeGeometry.axis(for: placement.normal))
+      let top: SIMD3<Float> = StaticCubeDrawing.vector(CubeGeometry.axis(for: placement.top))
+      let right: SIMD3<Float> = simd_cross(top, normal) * 0.46
+      let up: SIMD3<Float> = top * 0.46
+      let center: SIMD3<Float> = StaticCubeDrawing.vector(placement.position) + normal * 0.5
+      let corners: [SIMD3<Float>] = [
+        center - right + up, center + right + up, center + right - up, center - right - up,
+      ]
+      let points: [CGPoint] = corners.map { corner in
+        let projected = StaticCubeDrawing.project(corner)
+        return CGPoint(
+          x: size.width / 2 + projected.x * scale, y: size.height / 2 + projected.y * scale)
       }
+      var path = Path()
+      path.addLines(points)
+      path.closeSubpath()
+      let color = draft.cells[source.index]
+      let fill: Color = color?.swatch ?? Color.secondary.opacity(0.35)
+      context.fill(path, with: .color(fill))
+      context.stroke(path, with: .color(.primary), lineWidth: 1)
+      if showColorLabels || color == nil {
+        let x: CGFloat = points.map(\.x).reduce(0, +) / 4
+        let y: CGFloat = points.map(\.y).reduce(0, +) / 4
+        let label = color.map { String($0.title.prefix(1)) } ?? "?"
+        let ink: Color = color == .blue || color == nil ? .white : .black
+        let text: Text = Text(label).font(.caption.bold()).foregroundStyle(ink)
+        context.draw(text, at: CGPoint(x: x, y: y))
+      }
+    }
+  }
+
+  private func sourceSticker(for placement: CubeStickerPlacement) -> CubeStickerPlacement? {
+    CubeGeometry.stickers.first { sticker in
+      let viewed = sticker.viewed(at: pose)
+      return viewed.position == placement.position && viewed.normal == placement.normal
+        && viewed.top == placement.top
     }
   }
 }
