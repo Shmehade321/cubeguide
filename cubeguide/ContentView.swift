@@ -157,7 +157,17 @@ struct ContentView: View {
     .sheet(isPresented: $showingSettings) { SettingsView(controller: controller) }
     .task { await controller.load() }
     .onChange(of: scenePhase) { _, phase in
-      if phase != .active { controller.send(.background) }
+      switch phase {
+      case .background:
+        controller.send(.background)
+      case .inactive:
+        // System alerts (including the camera permission prompt) and Control Center only make
+        // the scene inactive. Stop guide playback, but keep the scan and the physical-comparison
+        // requirement for real backgrounding; the capture session reports its own interruptions.
+        if controller.session.preview == .playing { controller.send(.pause) }
+      default:
+        break
+      }
       updateIdleTimer()
     }
     .onChange(of: controller.scanWorkflow?.phase) { _, _ in updateIdleTimer() }
