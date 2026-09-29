@@ -85,6 +85,36 @@ class QualificationTests(unittest.TestCase):
             self.assertEqual(
                 qualification.validate([row], {'R01'}, 'current', root), [])
 
+    def test_ledger_may_be_committed_after_the_source_it_qualifies(self):
+        rows = [{'requirementID': 'R01', 'commit': 'source'}]
+        evidence_only = lambda commit: ['docs/evidence/release.json', 'docs/evidence/r01.json']
+        self.assertEqual(
+            qualification.candidate_commit(rows, 'head', evidence_only), ('source', []))
+        self.assertEqual(
+            qualification.candidate_commit(
+                [{'requirementID': 'R01', 'commit': 'head'}], 'head', lambda commit: None),
+            ('head', []))
+
+    def test_source_changes_or_unrelated_history_after_the_candidate_are_rejected(self):
+        rows = [{'requirementID': 'R01', 'commit': 'source'}]
+        cases = [
+            lambda commit: ['docs/evidence/release.json', 'cubeguide/ContentView.swift'],
+            lambda commit: None,
+        ]
+        for changed in cases:
+            with self.subTest(changed=changed):
+                commit, errors = qualification.candidate_commit(rows, 'head', changed)
+                self.assertIsNone(commit)
+                self.assertTrue(errors)
+        mixed = [{'requirementID': 'R01', 'commit': 'a'}, {'requirementID': 'R02', 'commit': 'b'}]
+        self.assertTrue(qualification.candidate_commit(mixed, 'head', lambda commit: [])[1])
+
+    def test_archive_step_requires_every_release_row_except_the_archive_evidence(self):
+        required = qualification.required_requirements('release-pre-archive')
+        self.assertEqual(required, {f'R{i:02}' for i in range(1, 19)})
+        self.assertEqual(
+            qualification.required_requirements('release'), {f'R{i:02}' for i in range(1, 21)})
+
 
 if __name__ == '__main__':
     unittest.main()
