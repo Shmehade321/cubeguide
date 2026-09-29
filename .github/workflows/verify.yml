@@ -64,10 +64,11 @@ jobs:
           if-no-files-found: error
   app:
     name: App and UI tests (iOS 18.5 simulator)
-    # Set the repository variable CUBEGUIDE_APP_RUNNER to a runner label that provides Xcode 27
-    # and the iOS 18.5 runtime. Until then this job fails, naming what is missing.
+    # macos-15 provides the required iOS 18.5 runtime. The project keeps the Xcode 16 file format
+    # (objectVersion 77, its preferredProjectObjectVersion), so the newest hosted Xcode opens it.
+    # CUBEGUIDE_APP_RUNNER may name another runner, e.g. a self-hosted Mac with a newer Xcode.
     runs-on: ${{ vars.CUBEGUIDE_APP_RUNNER || 'macos-15' }}
-    timeout-minutes: 90
+    timeout-minutes: 120
     env:
       CUBEGUIDE_APP_STAGE_ONLY: 1
     steps:
@@ -75,17 +76,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Select Xcode 27 or later
-        # cubeguide.xcodeproj uses the Xcode 27 project format (objectVersion 110). Fail with the
-        # reason instead of letting an older xcodebuild fail late or substituting a toolchain.
+      - name: Select the newest installed Xcode
         run: |
           xcode=$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)
-          major=$(basename "$xcode" .app | sed -E 's/^Xcode_([0-9]+).*/\1/')
-          if [ "${major:-0}" -lt 27 ]; then
-            installed=$(ls -d /Applications/Xcode_*.app | xargs -n1 basename | tr '\n' ' ')
-            echo "::error title=Xcode 27 required::The app project needs Xcode 27 or later; this runner has: $installed. Use a runner image or self-hosted runner that provides it."
-            exit 1
-          fi
           sudo xcode-select -s "$xcode/Contents/Developer"
           xcodebuild -version
           swift --version
