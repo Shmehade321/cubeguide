@@ -390,3 +390,15 @@ func scanWorkflowMatrix() throws {
     }
   }
 }
+
+@Test("R18: interrupting a correction save of a complete scan returns to review, not capture")
+func scanWorkflowCompleteReviewSaveInterruption() throws {
+  let state = try completeScan()
+  let corrected = step(state, .correct(.back, .sticker(row: 0, column: 0, color: .white)))
+  let save = try #require(corrected.workflow.pendingSave)
+  let interrupted = step(corrected.workflow, .interrupt(.background))
+  #expect(interrupted.disposition == .accepted && interrupted.workflow.phase == .saving)
+  let saved = step(interrupted.workflow, .saved(save.id))
+  // All six faces are captured, so no physical "cube unchanged" check is needed to keep reviewing.
+  #expect(saved.workflow.phase == .editing && saved.workflow.durable == save.scan)
+}

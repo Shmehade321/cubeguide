@@ -249,7 +249,8 @@ public enum ScanReducer {
         switch workflow.phase {
         case .scanning, .freezing, .faceReview: pause(reason)
         case .saving, .storageError:
-          if workflow.afterSave != .home { next.afterSave = .pausedCapture }
+          // Only continued capture needs a physical check; a complete scan returns to review.
+          if workflow.afterSave == .scanning { next.afterSave = .pausedCapture }
           next.pauseReason = reason
           commands = [.stopCapture, .discardFrame]
         default: return ignored()
