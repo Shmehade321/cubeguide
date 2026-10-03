@@ -238,6 +238,7 @@ public final class SessionController {
     _ classification: ScanClassification, confirmed: Bool
   ) -> EventDisposition {
     guard loadStatus == .ready, discardStatus == .idle, manualFallbackStatus == .idle,
+      preferencesStatus != .saving, session.phase != .deleting, session.phase != .deletionError,
       !isStartingScan, let workflow = scanWorkflow, workflow.phase == .editing,
       let input = workflow.durable, workflow.pendingSave == nil,
       classification.revision == input.draft.revision,

@@ -152,3 +152,90 @@ func cameraViewfinderCrop() {
     CameraImageProcessor.corners(for: nil, imageSize: CGSize(width: 3024, height: 4032))
       == CameraImageProcessor.defaultCorners())
 }
+
+private let gridFraction = 0.75
+
+/// A face filling the grid, with dark gaps between stickers unless `gaps` is false.
+private func syntheticFrame(
+  _ colors: [SIMD3<Float>], width: Int = 1440, height: Int = 1080, gaps: Bool = true,
+  texture: @escaping (Int) -> Bool = { _ in false }
+) -> (Int, Int) -> SIMD3<Float> {
+  let side = gridFraction * Double(min(width, height))
+  let origin = ((Double(width) - side) / 2, (Double(height) - side) / 2)
+  return { x, y in
+    let u = (Double(x) - origin.0) / side
+    let v = (Double(y) - origin.1) / side
+    guard (0..<1).contains(u), (0..<1).contains(v) else { return SIMD3(10, 10, 10) }
+    let nearBorder = [u, v].contains { abs($0 * 3 - ($0 * 3).rounded()) < 0.04 }
+    if gaps, nearBorder { return SIMD3(15, 15, 15) }
+    let index = Int(v * 3) * 3 + Int(u * 3)
+    return texture(index) && (x + y).isMultiple(of: 2) ? SIMD3(0, 0, 0) : colors[index]
+  }
+}
+
+private func detect(_ frame: @escaping (Int, Int) -> SIMD3<Float>, width: Int = 1440, height: Int = 1080)
+  -> [SIMD3<Float>]?
+{
+  FaceDetector.cells(
+    width: width, height: height, side: gridFraction * Double(min(width, height)), pixel: frame)
+}
+
+private let scrambled: [SIMD3<Float>] = [
+  [255, 255, 255], [200, 30, 40], [255, 210, 0], [200, 30, 40], [255, 255, 255],
+  [0, 150, 70], [0, 70, 180], [255, 100, 0], [255, 255, 255],
+]
+
+@Test("Live detection finds a scrambled face and ignores a logo on the center")
+func faceDetectorFindsScrambledFace() throws {
+  let cells = try #require(detect(syntheticFrame(scrambled) { $0 == 4 }))
+  #expect(FaceDetector.distance(cells[1], scrambled[1]) < 1)
+  #expect(FaceDetector.distance(cells[6], scrambled[6]) < 1)
+  #expect(detect(syntheticFrame(scrambled, width: 1080, height: 1440), width: 1080, height: 1440) != nil)
+}
+
+@Test("Live detection accepts a solved face, which has dark gaps but a single color")
+func faceDetectorFindsSolvedFace() {
+  #expect(detect(syntheticFrame(Array(repeating: SIMD3<Float>(0, 150, 70), count: 9))) != nil)
+}
+
+@Test("Live detection rejects walls, posters without gaps and unevenly colored cells")
+func faceDetectorRejectsNonFaces() {
+  let wall = Array(repeating: SIMD3<Float>(180, 170, 160), count: 9)
+  #expect(detect(syntheticFrame(wall, gaps: false)) == nil)
+  #expect(detect(syntheticFrame(scrambled, gaps: false)) == nil)
+  #expect(detect(syntheticFrame(scrambled) { $0 == 2 }) == nil)
+}
+
+@Test("Live detection watches the same square the viewfinder draws")
+func faceDetectorSideMatchesViewfinder() throws {
+  let layout = ViewfinderLayout(preview: CGSize(width: 360, height: 360), gridSide: 276)
+  // Portrait: the 1080-pixel short side spans the preview width.
+  let portrait = try #require(
+    FaceDetector.side(for: layout, landscape: false, bufferWidth: 1440, bufferHeight: 1080))
+  #expect(abs(portrait - 1080 * 276 / 360) < 0.5)
+}
+
+@Test("Auto-capture fires once per steady, focused streak and never for the same face twice")
+func faceSteadinessFiresOncePerStreak() {
+  var steadiness = FaceSteadiness()
+  let fired = (0...FaceSteadiness.requiredFrames).map { _ in
+    steadiness.update(scrambled, focused: true)
+  }
+  #expect(fired == Array(repeating: false, count: FaceSteadiness.requiredFrames) + [true])
+  let repeated = steadiness.update(scrambled, focused: true)
+  let lost = steadiness.update(nil, focused: true)
+  #expect(!repeated && !lost)
+  var unfocused = FaceSteadiness()
+  let unfocusedFired = (0...10).map { _ in unfocused.update(scrambled, focused: false) }
+  #expect(!unfocusedFired.contains(true))
+  #expect(FaceDetector.sameFace(scrambled, scrambled.map { $0 + 5 }))
+  #expect(!FaceDetector.sameFace(scrambled, scrambled.reversed()))
+}
+
+@Test("Zoom keeps a cube that fills the grid beyond the lens's closest focus distance")
+func cameraZoomRespectsMinimumFocus() {
+  let zoom = CameraZoom.focusZoom(minimumFocusMillimeters: 200, horizontalFieldOfView: 73)
+  #expect((2.5...3.5).contains(zoom))
+  #expect(CameraZoom.focusZoom(minimumFocusMillimeters: -1, horizontalFieldOfView: 73) == 1)
+  #expect(CameraZoom.focusZoom(minimumFocusMillimeters: 20, horizontalFieldOfView: 73) == 1)
+}

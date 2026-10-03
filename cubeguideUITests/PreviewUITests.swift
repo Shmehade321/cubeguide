@@ -36,11 +36,11 @@ final class PreviewUITests: XCTestCase {
 
   @MainActor
   private func tap(_ element: XCUIElement) {
-    let ready = NSPredicate(format: "exists == true AND hittable == true AND enabled == true")
+    let ready = NSPredicate.readyToTap
     let result = XCTWaiter.wait(
       for: [XCTNSPredicateExpectation(predicate: ready, object: element)], timeout: uiReadinessTimeout)
     if result != .completed { attachUnavailableControl(XCUIApplication()) }
     XCTAssertEqual(result, .completed, "Control must exist, be hittable and enabled: \(element)")
-    element.tap()
+    element.tapReachable()
   }
 }

@@ -54,8 +54,18 @@ func phaseBoundaryHistory() throws {
   let solution = try SearchEngine.solve(
     cube, tables: tables, bounds: SearchBounds(phaseOne: 1, phaseTwo: 1))
   // Stable phase-one traversal first reaches subgroup through R; phase two must permit R2.
-  #expect(solution == [Move(face: .right, turns: .clockwise), Move(face: .right, turns: .half)])
+  // The guide shows the merged turn (R then R2 is R') rather than two turns of one face.
+  #expect(solution == [Move(face: .right, turns: .counterclockwise)])
   #expect(cube.facelets.applying(solution) == .solved)
+}
+
+@Test("Joined phases never show two consecutive turns of the same face")
+func joinedPhasesMergeSameFaceTurns() {
+  let r = Move(face: .right, turns: .clockwise)
+  let u = Move(face: .up, turns: .clockwise)
+  #expect(SearchEngine.merged([u, r, r.inverse, u]) == [Move(face: .up, turns: .half)])
+  #expect(SearchEngine.merged([r, Move(face: .right, turns: .half), u]) == [r.inverse, u])
+  #expect(SearchEngine.merged([r, u]) == [r, u])
 }
 
 private enum TestStop: Error { case stop }

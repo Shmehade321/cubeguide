@@ -163,12 +163,15 @@ struct ContentView: View {
 
   private var navigationTitle: LocalizedStringKey {
     if isPractice { return "Practice" }
+    // The large "CubeGuide" title collapsed and clipped above the scrolling scan screen.
+    if controller.scanWorkflow != nil { return "Scan cube" }
     if controller.session.phase == .home { return "CubeGuide" }
     return controller.session.plan == nil ? "Enter colors" : "Your cube"
   }
 
   private var titleDisplayMode: NavigationBarItem.TitleDisplayMode {
-    controller.session.phase == .home && !showingScanIntroduction ? .large : .inline
+    controller.session.phase == .home && !showingScanIntroduction && controller.scanWorkflow == nil
+      ? .large : .inline
   }
 
   @ToolbarContentBuilder private var toolbarItems: some ToolbarContent {

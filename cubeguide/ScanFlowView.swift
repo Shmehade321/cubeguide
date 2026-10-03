@@ -40,7 +40,7 @@ struct ScanFlowView: View {
               .font(.headline)
               .accessibilityIdentifier("scan.topNeighbor")
           }
-          Text("Fit the whole face inside the grid. Avoid glare and hold still so every sticker is sharp.")
+          Text("Fit the face inside the grid and hold still. It captures automatically.")
             .foregroundStyle(.secondary)
           CameraPreview(session: camera.session)
             .frame(height: 360).clipShape(RoundedRectangle(cornerRadius: 16))
@@ -55,20 +55,13 @@ struct ScanFlowView: View {
               }
             }
             .accessibilityHidden(true)
+          Label(faceStatusText, systemImage: faceStatusSymbol)
+            .font(.headline)
+            .foregroundStyle(camera.faceStatus == .holding ? Color.accentColor : .secondary)
+            .accessibilityIdentifier("scan.faceStatus")
           CTAButton(
             "Capture face", symbol: "camera.circle.fill", identifier: "scan.capture", kind: .primary
-          ) {
-            let result = controller.sendScan(.capture)
-            if result == .accepted {
-              HapticFeedback.light(
-                enabled: controller.preferences.haptics,
-                effectsEnabled: controller.preferences.effects)
-            } else if case .rejected = result {
-              HapticFeedback.warning(
-                enabled: controller.preferences.haptics,
-                effectsEnabled: controller.preferences.effects)
-            }
-          }
+          ) { capture() }
           .disabled(!controller.isCameraReady)
         case .freezing:
           ProgressView("Freezing this face…")
@@ -102,7 +95,9 @@ struct ScanFlowView: View {
           .accessibilityIdentifier("scan.rotatePreview")
           CTAButton("Use this face", identifier: "scan.acceptFace", kind: .primary) {
             acceptError = nil
-            if case .rejected(let reason) = controller.sendScan(.accept) {
+            let result = controller.sendScan(.accept)
+            if result == .accepted { camera.rememberAcceptedFace() }
+            if case .rejected(let reason) = result {
               acceptError =
                 reason == .observation(.duplicateCenter)
                 ? "Another face already uses this center color. Choose this face's own center color, or recapture the other face."
@@ -157,6 +152,8 @@ struct ScanFlowView: View {
             if let palette = controller.pendingScan?.draft.confirmedCenters {
               controller.switchScanToManual(confirmedCenters: palette, confirmed: true)
             } else {
+              // No live camera (or auto-capture) under the sheet.
+              controller.pauseForAuxiliaryNavigation()
               choosingManualCenters = true
             }
           }.accessibilityIdentifier("scan.manualFallback")
@@ -208,10 +205,23 @@ struct ScanFlowView: View {
     .onChange(of: workflow?.review?.slot) { _, slot in
       guard slot != nil else { return }
       resetReview()
+      if let review = workflow?.review, review.centerName == nil,
+        let color = suggestedCenter(review)
+      {
+        controller.sendScan(.editReview(.center(color)))
+      }
     }
     .onAppear { if workflow?.review != nil { resetReview() } }
     .onChange(of: workflow?.review) { _, _ in acceptError = nil }
-    .onDisappear { cropTask?.cancel() }
+    .onChange(of: camera.autoCaptureRequests) {
+      guard workflow?.phase == .scanning, controller.isCameraReady, !choosingManualCenters
+      else { return }
+      capture()
+    }
+    .onDisappear {
+      cropTask?.cancel()
+      camera.forgetAcceptedFace()
+    }
   }
 
   private static func gridSide(for size: CGSize) -> CGFloat {
@@ -306,6 +316,58 @@ struct ScanFlowView: View {
     return Color(.sRGB, red: display.red, green: display.green, blue: display.blue, opacity: 1)
   }
 
+  private func capture() {
+    let result = controller.sendScan(.capture)
+    if result == .accepted {
+      HapticFeedback.light(
+        enabled: controller.preferences.haptics,
+        effectsEnabled: controller.preferences.effects)
+    } else if case .rejected = result {
+      HapticFeedback.warning(
+        enabled: controller.preferences.haptics,
+        effectsEnabled: controller.preferences.effects)
+    }
+  }
+
+  private var faceStatusText: String {
+    guard controller.isCameraReady else { return "Starting camera…" }
+    return switch camera.faceStatus {
+    case .searching: "Point the grid at one face"
+    case .holding: "Hold still…"
+    case .sameFace: "Turn the cube to the next face"
+    }
+  }
+
+  private var faceStatusSymbol: String {
+    switch camera.faceStatus {
+    case .searching: "viewfinder"
+    case .holding: "hand.raised"
+    case .sameFace: "rotate.3d"
+    }
+  }
+
+  /// Typical sticker colors. They name a color only until that color's center has been captured.
+  private static let referenceColors: [(CubeColor, LabColor)] = [
+    (CubeColor.white, (0.93, 0.93, 0.93)), (.yellow, (1, 0.84, 0)), (.red, (0.78, 0.12, 0.18)),
+    (.orange, (1, 0.42, 0)), (.blue, (0, 0.32, 0.73)), (.green, (0, 0.62, 0.32)),
+  ].compactMap { color, rgb in
+    guard let display = try? DisplaySRGB(red: rgb.0, green: rgb.1, blue: rgb.2),
+      let lab = try? ColorConversion.labD65(display)
+    else { return nil }
+    return (color, lab)
+  }
+
+  /// Nearest typical color for a new face's center, skipping colors other centers already use.
+  private func suggestedCenter(_ review: ScanFace) -> CubeColor? {
+    let used = Set(
+      (controller.pendingScan?.draft.faces ?? []).compactMap { $0 }
+        .filter { $0.slot != review.slot }.compactMap(\.centerName))
+    return Self.referenceColors.filter { !used.contains($0.0) }.min {
+      labDistance(review.measurements[4].median, $0.1)
+        < labDistance(review.measurements[4].median, $1.1)
+    }?.0
+  }
+
   private func provisionalColor(at index: Int) -> CubeColor? {
     guard let measurement = workflow?.review?.measurements[index].median else { return nil }
     var centers: [(CubeColor, LabColor)] = controller.pendingScan?.draft.faces.compactMap { face in
@@ -315,6 +377,11 @@ struct ScanFlowView: View {
     if let review = workflow?.review, let color = review.centerName {
       centers.removeAll { $0.0 == color }
       centers.append((color, review.measurements[4].median))
+    }
+    // Until a color's center is captured, name it from its typical sticker color; otherwise
+    // every sticker of the first face reads as that face's center color.
+    centers += Self.referenceColors.filter { reference in
+      !centers.contains { $0.0 == reference.0 }
     }
     return centers.min {
       labDistance(measurement, $0.1) < labDistance(measurement, $1.1)
@@ -444,7 +511,10 @@ struct ScanFlowView: View {
       HStack {
         Text(face.title).font(.headline)
         Spacer()
-        Button("Recapture") { controller.sendScan(.recapture(face)) }
+        Button("Recapture") {
+          camera.forgetAcceptedFace()
+          controller.sendScan(.recapture(face))
+        }
           .accessibilityIdentifier("scan.recapture.\(face.code)")
       }
       LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 8) {

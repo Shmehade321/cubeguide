@@ -284,7 +284,7 @@ final class FoundationUITests: XCTestCase {
       for row in 0..<3 {
         for column in 0..<3 where row != 1 || column != 1 {
           let cell = app.buttons["cell.\(face).\(row).\(column)"]
-          let ready = NSPredicate(format: "exists == true AND hittable == true AND enabled == true")
+          let ready = NSPredicate.readyToTap
           expectation(for: ready, evaluatedWith: cell)
           waitForExpectations(timeout: uiReadinessTimeout)
           cell.tap()
@@ -341,7 +341,13 @@ final class FoundationUITests: XCTestCase {
     XCTAssertTrue(app.staticTexts["Your entered colors are solved"].waitForExistence(timeout: 5))
     XCTAssertTrue(artwork.waitForExistence(timeout: 5))
     XCTAssertEqual(artwork.value as? String, "Front Orange, top Green, right White")
-    tapReady(app.buttons["completion.home"])
+    // "Start another" leaves the completed guide through Home and reaches a new entry.
+    tapReady(app.buttons["completion.startAnother"])
+    tapReady(app.alerts.buttons.matching(identifier: "scanReplacement.confirm").firstMatch)
+    XCTAssertTrue(app.staticTexts["Scan your cube"].waitForExistence(timeout: 5))
+    tapReady(app.buttons["scan.manualFallback"])
+    XCTAssertTrue(app.staticTexts["Assign center colors"].waitForExistence(timeout: 5))
+    tapReady(app.buttons["editor.home"])
     tapReady(app.buttons["home.delete"])
     tapReady(app.alerts.buttons.matching(identifier: "delete.confirm").firstMatch)
   }
@@ -386,7 +392,7 @@ final class FoundationUITests: XCTestCase {
         for column in 0..<3 where row != 1 || column != 1 {
           let color = names[facelets[faceIndex * 9 + row * 3 + column]]!
           let cell = app.buttons["cell.\(face).\(row).\(column)"]
-          let ready = NSPredicate(format: "exists == true AND hittable == true AND enabled == true")
+          let ready = NSPredicate.readyToTap
           expectation(for: ready, evaluatedWith: cell)
           waitForExpectations(timeout: uiReadinessTimeout)
           cell.tap()
@@ -475,13 +481,13 @@ final class FoundationUITests: XCTestCase {
   @MainActor
   private func tapReady(_ element: XCUIElement) {
     let ready = XCTNSPredicateExpectation(
-      predicate: NSPredicate(format: "exists == true AND hittable == true AND enabled == true"),
+      predicate: NSPredicate.readyToTap,
       object: element)
     let result = XCTWaiter.wait(for: [ready], timeout: uiReadinessTimeout)
     if result != .completed { attachUnavailableControl(XCUIApplication()) }
     XCTAssertEqual(result, .completed, "Control must exist, be hittable and enabled: \(element)")
     guard result == .completed else { return }
-    element.tap()
+    element.tapReachable()
   }
 
 }

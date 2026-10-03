@@ -192,12 +192,12 @@ final class GuideUITests: XCTestCase {
       // the viewport. Scroll the real guide instead of waiting for it to shrink.
       let scroll = app.scrollViews.firstMatch
       for _ in 0..<4 {
-        if element.isHittable || !scroll.exists { break }
+        if element.isReachable || !scroll.exists { break }
         if element.frame.midY < scroll.frame.midY { scroll.swipeDown() }
         else { scroll.swipeUp() }
       }
     }
-    if result != .completed || !element.isHittable {
+    if result != .completed || !element.isReachable {
       capture(app, name: "Unavailable guide control")
       let hierarchy = XCTAttachment(string: app.debugDescription)
       hierarchy.name = "Unavailable guide control accessibility hierarchy"
@@ -205,8 +205,8 @@ final class GuideUITests: XCTestCase {
       add(hierarchy)
     }
     XCTAssertEqual(result, .completed, "Guide control must exist and be enabled")
-    XCTAssertTrue(element.isHittable, "Guide control must be reachable by scrolling")
-    guard result == .completed, element.isHittable else { return }
-    element.tap()
+    XCTAssertTrue(element.isReachable, "Guide control must be reachable by scrolling")
+    guard result == .completed, element.isReachable else { return }
+    element.tapReachable()
   }
 }

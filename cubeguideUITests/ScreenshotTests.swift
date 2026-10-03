@@ -83,14 +83,14 @@ final class ScreenshotTests: XCTestCase {
     if result == .completed {
       let scroll = app.scrollViews.firstMatch
       for _ in 0..<4 {
-        if element.isHittable || !scroll.exists { break }
+        if element.isReachable || !scroll.exists { break }
         if element.frame.midY < scroll.frame.midY { scroll.swipeDown() }
         else { scroll.swipeUp() }
       }
     }
     XCTAssertEqual(result, .completed, "Control must exist and be enabled")
-    XCTAssertTrue(element.isHittable, "Control must be reachable by scrolling")
-    guard result == .completed, element.isHittable else { return }
-    element.tap()
+    XCTAssertTrue(element.isReachable, "Control must be reachable by scrolling")
+    guard result == .completed, element.isReachable else { return }
+    element.tapReachable()
   }
 }

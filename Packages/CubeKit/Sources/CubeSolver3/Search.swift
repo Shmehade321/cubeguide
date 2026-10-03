@@ -33,7 +33,19 @@ package enum SearchEngine {
     // Phase two deliberately starts with no previous face from phase one.
     let second = try job.secondPhase(subgroup, maximumDepth: bounds.phaseTwo)
     try check(.finished, job.visited)
-    return first + second
+    return merged(first + second)
+  }
+
+  /// Phase one can end with a turn of the face phase two starts with (R then R2). Merge such
+  /// neighbors so the guide never shows two turns of one face in a row (R then R2 is R').
+  package static func merged(_ moves: [Move]) -> [Move] {
+    moves.reduce(into: []) { result, move in
+      guard let last = result.last, last.face == move.face else { return result.append(move) }
+      result.removeLast()
+      if let turns = QuarterTurns(rawValue: (last.turns.rawValue + move.turns.rawValue) % 4) {
+        result.append(Move(face: move.face, turns: turns))
+      }
+    }
   }
 }
 

@@ -28,7 +28,8 @@ extension XCUIElement {
   @MainActor func waitUntilSettled() -> Bool {
     var previous: CGRect?
     let settled = NSPredicate { _, _ in
-      guard self.exists, self.isHittable, self.isEnabled else {
+      // isReachable: iOS 26+ bottom-bar buttons are reachable by a finger but not "hittable".
+      guard self.exists, self.isReachable, self.isEnabled else {
         previous = nil
         return false
       }

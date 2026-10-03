@@ -191,7 +191,7 @@ final class ReduceMotionUITests: XCTestCase {
         }
       }
       XCTAssertGreaterThan(viewport.height, 44, "Guide needs a usable scrolling viewport")
-      if element.exists && element.isHittable {
+      if element.exists && element.isReachable {
         let frame = element.frame
         let usable = viewport.insetBy(dx: 0, dy: 4)
         // A sliver below the navigation bar can be "hittable" even though
@@ -221,9 +221,9 @@ final class ReduceMotionUITests: XCTestCase {
 
   @MainActor private func tap(_ element: XCUIElement) {
     let ready = XCTNSPredicateExpectation(
-      predicate: NSPredicate(format: "exists == true AND hittable == true AND enabled == true"), object: element)
+      predicate: NSPredicate.readyToTap, object: element)
     XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: uiReadinessTimeout), .completed)
-    element.tap()
+    element.tapReachable()
   }
 
   @MainActor private func capture(_ app: XCUIApplication, _ name: String) {

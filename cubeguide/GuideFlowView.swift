@@ -56,6 +56,8 @@ struct GuideFlowView: View {
                 controller.preferences.colorLabelsEnabled(differentiateWithoutColor: differentiate)
             )
             .frame(height: 220)
+            // A new palette builds a new scene; rebuild the view so it shows that scene.
+            .id(ObjectIdentifier(scene))
             .accessibilityLabel("Cube demonstration")
             .accessibilityIdentifier("guide.animatedCube")
             if let palette = controller.palette {
