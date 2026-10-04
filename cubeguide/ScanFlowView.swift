@@ -73,7 +73,7 @@ struct ScanFlowView: View {
               .rotationEffect(.degrees(Double(workflow?.review?.correctionTurns ?? 0) * 90))
               .accessibilityIdentifier("scan.cropEditor")
           }
-          Text("Drag the four handles to the face corners. Readings are provisional until all six centers are known.")
+          Text("Check every color and tap any that is wrong. Use this face confirms the colors shown. Drag the four handles if the grid missed the face.")
             .foregroundStyle(.secondary)
           if isReprocessing { ProgressView("Updating color readings…") }
           if let cropError {
@@ -95,6 +95,7 @@ struct ScanFlowView: View {
           .accessibilityIdentifier("scan.rotatePreview")
           CTAButton("Use this face", identifier: "scan.acceptFace", kind: .primary) {
             acceptError = nil
+            confirmShownColors()
             let result = controller.sendScan(.accept)
             if result == .accepted { camera.rememberAcceptedFace() }
             if case .rejected(let reason) = result {
@@ -298,7 +299,7 @@ struct ScanFlowView: View {
               .overlay(Circle().stroke(.primary.opacity(0.4), lineWidth: 1))
               .frame(width: 30, height: 30)
             Text(color?.title ?? "Unknown").font(.caption.bold()).lineLimit(1)
-            Text(index == 4 ? "Center" : override == nil ? "Provisional" : "Confirmed")
+            Text(index == 4 ? "Center" : override == nil ? "Detected" : "Confirmed")
               .font(.caption2).foregroundStyle(.secondary)
           }
           .frame(maxWidth: .infinity, minHeight: 72)
@@ -314,6 +315,17 @@ struct ScanFlowView: View {
   private func measuredColor(at index: Int) -> Color {
     guard let display = workflow?.review?.measurements[index].display else { return .gray }
     return Color(.sRGB, red: display.red, green: display.green, blue: display.blue, opacity: 1)
+  }
+
+  /// Accepting a face confirms the colors it shows: each sticker still read automatically is
+  /// recorded as the user's choice, so the six-face review needs no second pass over 48 stickers
+  /// and no uncalibrated automatic reading is ever accepted unseen.
+  private func confirmShownColors() {
+    guard let review = workflow?.review else { return }
+    for index in 0..<9 where index != 4 && review.manualOverrides[index] == nil {
+      guard let color = provisionalColor(at: index) else { continue }
+      controller.sendScan(.editReview(.sticker(row: index / 3, column: index % 3, color: color)))
+    }
   }
 
   private func capture() {
@@ -432,7 +444,7 @@ struct ScanFlowView: View {
   private func editingReview(saving: Bool) -> some View {
     Text("Review all six faces").font(.title.bold())
     Text(
-      "Automatic color confidence is not yet calibrated. Confirm every non-center sticker before accepting the scan."
+      "You confirmed each face's colors when you accepted it. Tap any sticker to correct it before accepting the scan."
     )
     let current = classification
     let related = relatedCells(current)
@@ -446,7 +458,8 @@ struct ScanFlowView: View {
       let remaining = classification.stickers.filter(\.needsReview).count
       Text(
         remaining == 0
-          ? "All stickers have been reviewed." : "\(remaining) stickers still need review."
+          ? "All stickers have been reviewed."
+          : remaining == 1 ? "1 sticker still needs review." : "\(remaining) stickers still need review."
       )
       .foregroundStyle(remaining == 0 ? .green : .secondary)
       CTAButton(

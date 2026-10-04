@@ -107,7 +107,8 @@ struct ManualEditorView: View {
         Text(
           "Tap an empty square to enter its color. Keep the top edge of each face aligned with the named neighbor. Swipe the net sideways to reach every face."
         )
-        Text("\(draft.missingCount) stickers left").font(.headline)
+        Text("\(draft.missingCount) \(draft.missingCount == 1 ? "sticker" : "stickers") left")
+          .font(.headline)
         NavigationLink {
           CubePreviewScreen(draft: draft, showColorLabels: showColorLabels)
         } label: {

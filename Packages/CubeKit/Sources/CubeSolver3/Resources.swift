@@ -17,9 +17,24 @@ private struct ResourceManifest: Decodable {
     }
 }
 
+private final class ResourceBundleFinder {}
+
 package enum SolverResources {
+    /// Searches the same places as SwiftPM's generated `Bundle.module`, which calls fatalError
+    /// when the bundle is missing; a broken package must surface as a resource failure instead.
+    package static func resourceBundle(searching candidates: [URL?]? = nil) -> Bundle? {
+        let finder = Bundle(for: ResourceBundleFinder.self)
+        let places = candidates ?? [
+            Bundle.main.resourceURL, finder.resourceURL, Bundle.main.bundleURL,
+            finder.bundleURL.deletingLastPathComponent(),
+        ]
+        return places.lazy.compactMap { place in
+            place.flatMap { Bundle(url: $0.appendingPathComponent("CubeKit_CubeSolver3.bundle")) }
+        }.first
+    }
+
     package static func bundledDirectory() throws -> URL {
-        guard let root = Bundle.module.resourceURL else { throw ResourceError.missingResource("Tables") }
+        guard let root = resourceBundle()?.resourceURL else { throw ResourceError.missingResource("Tables") }
         return root.appendingPathComponent("Tables",isDirectory:true)
     }
 

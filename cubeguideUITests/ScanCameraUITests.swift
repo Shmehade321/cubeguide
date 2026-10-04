@@ -105,4 +105,62 @@ final class ScanCameraUITests: XCTestCase {
     shoot(app, "t5-after-manual-home")
     XCTAssertTrue(title.exists)
   }
+
+  /// End to end on the simulator: the simulated camera photographs a known scrambled cube, and
+  /// the real sampling, color naming, review, acceptance and solver run on those photos.
+  @MainActor
+  func testSimulatedScanOfScrambledCubeReachesGuide() throws {
+    #if !targetEnvironment(simulator)
+      throw XCTSkip("The simulated camera exists only in simulator builds")
+    #else
+      // A literal R-turn of a solved cube, URFDLB order.
+      let facelets = Array("UUFUUFUUFRRRRRRRRRFFDFFDFFDDDBDDBDDBLLLLLLLLLUBBUBBUBB")
+      let names: [Character: String] = [
+        "U": "White", "R": "Red", "F": "Green", "D": "Yellow", "L": "Orange", "B": "Blue",
+      ]
+      let order: [(code: String, index: Int)] = [
+        ("F", 2), ("R", 1), ("B", 5), ("L", 4), ("U", 0), ("D", 3),
+      ]
+      let app = XCUIApplication.launchIsolatedAndClean(
+        environment: ["CUBEGUIDE_SIMULATED_SCAN": String(facelets)])
+      XCTAssertTrue(app.buttons["home.scan"].waitForExistence(timeout: 5))
+      app.buttons["home.scan"].tap()
+      app.buttons["scan.start"].tap()
+      for face in order {
+        let capture = app.buttons["scan.capture"]
+        XCTAssertTrue(capture.waitForExistence(timeout: 10), "No capture for \(face.code)")
+        XCTAssertTrue(
+          XCTWaiter.wait(
+            for: [XCTNSPredicateExpectation(predicate: .readyToTap, object: capture)], timeout: 10)
+            == .completed)
+        capture.tap()
+        let accept = app.buttons["scan.acceptFace"]
+        XCTAssertTrue(accept.waitForExistence(timeout: 15), "No review for \(face.code)")
+        // The center is suggested and every sticker is named from the photo, in place.
+        let center = names[facelets[face.index * 9 + 4]]!
+        XCTAssertTrue(
+          app.buttons["scan.center"].label.contains(center),
+          "\(face.code) center: \(app.buttons["scan.center"].label)")
+        for sticker in 0..<9 where sticker != 4 {
+          let expected = names[facelets[face.index * 9 + sticker]]!
+          let label = app.buttons["scan.reviewSticker.\(sticker)"].label
+          XCTAssertTrue(label.contains(expected), "\(face.code) \(sticker): \(label)")
+        }
+        if face.code == "F" { shoot(app, "review-front") }
+        accept.tap()
+      }
+      // Accepting each face confirmed its colors: the six-face review needs no more taps.
+      XCTAssertTrue(app.staticTexts["All stickers have been reviewed."].waitForExistence(timeout: 15))
+      shoot(app, "six-face-review")
+      let acceptScan = app.buttons["scan.acceptReviewed"]
+      for _ in 0..<6 where !acceptScan.isHittable { app.swipeUp() }
+      acceptScan.tap()
+      XCTAssertTrue(app.buttons["solve.consent"].waitForExistence(timeout: 15))
+      app.buttons["solve.consent"].tap()
+      XCTAssertTrue(app.buttons["guide.align"].waitForExistence(timeout: 30))
+      shoot(app, "guide-from-scan")
+      app.terminate()
+      _ = XCUIApplication.launchIsolatedAndClean()
+    #endif
+  }
 }

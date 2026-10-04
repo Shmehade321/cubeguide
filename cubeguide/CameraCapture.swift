@@ -68,6 +68,12 @@ final class CameraCapture: NSObject, ScanCamera {
     cameraEvent = event
     faceStatus = .searching
     updateFaceRegion()
+    #if DEBUG && targetEnvironment(simulator)
+      if SimulatedCamera.isActive {
+        Task { @MainActor in event(.ready) }
+        return
+      }
+    #endif
     startupTask = Task { [weak self] in
       guard let self else { return }
       let authorized: Bool
@@ -109,7 +115,7 @@ final class CameraCapture: NSObject, ScanCamera {
     let token = attemptGuard.begin(id)
     let layout = viewfinder
     frozenCells = latestCells
-    let proxy = PhotoDelegate { [weak self] data in
+    let deliver: @MainActor @Sendable (Data?) -> Void = { [weak self] data in
       guard let self else { return }
       guard self.attemptGuard.matches(id, token: token), let data else {
         guard self.attemptGuard.complete(id, token: token) else { return }
@@ -139,6 +145,14 @@ final class CameraCapture: NSObject, ScanCamera {
         }
       }
     }
+    #if DEBUG && targetEnvironment(simulator)
+      if SimulatedCamera.isActive {
+        let photo = SimulatedCamera.photo(of: slot, viewfinder: layout)
+        Task { @MainActor in deliver(photo) }
+        return
+      }
+    #endif
+    let proxy = PhotoDelegate(completion: deliver)
     delegate = proxy
     sessionWorker.capture(
       delegate: proxy,
@@ -201,6 +215,10 @@ final class CameraCapture: NSObject, ScanCamera {
   }
 
   private func sessionInterrupted() {
+    #if DEBUG && targetEnvironment(simulator)
+      // The simulator's camera-less capture session reports errors the simulated camera ignores.
+      if SimulatedCamera.isActive { return }
+    #endif
     attemptGuard.invalidate()
     processingTask?.cancel()
     processingTask = nil

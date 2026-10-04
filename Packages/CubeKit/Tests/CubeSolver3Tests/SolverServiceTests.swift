@@ -99,6 +99,26 @@ func serializedService() async throws {
   #expect(gate.maximumActive == 1)
 }
 
+@Test("V06: searches from separate services never run at the same time")
+func serializedAcrossServices() async throws {
+  let cube = try CubeValidation.validate(.solved).get()
+  let gate = WorkerGate()
+  defer { gate.release() }
+  let first = SolverService(runner: gate.run)
+  let second = SolverService(runner: gate.run)
+  let a = Task { await first.solve(cube, revision: 1) }
+  var events = gate.entered.makeAsyncIterator()
+  #expect(await events.next() == 1)
+  let b = Task { await second.solve(cube, revision: 1) }
+  // A second search that ran beside the blocked first one would enter the gate now.
+  try await Task.sleep(for: .milliseconds(300))
+  #expect(gate.maximumActive == 1)
+  gate.release()
+  _ = await a.value
+  _ = await b.value
+  #expect(gate.maximumActive == 1)
+}
+
 @Test("V06: explicit service cancellation cannot return a completed stale plan")
 func explicitServiceCancellation() async throws {
   let cube = try CubeValidation.validate(.solved).get()

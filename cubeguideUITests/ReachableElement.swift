@@ -29,9 +29,12 @@ extension NSPredicate {
 extension XCUIApplication {
   /// Launches on an isolated store (never the owner's saved cube) and clears any leftover
   /// scan, guide or entry from earlier runs, ending on an empty Home.
-  @MainActor static func launchIsolatedAndClean() -> XCUIApplication {
+  @MainActor static func launchIsolatedAndClean(environment: [String: String] = [:])
+    -> XCUIApplication
+  {
     let app = XCUIApplication()
     app.launchEnvironment["CUBEGUIDE_UI_TEST_STORE"] = "1"
+    app.launchEnvironment.merge(environment) { $1 }
     app.launch()
     if app.buttons["scan.cancel"].waitForExistence(timeout: 2) { app.buttons["scan.cancel"].tap() }
     if app.buttons["scan.discard"].waitForExistence(timeout: 2) {

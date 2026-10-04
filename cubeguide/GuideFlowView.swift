@@ -10,6 +10,12 @@ struct GuideFlowView: View {
   let presentation: GuidePresentation
   @State private var comparisonAfter = false
   @Environment(\.dynamicTypeSize) private var textSize
+  @Environment(\.verticalSizeClass) private var verticalSizeClass
+  /// Landscape and the largest text sizes leave little height; keep the cube and its controls
+  /// on screen together, matching the static guide's compact size.
+  private var cubeHeight: CGFloat {
+    verticalSizeClass == .compact ? 120 : textSize.isAccessibilitySize ? 180 : 220
+  }
   private var controlsLayout: AnyLayout {
     textSize.isAccessibilitySize
       ? AnyLayout(VStackLayout(spacing: 8)) : AnyLayout(HStackLayout(spacing: 8))
@@ -30,7 +36,9 @@ struct GuideFlowView: View {
         }
         .font(.headline)
         if let progress = controller.session.guideProgress {
-          Text("\(progress.plan.moves.count) moves in the verified solution.")
+          Text(
+            "\(progress.plan.moves.count) \(progress.plan.moves.count == 1 ? "move" : "moves") in the verified solution."
+          )
             .font(.caption).foregroundStyle(.secondary)
             .accessibilityIdentifier("solve.moveCount")
           Text("Step \(progress.acknowledgedActions + 1) of \(progress.actions.count)")
@@ -55,7 +63,7 @@ struct GuideFlowView: View {
               showColorLabels:
                 controller.preferences.colorLabelsEnabled(differentiateWithoutColor: differentiate)
             )
-            .frame(height: 220)
+            .frame(height: cubeHeight)
             // A new palette builds a new scene; rebuild the view so it shows that scene.
             .id(ObjectIdentifier(scene))
             .accessibilityLabel("Cube demonstration")

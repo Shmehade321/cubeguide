@@ -223,7 +223,7 @@ final class FoundationUITests: XCTestCase {
     XCTAssertTrue(app.staticTexts["practice.banner"].waitForExistence(timeout: 5))
     tapReady(app.buttons["cell.U.0.0"])
     tapReady(app.sheets.buttons.matching(identifier: "sticker.clear").firstMatch)
-    XCTAssertTrue(app.staticTexts["1 stickers left"].waitForExistence(timeout: 5))
+    XCTAssertTrue(app.staticTexts["1 sticker left"].waitForExistence(timeout: 5))
     tapReady(app.buttons["practice.exit"])
     tapReady(app.buttons["home.resume"])
     XCTAssertTrue(sticker.waitForExistence(timeout: 5))

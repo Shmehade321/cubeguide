@@ -74,3 +74,12 @@ func cancelResourceLoad() throws {
     }
     #expect(calls == 4)
 }
+
+@Test("V04: a missing resource bundle is reported as missing instead of trapping")
+func missingResourceBundleIsReported() throws {
+  let empty = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+  try FileManager.default.createDirectory(at: empty, withIntermediateDirectories: true)
+  defer { try? FileManager.default.removeItem(at: empty) }
+  #expect(SolverResources.resourceBundle(searching: [empty, nil]) == nil)
+  #expect(SolverResources.resourceBundle() != nil)
+}

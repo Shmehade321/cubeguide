@@ -21,7 +21,9 @@ MUTATIONS=[
  ('misclassify-wrong-answer','SolverRuntime.swift','case .failure: return finish(.verificationFailure)','case .failure: return finish(.invariantFailure)','runtimeFailures'),
  ('discard-valid-resource-cache','SolverService.swift','let tables = cachedTables','let tables: SolverTables? = nil','serviceCachesValidatedResources'),
  ('expose-completed-stale-answer','SolverService.swift','guard latestRequest == id, !Task.isCancelled, !cancellation.isCancelled else','guard true else','explicitServiceCancellation'),
- ('overlap-replacement-workers','SolverService.swift','let settled = await previous.task.value','let settled = SolverRunResult(outcome: .cancelled, tables: nil, elapsed: .zero, visitedNodes: 0)','serializedService'),
+ # One process-wide serial queue runs every search (407d12b). It also masks the per-service wait
+ # for the previous worker, so the mutation removes that queue's serialization instead.
+ ('overlap-solver-searches','SolverService.swift','DispatchQueue(label: "cubeguide.solver", qos: .userInitiated)','DispatchQueue(label: "cubeguide.solver", qos: .userInitiated, attributes: .concurrent)','serializedAcrossServices'),
 ]
 results=[]
 for name,filename,old,new,test in MUTATIONS:
